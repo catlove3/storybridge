@@ -131,10 +131,12 @@ class StoryBridgeWorkflow:
             )
 
             while report.blocking_issues and rounds < self.max_repair_rounds:
-                rounds += 1
                 issues = [
                     (i.scene_id, i.description) for i in report.blocking_issues if i.scene_id
                 ]
+                if not issues:
+                    break
+                rounds += 1
                 brief = f"{plan.original_name} -> {option.replacement_definition}"
                 repaired_scene_ids.extend(await self.rewriter.repair(state, issues, brief))
                 self.store.save_state(
