@@ -34,9 +34,16 @@ class ProjectStore:
         self.projects_dir.mkdir(parents=True, exist_ok=True)
 
     def _dir(self, project_id: str) -> Path:
+        if not project_id or not project_id.isalnum() or len(project_id) < 4:
+            raise KeyError(f"invalid project id: {project_id!r}")
         path = self.projects_dir / project_id
         path.mkdir(parents=True, exist_ok=True)
         return path
+
+    def _peek_dir(self, project_id: str) -> Path:
+        if not project_id or not project_id.isalnum() or len(project_id) < 4:
+            raise KeyError(f"invalid project id: {project_id!r}")
+        return self.projects_dir / project_id
 
     def _history_dir(self, project_id: str) -> Path:
         path = self._dir(project_id) / "history"
@@ -70,11 +77,11 @@ class ProjectStore:
         return metas
 
     def load_meta(self, project_id: str) -> ProjectMeta | None:
-        raw = self._read_json(self._dir(project_id) / "project.json")
+        raw = self._read_json(self._peek_dir(project_id) / "project.json")
         return ProjectMeta.model_validate(raw) if raw else None
 
     def load_state(self, project_id: str) -> StoryState | None:
-        raw = self._read_json(self._dir(project_id) / "state.json")
+        raw = self._read_json(self._peek_dir(project_id) / "state.json")
         if raw is None:
             return None
         try:
@@ -86,7 +93,7 @@ class ProjectStore:
         return state
 
     def list_revisions(self, project_id: str) -> list[Revision]:
-        raw = self._read_json(self._dir(project_id) / "revisions.json")
+        raw = self._read_json(self._peek_dir(project_id) / "revisions.json")
         return [Revision.model_validate(r) for r in (raw or [])]
 
     def save_state(
@@ -130,7 +137,7 @@ class ProjectStore:
         )
 
     def load_plans(self, project_id: str) -> list[AdaptationPlan]:
-        raw = self._read_json(self._dir(project_id) / "plans.json")
+        raw = self._read_json(self._peek_dir(project_id) / "plans.json")
         return [AdaptationPlan.model_validate(p) for p in (raw or [])]
 
     def load_plan(self, project_id: str, mechanism_id: str) -> AdaptationPlan | None:
@@ -148,5 +155,5 @@ class ProjectStore:
         )
 
     def load_applied(self, project_id: str) -> list[AppliedAdaptation]:
-        raw = self._read_json(self._dir(project_id) / "adaptations.json")
+        raw = self._read_json(self._peek_dir(project_id) / "adaptations.json")
         return [AppliedAdaptation.model_validate(a) for a in (raw or [])]
