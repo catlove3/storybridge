@@ -2,16 +2,18 @@ from __future__ import annotations
 
 from app.graph import StoryGraph
 from app.llm import LLMClient
-from app.llm.structured import generate_structured
-from app.prompts import plan_adaptation_system, plan_adaptation_user
 from app.schemas import AdaptationPlan, CultureMechanism, StoryState
+from app.skills import PLAN_ADAPTATION, SkillSpec
 
 
 class AdaptationPlanner:
-    step_name = "plan_adaptation"
-
-    def __init__(self, client: LLMClient) -> None:
+    def __init__(self, client: LLMClient, skill: SkillSpec = PLAN_ADAPTATION) -> None:
         self.client = client
+        self.skill = skill
+
+    @property
+    def step_name(self) -> str:
+        return self.skill.name
 
     def _related_context(self, state: StoryState, mechanism: CultureMechanism) -> dict:
         graph = StoryGraph(state)
@@ -66,14 +68,9 @@ class AdaptationPlanner:
         }
         context = self._related_context(state, mechanism)
 
-        return await generate_structured(
+        return await self.skill.run(
             self.client,
-            AdaptationPlan,
-            step=self.step_name,
-            system_prompt=plan_adaptation_system(),
-            user_prompt=plan_adaptation_user(
-                mechanism.model_dump(),
-                context,
-                profile,
-            ),
+            mechanism_json=mechanism.model_dump(),
+            related_context_json=context,
+            target_market_profile=profile,
         )

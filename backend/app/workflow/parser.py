@@ -1,23 +1,20 @@
 from __future__ import annotations
 
 from app.llm import LLMClient
-from app.llm.structured import generate_structured
-from app.prompts import parse_story_system, parse_story_user
 from app.schemas import StoryState
+from app.skills import PARSE_STORY, SkillSpec
 
 
 class StoryParser:
-    step_name = "parse_story"
-
-    def __init__(self, client: LLMClient) -> None:
+    def __init__(self, client: LLMClient, skill: SkillSpec = PARSE_STORY) -> None:
         self.client = client
+        self.skill = skill
+
+    @property
+    def step_name(self) -> str:
+        return self.skill.name
 
     async def parse(self, script_text: str, target_market: str = "") -> StoryState:
-        return await generate_structured(
-            self.client,
-            StoryState,
-            step=self.step_name,
-            system_prompt=parse_story_system(),
-            user_prompt=parse_story_user(script_text, target_market),
-            max_tokens=8192,
+        return await self.skill.run(
+            self.client, script_text=script_text, target_market=target_market
         )

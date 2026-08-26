@@ -67,3 +67,10 @@ class AppliedAdaptation(BaseModel):
     propagation: PropagationResult
     rewritten_scene_ids: list[str]
     notes: str = ""
+
+
+class RewrittenScene(BaseModel):
+    id: str
+    title: str = ""
+    summary: str = ""
+    text: str
