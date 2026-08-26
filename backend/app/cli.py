@@ -224,7 +224,14 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> None:
     parser = build_parser()
     args = parser.parse_args(argv)
-    asyncio.run(args.func(args))
+    try:
+        asyncio.run(args.func(args))
+    except FileNotFoundError as exc:
+        print(f"error: file not found: {exc.filename}", file=sys.stderr)
+        raise SystemExit(2) from exc
+    except KeyError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        raise SystemExit(3) from exc
 
 
 if __name__ == "__main__":
