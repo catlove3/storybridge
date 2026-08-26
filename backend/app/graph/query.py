@@ -40,6 +40,12 @@ def _kinds_for_path(relations: list[str]) -> set[ImpactKind]:
     return kinds or {ImpactKind.STRUCTURAL}
 
 
+def _natural_key(node_id: str):
+    head = node_id.rstrip("0123456789")
+    tail = node_id[len(head) :]
+    return (head, int(tail) if tail else -1)
+
+
 class PropagationEngine:
     def __init__(self, graph: StoryGraph, min_confidence: float = 0.0, max_depth: int = 6) -> None:
         self.graph = graph
@@ -97,7 +103,7 @@ class PropagationEngine:
             elif kind.value == "commitment":
                 related_commitments.add(node_id)
 
-        ordered = sorted(affected.values(), key=lambda a: a.scene_id)
+        ordered = sorted(affected.values(), key=lambda a: _natural_key(a.scene_id))
         mechanism = self._mechanism_name(changed_node_id)
         summary = (
             f"Changing '{changed_node_id}' ({mechanism}) affects "
