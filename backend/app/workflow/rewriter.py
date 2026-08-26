@@ -1,34 +1,27 @@
 from __future__ import annotations
 
-from pydantic import BaseModel
-
 from app.graph import PropagationEngine, StoryGraph
 from app.llm import LLMClient
-from app.llm.structured import generate_structured
-from app.prompts import rewrite_scene_system, rewrite_scene_user
 from app.schemas import (
     AdaptationOption,
     AppliedAdaptation,
-    Commitment,
     CultureMechanism,
     PropagationResult,
+    RewrittenScene,
     Scene,
     StoryState,
 )
-
-
-class RewrittenScene(BaseModel):
-    id: str
-    title: str = ""
-    summary: str = ""
-    text: str
+from app.skills import REWRITE_SCENE, SkillSpec
 
 
 class SceneRewriter:
-    step_name = "rewrite_scene"
-
-    def __init__(self, client: LLMClient) -> None:
+    def __init__(self, client: LLMClient, skill: SkillSpec = REWRITE_SCENE) -> None:
         self.client = client
+        self.skill = skill
+
+    @property
+    def step_name(self) -> str:
+        return self.skill.name
 
     def _adaptation_brief(self, mechanism: CultureMechanism, option: AdaptationOption) -> str:
         functions = mechanism.functions.model_dump(exclude_none=True)
@@ -91,18 +84,13 @@ class SceneRewriter:
             scene = state.scene_by_id(affected.scene_id)
             if scene is None:
                 continue
-            rewritten = await generate_structured(
+            rewritten = await self.skill.run(
                 self.client,
-                RewrittenScene,
-                step=self.step_name,
-                system_prompt=rewrite_scene_system(),
-                user_prompt=rewrite_scene_user(
-                    scene_json=scene.model_dump(),
-                    adaptation_brief=brief,
-                    must_preserve_commitments=commitments,
-                    neighbor_summaries=self._neighbor_summaries(state, scene.id),
-                    character_sheet=self._character_sheet(state, scene),
-                ),
+                scene_json=scene.model_dump(),
+                adaptation_brief=brief,
+                must_preserve_commitments=commitments,
+                neighbor_summaries=self._neighbor_summaries(state, scene.id),
+                character_sheet=self._character_sheet(state, scene),
             )
             scene.title = rewritten.title or scene.title
             scene.summary = rewritten.summary or scene.summary
@@ -141,20 +129,15 @@ class SceneRewriter:
                 + (adaptation_brief + "\n" if adaptation_brief else "")
                 + "\n".join(f"- {d}" for d in descriptions)
             )
-            rewritten = await generate_structured(
+            rewritten = await self.skill.run(
                 self.client,
-                RewrittenScene,
-                step=self.step_name,
-                system_prompt=rewrite_scene_system(),
-                user_prompt=rewrite_scene_user(
-                    scene_json=scene.model_dump(),
-                    adaptation_brief=brief,
-                    must_preserve_commitments=[
-                        f"{nc.id}: {nc.description}" for nc in state.commitments if nc.must_preserve
-                    ],
-                    neighbor_summaries=self._neighbor_summaries(state, scene.id),
-                    character_sheet=self._character_sheet(state, scene),
-                ),
+                scene_json=scene.model_dump(),
+                adaptation_brief=brief,
+                must_preserve_commitments=[
+                    f"{nc.id}: {nc.description}" for nc in state.commitments if nc.must_preserve
+                ],
+                neighbor_summaries=self._neighbor_summaries(state, scene.id),
+                character_sheet=self._character_sheet(state, scene),
             )
             scene.title = rewritten.title or scene.title
             scene.summary = rewritten.summary or scene.summary

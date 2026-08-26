@@ -3,9 +3,8 @@ from __future__ import annotations
 import re
 
 from app.llm import LLMClient
-from app.llm.structured import generate_structured
-from app.prompts import verify_consistency_system, verify_consistency_user
 from app.schemas import CommitmentCheck, IssueType, StoryState, VerificationIssue, VerifyReport
+from app.skills import VERIFY_CONSISTENCY, SkillSpec
 from app.workflow.static_checks import check_stale_references, merge_reports, run_static_checks
 
 
@@ -14,10 +13,13 @@ def _norm(text: str) -> str:
 
 
 class Verifier:
-    step_name = "verify_consistency"
-
-    def __init__(self, client: LLMClient) -> None:
+    def __init__(self, client: LLMClient, skill: SkillSpec = VERIFY_CONSISTENCY) -> None:
         self.client = client
+        self.skill = skill
+
+    @property
+    def step_name(self) -> str:
+        return self.skill.name
 
     def _digest(self, state: StoryState) -> dict:
         return {
@@ -57,7 +59,6 @@ class Verifier:
         report.issues = [
             i for i in report.issues if i.scene_id is None or i.scene_id in known_scene_ids
         ]
-        report.issues = Verifier._cross_check_stale_refs(state, report.issues)
         report.issues = Verifier._cross_check_stale_refs(state, report.issues)
         report.commitment_checks = [
             c for c in report.commitment_checks if c.commitment_id in known_commitment_ids
@@ -115,17 +116,11 @@ class Verifier:
         changed_scene_ids: list[str] | None = None,
         applied_adaptations_summary: str = "",
     ) -> VerifyReport:
-        report = await generate_structured(
+        report = await self.skill.run(
             self.client,
-            VerifyReport,
-            step=self.step_name,
-            system_prompt=verify_consistency_system(),
-            user_prompt=verify_consistency_user(
-                self._digest(state),
-                changed_scene_ids or [],
-                applied_adaptations_summary,
-            ),
-            max_tokens=8192,
+            state_digest_json=self._digest(state),
+            changed_scene_ids=changed_scene_ids or [],
+            applied_adaptations_summary=applied_adaptations_summary,
         )
         report = self.sanitize(state, report)
         report.issues = merge_reports(run_static_checks(state), report.issues)

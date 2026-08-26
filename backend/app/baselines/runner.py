@@ -5,9 +5,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from app.llm import LLMClient, LLMRequest
-from app.llm.structured import generate_structured
 from app.prompts import parse_story_system, parse_story_user
 from app.schemas import StoryState
+from app.skills import PARSE_STORY
 from app.workflow.engine import StoryBridgeWorkflow
 from app.baselines.metrics import EvalMetrics, evaluate_output, format_metrics_table
 from app.baselines.prompts import (
@@ -32,12 +32,8 @@ class BaselineRunner:
         self.client = client
 
     async def _reparse(self, script_text: str, market: str) -> StoryState:
-        return await generate_structured(
-            self.client,
-            StoryState,
-            step="parse_story",
-            system_prompt=parse_story_system(),
-            user_prompt=parse_story_user(script_text, target_market=market),
+        return await PARSE_STORY.run(
+            self.client, script_text=script_text, target_market=market
         )
 
     @staticmethod

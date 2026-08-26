@@ -30,10 +30,25 @@ script → StoryParser(parse_story) → FrictionDetector(detect_frictions)
 
 核心原则：**状态、依赖检索、修改范围、验证流程由代码控制；LLM 只负责语义理解与生成。**
 
+## Skill 层（v2 架构）
+
+每个 LLM 能力是一个 **SkillSpec**（`app/skills/registry.py`）：prompt 模板 + 输出 schema +
+生成参数（max_tokens/temperature/重试次数）+ step 路由名，集中声明、独立演进。
+
+```python
+from app.skills import get_skill
+state = await get_skill("parse_story").run(client, script_text=..., target_market=...)
+```
+
+- **微调落地路径**：SFT 语料按 skill 名分文件落盘（`data/sft_logs/{skill}.jsonl`），
+  `config/models.yaml` 的 `step_routes` 把该 skill 指向微调模型端点即可，workflow 代码零改动
+- **新增能力**：定义 SkillSpec → 注册 → workflow 注入，不动 generate_structured 逻辑
+- 5 个内置 skill：parse_story / detect_frictions / plan_adaptation / rewrite_scene / verify_consistency
+
 ## 微调模型兼容设计
 
-1. **模型路由** `config/models.yaml`：每个 workflow step 独立绑定模型 profile。
-   将来某个步骤换微调模型，只改 yaml：
+1. **模型路由** `config/models.yaml`：每个 skill 独立绑定模型 profile。
+   将来某个 skill 换微调模型，只改 yaml：
 
    ```yaml
    step_routes:

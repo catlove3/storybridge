@@ -6,6 +6,7 @@ from .adaptation import (
     AppliedAdaptation,
     ImpactKind,
     PropagationResult,
+    RewrittenScene,
 )
 from .common import (
     EDGE_RELATIONS_REQUIRING_RECHECK,
@@ -16,6 +17,7 @@ from .common import (
     PlotFunction,
     SocialFunction,
 )
+from .friction import FrictionDetectionResult, MechanismFriction
 from .story_state import (
     Character,
     Commitment,
@@ -51,14 +53,17 @@ __all__ = [
     "EdgeRelation",
     "EmotionalFunction",
     "Event",
+    "FrictionDetectionResult",
     "FunctionTags",
     "ImpactKind",
     "IssueType",
     "Level",
+    "MechanismFriction",
     "NodeKind",
     "PlotFunction",
     "PropagationResult",
     "Revision",
+    "RewrittenScene",
     "Scene",
     "Setting",
     "Severity",

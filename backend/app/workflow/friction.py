@@ -1,29 +1,18 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
-
 from app.llm import LLMClient
-from app.llm.structured import generate_structured
-from app.prompts import detect_frictions_system, detect_frictions_user
-from app.schemas import FunctionTags, Level, StoryState
-
-
-class MechanismFriction(BaseModel):
-    id: str
-    friction_level: Level = Level.MEDIUM
-    narrative_importance: Level = Level.MEDIUM
-    functions: FunctionTags = Field(default_factory=FunctionTags)
-
-
-class FrictionDetectionResult(BaseModel):
-    mechanisms: list[MechanismFriction] = Field(default_factory=list)
+from app.schemas import StoryState
+from app.skills import DETECT_FRICTIONS, SkillSpec
 
 
 class FrictionDetector:
-    step_name = "detect_frictions"
-
-    def __init__(self, client: LLMClient) -> None:
+    def __init__(self, client: LLMClient, skill: SkillSpec = DETECT_FRICTIONS) -> None:
         self.client = client
+        self.skill = skill
+
+    @property
+    def step_name(self) -> str:
+        return self.skill.name
 
     def _digest(self, state: StoryState) -> dict:
         return {
@@ -57,12 +46,10 @@ class FrictionDetector:
         if not state.culture_mechanisms:
             return state
 
-        result = await generate_structured(
+        result = await self.skill.run(
             self.client,
-            FrictionDetectionResult,
-            step=self.step_name,
-            system_prompt=detect_frictions_system(),
-            user_prompt=detect_frictions_user(self._digest(state), target_market),
+            state_digest_json=self._digest(state),
+            target_market=target_market,
         )
 
         by_id = {m.id: m for m in result.mechanisms}
