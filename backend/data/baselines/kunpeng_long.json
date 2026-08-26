@@ -1,0 +1,85 @@
+{
+  "scenario": "kunpeng_long",
+  "metrics": [
+    {
+      "system_name": "A 直接翻译",
+      "stale_reference_count": -1,
+      "stale_details": [],
+      "affected_scene_recall": null,
+      "changed_scene_ids": [],
+      "expected_scene_ids": [
+        "S04"
+      ],
+      "collateral_scene_ids": [],
+      "commitment_preserved": 0,
+      "commitment_total": 0,
+      "commitment_details": [],
+      "notes": [
+        "no structured state; scene recall not computable",
+        "输出为英文，中文探针不适用；直接翻译不做改编，机制全部未本土化"
+      ]
+    },
+    {
+      "system_name": "B 强Prompt一次性改写",
+      "stale_reference_count": 0,
+      "stale_details": [],
+      "affected_scene_recall": 1.0,
+      "changed_scene_ids": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "S09"
+      ],
+      "expected_scene_ids": [
+        "S04"
+      ],
+      "collateral_scene_ids": [
+        "S01",
+        "S02",
+        "S03",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "S09"
+      ],
+      "commitment_preserved": 0,
+      "commitment_total": 0,
+      "commitment_details": [],
+      "notes": []
+    },
+    {
+      "system_name": "C StoryBridge",
+      "stale_reference_count": 0,
+      "stale_details": [],
+      "affected_scene_recall": 1.0,
+      "changed_scene_ids": [
+        "S04"
+      ],
+      "expected_scene_ids": [
+        "S04"
+      ],
+      "collateral_scene_ids": [],
+      "commitment_preserved": 2,
+      "commitment_total": 2,
+      "commitment_details": [
+        {
+          "commitment_id": "NC01",
+          "status": "preserved",
+          "explanation": "宝塔图案在S10中消失并进入脑海，后续伏笔未受影响。"
+        },
+        {
+          "commitment_id": "NC02",
+          "status": "preserved",
+          "explanation": "君邪在S08中发誓恢复实力，后续场景未违背此承诺。"
+        }
+      ],
+      "notes": []
+    }
+  ]
+}

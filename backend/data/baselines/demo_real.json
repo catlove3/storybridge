@@ -1,0 +1,87 @@
+{
+  "scenario": "demo_real",
+  "metrics": [
+    {
+      "system_name": "A 直接翻译",
+      "stale_reference_count": 0,
+      "stale_details": [],
+      "affected_scene_recall": null,
+      "changed_scene_ids": [],
+      "expected_scene_ids": [
+        "S01",
+        "S02",
+        "S05",
+        "S06",
+        "S08"
+      ],
+      "commitment_preserved": 0,
+      "commitment_total": 0,
+      "commitment_details": [],
+      "notes": [
+        "no structured state; scene recall not computable"
+      ]
+    },
+    {
+      "system_name": "B 强Prompt一次性改写",
+      "stale_reference_count": 0,
+      "stale_details": [],
+      "affected_scene_recall": 1.0,
+      "changed_scene_ids": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08"
+      ],
+      "expected_scene_ids": [
+        "S01",
+        "S02",
+        "S05",
+        "S06",
+        "S08"
+      ],
+      "commitment_preserved": 0,
+      "commitment_total": 0,
+      "commitment_details": [],
+      "notes": []
+    },
+    {
+      "system_name": "C StoryBridge",
+      "stale_reference_count": 0,
+      "stale_details": [],
+      "affected_scene_recall": 1.0,
+      "changed_scene_ids": [
+        "S01",
+        "S02",
+        "S05",
+        "S06",
+        "S08"
+      ],
+      "expected_scene_ids": [
+        "S01",
+        "S02",
+        "S05",
+        "S06",
+        "S08"
+      ],
+      "commitment_preserved": 2,
+      "commitment_total": 2,
+      "commitment_details": [
+        {
+          "commitment_id": "NC01",
+          "status": "preserved",
+          "explanation": "林晓东在S08身份反转，证明了自己的价值，承诺兑现。"
+        },
+        {
+          "commitment_id": "NC02",
+          "status": "preserved",
+          "explanation": "苏婉在S08理解林晓东的付出，泪流满面，承诺兑现。"
+        }
+      ],
+      "notes": []
+    }
+  ]
+}

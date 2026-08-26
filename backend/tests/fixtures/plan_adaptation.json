@@ -1,0 +1,52 @@
+{
+  "culture_mechanism_id": "CM01",
+  "original_name": "编制",
+  "friction_level": "high",
+  "options": [
+    {
+      "option_label": "A",
+      "strategy": "preserve",
+      "title": "保留并加注",
+      "replacement_definition": "保留'体制内职位'概念并加脚注",
+      "rationale": "最小改动",
+      "preserved_functions": [
+        "status"
+      ],
+      "lost_functions": [],
+      "risks": [
+        "理解成本高"
+      ]
+    },
+    {
+      "option_label": "B",
+      "strategy": "functional_replacement",
+      "title": "职业稳定性机制等效替换",
+      "replacement_definition": "男主在传统公司底层，女方家庭要求他在有晋升通道的大机构工作",
+      "rationale": "保留社会地位与经济安全功能",
+      "preserved_functions": [
+        "status",
+        "economic_security"
+      ],
+      "lost_functions": [],
+      "risks": [
+        "需同步修改多处台词"
+      ]
+    },
+    {
+      "option_label": "C",
+      "strategy": "plot_reconstruction",
+      "title": "冲突机制重构",
+      "replacement_definition": "重构为男主背负家庭债务被女方家庭否定",
+      "rationale": "彻底本土化但改动大",
+      "preserved_functions": [
+        "conflict"
+      ],
+      "lost_functions": [
+        "institutional_access"
+      ],
+      "risks": [
+        "连锁调整"
+      ]
+    }
+  ]
+}

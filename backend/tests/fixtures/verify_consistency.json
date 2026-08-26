@@ -1,0 +1,20 @@
+{
+  "issues": [],
+  "commitment_checks": [
+    {
+      "commitment_id": "NC01",
+      "status": "preserved",
+      "explanation": ""
+    },
+    {
+      "commitment_id": "NC02",
+      "status": "preserved",
+      "explanation": ""
+    },
+    {
+      "commitment_id": "NC03",
+      "status": "preserved",
+      "explanation": ""
+    }
+  ]
+}
