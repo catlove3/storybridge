@@ -77,6 +77,19 @@ FRICTION_SCHEMA = """{
 }"""
 
 
+FRICTION_ANCHORS = """分级锚定标准（必须严格对照，不确定时取较低档）：
+- high：目标市场观众完全无法从字面理解该元素为何重要，需成段解释才成立。
+  例：编制/彩礼/户口/985（涉及他国特有制度或社会结构）。
+- medium：字面可猜但社会分量会被大幅低估。
+  例：相亲/催婚/敬酒规矩（跨文化存在相似物但含义不同）。
+- low：仅是地方色彩，不影响剧情理解。
+  例：春节/饺子/微信红包（可保留或轻注即可）。
+narrative_importance 锚定：
+- high：该元素承载人物核心动机、关键冲突或伏笔回收，改它牵动 3+ 场景。
+- medium：影响 1-2 个场景的因果或台词。
+- low：纯氛围点缀。"""
+
+
 def detect_frictions_system() -> str:
     return SYSTEM_LOCALIZATION_EXPERT
 
@@ -85,9 +98,11 @@ def detect_frictions_user(state_digest_json: str, target_market: str) -> str:
     return (
         "以下是已抽取的故事状态 JSON。请对其中每一个 culture_mechanism 评估跨文化摩擦度并补充叙事功能标签。"
         f"输出 JSON schema：\n\n{FRICTION_SCHEMA}\n\n"
-        "评估标准：\n"
+        f"{FRICTION_ANCHORS}\n\n"
+        "评估要求：\n"
         "- friction_level：目标市场观众无法理解该元素重要性的程度。\n"
         "- narrative_importance：该元素承担的剧情功能有多关键（影响的动机/因果/伏笔越多越 high）。\n"
+        "- 严格按锚定标准打分，同一元素多次评估应得到相同档位。\n"
         "- functions 只能从枚举中选，可多选。\n"
         "只输出 JSON。\n\n"
         f"目标市场：{target_market}\n\n"

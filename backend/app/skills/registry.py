@@ -27,6 +27,7 @@ PARSE_STORY = SkillSpec(
     system_prompt=parse_story_system(),
     user_prompt=parse_story_user,
     max_tokens=8192,
+    temperature=0.0,
 )
 
 DETECT_FRICTIONS = SkillSpec(
@@ -34,6 +35,7 @@ DETECT_FRICTIONS = SkillSpec(
     schema=FrictionDetectionResult,
     system_prompt=detect_frictions_system(),
     user_prompt=detect_frictions_user,
+    temperature=0.0,
 )
 
 PLAN_ADAPTATION = SkillSpec(
