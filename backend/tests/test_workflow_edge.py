@@ -40,7 +40,9 @@ async def test_scene_listed_in_propagation_but_missing(tmp_path):
 async def test_zero_affected_scenes_apply(tmp_path):
     state_dict = sample_story_state_dict()
     state_dict["dependencies"] = [
-        d for d in state_dict["dependencies"] if "CM" not in d["source_id"]
+        d
+        for d in state_dict["dependencies"]
+        if "CM" not in d["source_id"] and "CM" not in d["target_id"]
     ]
     for cm in state_dict["culture_mechanisms"]:
         cm["scene_ids"] = []
