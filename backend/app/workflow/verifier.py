@@ -6,7 +6,7 @@ from app.llm import LLMClient
 from app.llm.structured import generate_structured
 from app.prompts import verify_consistency_system, verify_consistency_user
 from app.schemas import CommitmentCheck, IssueType, StoryState, VerificationIssue, VerifyReport
-from app.workflow.static_checks import merge_reports, run_static_checks
+from app.workflow.static_checks import check_stale_references, merge_reports, run_static_checks
 
 
 def _norm(text: str) -> str:
@@ -30,10 +30,22 @@ class Verifier:
                 }
                 for s in state.scenes
             ],
-            "events": [e.model_dump() for e in state.events],
-            "settings": [st.model_dump() for st in state.settings],
+            "events": [
+                {"id": e.id, "description": e.description, "_note": "结构元数据，非场景文本"}
+                for e in state.events
+            ],
+            "settings": [
+                {"id": st.id, "description": st.description, "_note": "结构元数据，非场景文本"}
+                for st in state.settings
+            ],
             "culture_mechanisms": [
-                cm.model_dump(exclude={"functions"}) for cm in state.culture_mechanisms
+                {
+                    "id": cm.id,
+                    "name": cm.name,
+                    "adapted_to": cm.adapted_to,
+                    "adapted_strategy": cm.adapted_strategy,
+                }
+                for cm in state.culture_mechanisms
             ],
             "commitments": [nc.model_dump() for nc in state.commitments],
         }
@@ -45,7 +57,8 @@ class Verifier:
         report.issues = [
             i for i in report.issues if i.scene_id is None or i.scene_id in known_scene_ids
         ]
-        report.issues = Verifier._drop_hallucinated_stale_refs(state, report.issues)
+        report.issues = Verifier._cross_check_stale_refs(state, report.issues)
+        report.issues = Verifier._cross_check_stale_refs(state, report.issues)
         report.commitment_checks = [
             c for c in report.commitment_checks if c.commitment_id in known_commitment_ids
         ]
@@ -63,14 +76,15 @@ class Verifier:
         return report
 
     @staticmethod
-    def _drop_hallucinated_stale_refs(
+    def _cross_check_stale_refs(
         state: StoryState, issues: list[VerificationIssue]
     ) -> list[VerificationIssue]:
-        adapted_names = [
+        static_stale_scenes = {i.scene_id for i in check_stale_references(state)}
+        adapted_names = {
             cm.name.strip()
             for cm in state.culture_mechanisms
             if cm.adapted_to and len(cm.name.strip()) >= 2
-        ]
+        }
         kept: list[VerificationIssue] = []
         for issue in issues:
             if issue.issue_type != IssueType.STALE_REFERENCE or not issue.scene_id:
@@ -80,9 +94,9 @@ class Verifier:
             if scene is None:
                 continue
             scene_text = _norm(scene.text) + _norm(scene.summary)
-            evidence_present = _norm(issue.evidence) in scene_text if issue.evidence else False
-            name_present = any(_norm(name) in scene_text for name in adapted_names)
-            if evidence_present or name_present:
+            evidence_present = bool(issue.evidence) and _norm(issue.evidence) in scene_text
+            mentions_adapted = any(_norm(n) in scene_text for n in adapted_names)
+            if issue.scene_id in static_stale_scenes or evidence_present or mentions_adapted:
                 kept.append(issue)
         return kept
 
