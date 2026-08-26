@@ -104,6 +104,8 @@ async def test_failed_job_error_surfaced(tmp_path):
 
 
 def test_cli_missing_script_file():
+    from pathlib import Path
+
     from app.cli import main
 
     with pytest.raises(SystemExit) as exc_info:
@@ -111,9 +113,9 @@ def test_cli_missing_script_file():
     assert exc_info.value.code == 2
     with pytest.raises(KeyError):
         asyncio.run(
-            StoryBridgeWorkflow(ProjectStore("/tmp/opencode/nul"), MockLLMClient()).analyze(
-                "fake-project"
-            )
+            StoryBridgeWorkflow(
+                ProjectStore(Path("/tmp/opencode/nul")), MockLLMClient()
+            ).analyze("fake-project")
         )
 
 
