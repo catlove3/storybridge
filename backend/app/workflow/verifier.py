@@ -80,11 +80,6 @@ class Verifier:
         state: StoryState, issues: list[VerificationIssue]
     ) -> list[VerificationIssue]:
         static_stale_scenes = {i.scene_id for i in check_stale_references(state)}
-        adapted_names = {
-            cm.name.strip()
-            for cm in state.culture_mechanisms
-            if cm.adapted_to and len(cm.name.strip()) >= 2
-        }
         kept: list[VerificationIssue] = []
         for issue in issues:
             if issue.issue_type != IssueType.STALE_REFERENCE or not issue.scene_id:
@@ -94,9 +89,23 @@ class Verifier:
             if scene is None:
                 continue
             scene_text = _norm(scene.text) + _norm(scene.summary)
-            evidence_present = bool(issue.evidence) and _norm(issue.evidence) in scene_text
-            mentions_adapted = any(_norm(n) in scene_text for n in adapted_names)
-            if issue.scene_id in static_stale_scenes or evidence_present or mentions_adapted:
+            if issue.scene_id in static_stale_scenes:
+                kept.append(issue)
+                continue
+
+            probes: set[str] = set()
+            for cm in state.culture_mechanisms:
+                if not cm.adapted_to:
+                    continue
+                for phrase in (cm.name, *cm.surface_text):
+                    probe = phrase.strip("的了着有没")
+                    if len(probe) >= 2:
+                        probes.add(_norm(probe))
+
+            evidence_text = _norm(issue.evidence or "")
+            evidence_has_old_term = any(p in evidence_text for p in probes)
+            scene_has_old_term = any(p in scene_text for p in probes)
+            if evidence_has_old_term and scene_has_old_term:
                 kept.append(issue)
         return kept
 
@@ -116,6 +125,7 @@ class Verifier:
                 changed_scene_ids or [],
                 applied_adaptations_summary,
             ),
+            max_tokens=8192,
         )
         report = self.sanitize(state, report)
         report.issues = merge_reports(run_static_checks(state), report.issues)

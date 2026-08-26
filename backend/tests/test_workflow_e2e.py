@@ -215,7 +215,7 @@ async def test_verify_standalone(tmp_path, mock_client):
 
 
 async def test_hallucination_guard_drops_fabricated_stale_refs(tmp_path, mock_client):
-    from app.schemas import IssueType, Severity
+    from app.schemas import IssueType
 
     store = ProjectStore(tmp_path / "projects")
     workflow = StoryBridgeWorkflow(store, mock_client)
@@ -239,13 +239,63 @@ async def test_hallucination_guard_drops_fabricated_stale_refs(tmp_path, mock_cl
                     "scene_id": "S05",
                     "description": "S05 仍引用旧设定'编制'（幻觉捏造）",
                     "evidence": "没有编制的人给不了安全感",
+                },
+                {
+                    "issue_type": "stale_reference",
+                    "severity": "error",
+                    "scene_id": "S03",
+                    "description": "S03 出现'彩礼'相关表述（未改编机制，不该报）",
+                    "evidence": "苏父母提出彩礼三十八万八",
+                },
+                {
+                    "issue_type": "stale_reference",
+                    "severity": "error",
+                    "scene_id": "S04",
+                    "description": "S04 出现疑似旧表述（实为新表述被冤枉）",
+                    "evidence": "林晓东为攒创业基金推掉了核心岗位邀请",
+                },
+            ],
+            "commitment_checks": [],
+        },
+    )
+    report = await workflow.verifier.verify(state)
+    stale = [i for i in report.issues if i.issue_type == IssueType.STALE_REFERENCE]
+    assert stale == []
+
+
+async def test_cross_check_keeps_real_stale_ref(tmp_path, mock_client):
+    from app.schemas import IssueType
+
+    store = ProjectStore(tmp_path / "projects")
+    workflow = StoryBridgeWorkflow(store, mock_client)
+    meta = await workflow.create_project("real-stale", "script", MarketProfile())
+    await workflow.analyze(meta.id)
+
+    state = workflow.require_state(meta.id)
+    cm01 = next(m for m in state.culture_mechanisms if m.id == "CM01")
+    cm01.adapted_to = "stable corporate career"
+    for scene in state.scenes:
+        if scene.id != "S05":
+            scene.text = scene.text.replace("编制", "stable career")
+            scene.summary = scene.summary.replace("编制", "stable career")
+    state.scene_by_id("S05").text = "苏婉：没有编制的人给不了安全感。"
+
+    mock_client.set_response(
+        "verify_consistency",
+        {
+            "issues": [
+                {
+                    "issue_type": "stale_reference",
+                    "severity": "error",
+                    "scene_id": "S05",
+                    "description": "S05 真残留旧设定",
+                    "evidence": "没有编制的人给不了安全感",
                 }
             ],
             "commitment_checks": [],
         },
     )
     report = await workflow.verifier.verify(state)
-    assert report.issues == [] or all(
-        i.issue_type != IssueType.STALE_REFERENCE for i in report.issues
-    )
-    assert report.consistency_score == 1.0
+    stale = [i for i in report.issues if i.issue_type == IssueType.STALE_REFERENCE]
+    assert len(stale) == 1
+    assert stale[0].scene_id == "S05"
