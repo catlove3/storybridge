@@ -103,6 +103,17 @@ async def generate_structured(
 
         payload_text = extract_json_payload(response.text)
         if payload_text is None:
+            looks_truncated = (
+                len(response.text) > 4000
+                and response.text.count("{") != response.text.count("}")
+            )
+            if looks_truncated:
+                raise StructuredGenerationError(
+                    step,
+                    attempt + 1,
+                    "output truncated at token limit with unbalanced JSON; "
+                    "instruct model to emit terser output or raise max_tokens",
+                )
             last_error = "no JSON object found in model output"
         else:
             try:

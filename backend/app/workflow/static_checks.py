@@ -86,10 +86,14 @@ def merge_reports(
     static_issues: list[VerificationIssue],
     llm_issues: list[VerificationIssue],
 ) -> list[VerificationIssue]:
-    seen: set[tuple[str, str | None, str]] = set()
+    seen: set[tuple[str, str | None]] = set()
     merged: list[VerificationIssue] = []
     for issue in [*static_issues, *llm_issues]:
-        key = (issue.issue_type.value, issue.scene_id, issue.evidence[:30])
+        key = (
+            (issue.issue_type.value, issue.scene_id)
+            if issue.issue_type == IssueType.STALE_REFERENCE and issue.scene_id
+            else (issue.issue_type.value, issue.scene_id, issue.evidence[:30])
+        )
         if key in seen:
             continue
         seen.add(key)
