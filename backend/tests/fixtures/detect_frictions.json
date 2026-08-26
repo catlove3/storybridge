@@ -1,0 +1,45 @@
+{
+  "mechanisms": [
+    {
+      "id": "CM01",
+      "friction_level": "high",
+      "narrative_importance": "high",
+      "functions": {
+        "plot": [
+          "conflict",
+          "foreshadowing"
+        ],
+        "social": [
+          "status",
+          "economic_security"
+        ],
+        "emotional": [
+          "humiliation"
+        ]
+      }
+    },
+    {
+      "id": "CM02",
+      "friction_level": "high",
+      "narrative_importance": "high",
+      "functions": {
+        "plot": [
+          "conflict"
+        ],
+        "social": [
+          "obligation"
+        ]
+      }
+    },
+    {
+      "id": "CM03",
+      "friction_level": "medium",
+      "narrative_importance": "medium",
+      "functions": {
+        "social": [
+          "status"
+        ]
+      }
+    }
+  ]
+}

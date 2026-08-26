@@ -1,0 +1,35 @@
+llm:
+  default_profile: general
+
+  profiles:
+    general:
+      provider: openai_compat
+      base_url: https://api.deepseek.com/v1
+      api_key_env: DEEPSEEK_API_KEY
+      model: deepseek-chat
+      temperature: 0.3
+      max_tokens: 8192
+      json_mode: true
+
+    rewriter_ft:
+      provider: openai_compat
+      base_url: http://localhost:8000/v1
+      api_key_env: LOCAL_FT_API_KEY
+      model: storybridge-rewriter-v1
+      temperature: 0.2
+      max_tokens: 2048
+      json_mode: false
+
+  step_routes:
+    parse_story: general
+    detect_frictions: general
+    plan_adaptation: general
+    rewrite_scene: general
+    verify_consistency: general
+
+logging:
+  sft_log_dir: data/sft_logs
+  sft_log_enabled: true
+
+storage:
+  projects_dir: data/projects
