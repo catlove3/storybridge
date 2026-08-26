@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from .common import (
     EdgeRelation,
@@ -100,6 +100,35 @@ class StoryState(BaseModel):
     culture_mechanisms: list[CultureMechanism] = Field(default_factory=list)
     commitments: list[Commitment] = Field(default_factory=list)
     dependencies: list[Dependency] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _dedupe_and_reindex(self) -> "StoryState":
+        seen_nodes: set[str] = set()
+        for attr in (
+            "characters",
+            "scenes",
+            "events",
+            "settings",
+            "culture_mechanisms",
+            "commitments",
+        ):
+            items = getattr(self, attr)
+            unique: list = []
+            for item in items:
+                if item.id not in seen_nodes:
+                    seen_nodes.add(item.id)
+                    unique.append(item)
+            setattr(self, attr, unique)
+
+        seen_edges: set[tuple[str, str, str]] = set()
+        unique_deps: list[Dependency] = []
+        for dep in self.dependencies:
+            key = (dep.source_id, dep.target_id, dep.relation.value)
+            if key not in seen_edges:
+                seen_edges.add(key)
+                unique_deps.append(dep)
+        self.dependencies = unique_deps
+        return self
 
     def node(self, node_id: str) -> BaseModel | None:
         for collection in self.node_collections().values():
