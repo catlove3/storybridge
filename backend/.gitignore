@@ -1,9 +1,37 @@
+# 密钥
 .env
+
+# Python
 .venv/
 __pycache__/
 *.pyc
+*.egg-info/
+dist/
+build/
+
+# 测试/工具缓存
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.uv-cache/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# 运行时数据 (可再生)
 data/projects/
 data/sft_logs/
 data/history/
-.uv-cache/
+
+# 外部大体积语料 (CC-BY 许可禁止再分发)
+data/raw/
+*.parquet
+opensubtitles*.zip
+OpenSubtitles.*
+
+# 本地实验产物: 只留汇总表
+data/baselines/*/
