@@ -48,6 +48,10 @@ def parse_story_user(script_text: str, target_market: str = "") -> str:
         "2. scenes 按剧本顺序编号；每个 scene 的 text 保留原文（可精简舞台提示但保留台词）。\n"
         "3. culture_mechanisms 抽取目标文化读者可能不理解的中国特有社会/文化元素"
         "（如编制、彩礼、985、户口、相亲、催婚等），surface_text 填剧本原词。\n"
+        "   - 语义去重：同一机制的不同说法/俗语/梗（如'编制'和'宇宙的尽头是编制'）必须合并为一个机制，"
+        "不能重复抽取。\n"
+        "   - 只抽'社会文化制度/习俗/身份概念'，不抽动作、事件或普通名词"
+        "（如'以死相抗''赌场规矩'中的具体玩法不算，'赌场规矩'作为社会规则才算）。\n"
         "4. commitments 记录明确的伏笔与叙事承诺（如'结尾必须身份反转'），有回收场景的填 payoff_scene_id。\n"
         "5. dependencies 是重点。边方向约定：\n"
         "   - 场景 --references--> 它引用的文化机制；人物动机链用 机制 --motivates--> 事件、事件 --causes--> 事件；\n"
@@ -71,7 +75,8 @@ FRICTION_SCHEMA = """{
         "plot": ["从 motivation|constraint|conflict|revelation|foreshadowing|payoff|reversal 中选"],
         "social": ["从 status|power|obligation|kinship|reputation|institutional_access|economic_security 中选"],
         "emotional": ["从 humiliation|aspiration|fear|sympathy|suspense|satisfaction 中选"]
-      }
+      },
+      "drop": false
     }
   ]
 }"""
@@ -104,6 +109,8 @@ def detect_frictions_user(state_digest_json: str, target_market: str) -> str:
         "- narrative_importance：该元素承担的剧情功能有多关键（影响的动机/因果/伏笔越多越 high）。\n"
         "- 严格按锚定标准打分，同一元素多次评估应得到相同档位。\n"
         "- functions 只能从枚举中选，可多选。\n"
+        "- 审查每一项是否真的是'社会文化制度/习俗/身份概念'：如果某项其实是动作、事件、"
+        "普通名词或个人行为（如'以死相抗''苦练武功'），设 drop=true 将其剔除。\n"
         "只输出 JSON。\n\n"
         f"目标市场：{target_market}\n\n"
         f"故事状态：\n{_json_block(state_digest_json)}"
