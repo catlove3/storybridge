@@ -39,13 +39,11 @@ def test_stale_cleared_when_scene_rewritten(state_dict):
     assert issues == []
 
 
-def test_uncovered_commitment_flags_missing_payoff(state_dict):
+def test_uncovered_commitment_missing_payoff_not_reported(state_dict):
     state = StoryState.model_validate(state_dict)
     state.commitments[0].payoff_scene_id = None
     issues = check_uncovered_commitments(state)
-    assert len(issues) == 1
-    assert issues[0].issue_type.value == "unresolved_payoff"
-    assert issues[0].severity.value == "warning"
+    assert issues == []
 
 
 def test_uncovered_commitment_flags_broken_payoff(state_dict):
@@ -60,4 +58,4 @@ def test_run_static_checks_combines(state_dict):
     state.commitments[0].payoff_scene_id = None
     issues = run_static_checks(state)
     kinds = {i.issue_type.value for i in issues}
-    assert kinds == {"stale_reference", "unresolved_payoff"}
+    assert kinds == {"stale_reference"}

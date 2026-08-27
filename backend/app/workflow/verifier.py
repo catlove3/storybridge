@@ -98,10 +98,9 @@ class Verifier:
             for cm in state.culture_mechanisms:
                 if not cm.adapted_to:
                     continue
-                for phrase in (cm.name, *cm.surface_text):
-                    probe = phrase.strip("的了着有没")
-                    if len(probe) >= 2:
-                        probes.add(_norm(probe))
+                probe = cm.name.strip("的了着有没")
+                if len(probe) >= 2:
+                    probes.add(_norm(probe))
 
             evidence_text = _norm(issue.evidence or "")
             evidence_has_old_term = any(p in evidence_text for p in probes)

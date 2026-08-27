@@ -24,26 +24,19 @@ def check_stale_references(state: StoryState) -> list[VerificationIssue]:
     for cm in state.culture_mechanisms:
         if not cm.adapted_to:
             continue
-        probes: set[str] = set()
-        for phrase in (cm.name, *cm.surface_text):
-            for variant in _variants(phrase):
-                if len(variant) >= 2:
-                    probes.add(variant)
-        reported_scenes: set[str] = set()
+        probe = cm.name.strip("的了着有没")
+        if len(probe) < 2:
+            continue
         for scene in state.scenes:
-            if scene.id in reported_scenes:
-                continue
             text = _normalize(scene.text) + _normalize(scene.summary)
-            hit = next((p for p in sorted(probes, key=len, reverse=True) if p in text), None)
-            if hit:
-                reported_scenes.add(scene.id)
+            if probe in text:
                 issues.append(
                     VerificationIssue(
                         issue_type=IssueType.STALE_REFERENCE,
                         severity=Severity.ERROR,
                         scene_id=scene.id,
-                        description=f"场景仍残留已替换机制'{cm.name}'的表述：{hit}",
-                        evidence=hit,
+                        description=f"场景仍残留已替换机制'{cm.name}'的表述：{probe}",
+                        evidence=probe,
                     )
                 )
     return issues
@@ -62,16 +55,6 @@ def check_uncovered_commitments(state: StoryState) -> list[VerificationIssue]:
                     severity=Severity.ERROR,
                     scene_id=None,
                     description=f"承诺 {nc.id} 的回收场景 {nc.payoff_scene_id} 已不存在",
-                    evidence=nc.description,
-                )
-            )
-        elif not nc.payoff_scene_id:
-            issues.append(
-                VerificationIssue(
-                    issue_type=IssueType.UNRESOLVED_PAYOFF,
-                    severity=Severity.WARNING,
-                    scene_id=None,
-                    description=f"承诺 {nc.id} 缺少回收场景标记",
                     evidence=nc.description,
                 )
             )

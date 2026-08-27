@@ -23,6 +23,7 @@ class SkillSpec:
     max_tokens: int | None = None
     temperature: float | None = None
     max_retries: int = 2
+    frequency_penalty: float | None = None
     postprocessors: tuple[Callable[..., object], ...] = ()
 
     async def run(self, client: LLMClient, **prompt_kwargs) -> BaseModel:
@@ -35,6 +36,7 @@ class SkillSpec:
             max_retries=self.max_retries,
             max_tokens=self.max_tokens,
             temperature=self.temperature,
+            frequency_penalty=self.frequency_penalty,
         )
 
     def sft_log_name(self) -> str:
