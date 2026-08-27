@@ -11,6 +11,10 @@ class MechanismFriction(BaseModel):
     friction_level: Level = Level.MEDIUM
     narrative_importance: Level = Level.MEDIUM
     functions: FunctionTags = Field(default_factory=FunctionTags)
+    drop: bool = Field(
+        default=False,
+        description="true 表示该项不是文化机制（误抽），应从状态中剔除",
+    )
 
 
 class FrictionDetectionResult(BaseModel):

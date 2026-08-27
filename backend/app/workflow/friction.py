@@ -53,6 +53,16 @@ class FrictionDetector:
         )
 
         by_id = {m.id: m for m in result.mechanisms}
+        dropped = {m.id for m in result.mechanisms if m.drop}
+        if dropped:
+            state.dependencies = [
+                d
+                for d in state.dependencies
+                if d.source_id not in dropped and d.target_id not in dropped
+            ]
+            state.culture_mechanisms = [
+                cm for cm in state.culture_mechanisms if cm.id not in dropped
+            ]
         for cm in state.culture_mechanisms:
             found = by_id.get(cm.id)
             if found is None:
