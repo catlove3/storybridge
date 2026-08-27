@@ -22,6 +22,7 @@ class LLMRequest:
     json_mode: bool = False
     temperature: float | None = None
     max_tokens: int | None = None
+    frequency_penalty: float | None = None
 
     def to_messages(self) -> list[dict[str, str]]:
         messages = [{"role": "system", "content": self.system_prompt}]

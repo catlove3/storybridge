@@ -20,6 +20,8 @@ class OpenAICompatClient:
             "temperature": request.temperature if request.temperature is not None else self.profile.temperature,
             "max_tokens": request.max_tokens or self.profile.max_tokens,
         }
+        if request.frequency_penalty is not None:
+            payload["frequency_penalty"] = request.frequency_penalty
         if request.json_mode and self.profile.json_mode:
             payload["response_format"] = {"type": "json_object"}
 

@@ -84,6 +84,7 @@ async def generate_structured(
     max_retries: int = 2,
     max_tokens: int | None = None,
     temperature: float | None = None,
+    frequency_penalty: float | None = None,
 ) -> T:
     history: list[Message] = []
     last_error = ""
@@ -98,6 +99,7 @@ async def generate_structured(
             json_mode=True,
             max_tokens=max_tokens,
             temperature=temperature,
+            frequency_penalty=frequency_penalty,
         )
         response = await client.complete(request)
 

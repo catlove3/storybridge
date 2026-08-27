@@ -150,6 +150,8 @@ def plan_adaptation_user(
         "   - B strategy=functional_replacement：在目标文化中找到功能等效元素（保留 plot/social/emotional 功能）；\n"
         "   - C strategy=plot_reconstruction：重构冲突机制（改动更大但更彻底）。\n"
         "2. replacement_definition 要具体到可直接指导台词改写。\n"
+        "3. 若机制名是泛化词（如'世家''门阀'），替换定义必须给出与原词字面无重叠的具体新设定"
+        "（如'百年财阀帝国'而非近义词'家族'），禁止用近义词糊弄。\n"
         "3. preserved_functions / lost_functions 从该机制的叙事功能出发逐条说明。\n"
         "4. 避免刻板印象；结合目标受众画像，不要把整个国家当成单一文化。\n"
         "只输出 JSON。\n\n"

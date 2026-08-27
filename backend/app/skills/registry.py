@@ -58,6 +58,8 @@ VERIFY_CONSISTENCY = SkillSpec(
     system_prompt=verify_consistency_system(),
     user_prompt=verify_consistency_user,
     max_tokens=8192,
+    temperature=0.0,
+    frequency_penalty=0.3,
 )
 
 _REGISTRY: dict[str, SkillSpec] = {
