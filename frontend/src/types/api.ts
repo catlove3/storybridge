@@ -229,6 +229,14 @@ export interface CommitmentCheck {
 export interface VerifyReport {
   issues: VerificationIssue[]
   commitment_checks: CommitmentCheck[]
+  checked_scene_ids: string[]
+  static_checks_passed: number
+  static_checks_total: number
+  commitments_verified: number
+  commitments_total: number
+  scenes_checked: number
+  scenes_total: number
+  overall_status: 'not_run' | 'pass' | 'needs_review' | 'fail'
   consistency_score: number
 }
 

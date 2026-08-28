@@ -36,6 +36,10 @@ async def test_full_pipeline(tmp_path, mock_client):
     assert "S05" in result.repaired_scene_ids
     assert not result.report.blocking_issues
     assert result.report.consistency_score == 1.0
+    assert result.report.overall_status == "pass"
+    assert result.report.static_checks_passed == result.report.static_checks_total == 3
+    assert result.report.commitments_verified == result.report.commitments_total == 3
+    assert result.report.scenes_checked == result.report.scenes_total == 8
 
     final_state = store.load_state(meta.id)
     s05 = final_state.scene_by_id("S05")
@@ -89,6 +93,7 @@ async def test_verify_standalone(tmp_path, mock_client):
     assert report.blocking_issues[0].scene_id == "S05"
     assert {c.commitment_id for c in report.commitment_checks} == {"NC01", "NC02", "NC03"}
     assert report.consistency_score < 1.0
+    assert report.overall_status == "fail"
 
 
 async def test_hallucination_guard_drops_fabricated_stale_refs(tmp_path, mock_client):

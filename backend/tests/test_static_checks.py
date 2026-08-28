@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from app.schemas import StoryState
 from app.workflow.static_checks import (
+    check_reconstructed_dependency_chains,
     check_stale_references,
     check_uncovered_commitments,
     run_static_checks,
@@ -37,6 +38,26 @@ def test_stale_cleared_when_scene_rewritten(state_dict):
         scene.summary = scene.summary.replace("编制", "tenure-track").replace("单位", "firm")
     issues = check_stale_references(state)
     assert issues == []
+
+
+def test_preserve_strategy_allows_original_term(state_dict):
+    state = _state_with_stale(state_dict)
+    cm01 = next(m for m in state.culture_mechanisms if m.id == "CM01")
+    cm01.adapted_strategy = "preserve"
+
+    assert check_stale_references(state) == []
+
+
+def test_plot_reconstruction_flags_old_dependency_chain_for_review(state_dict):
+    state = _state_with_stale(state_dict)
+    cm01 = next(m for m in state.culture_mechanisms if m.id == "CM01")
+    cm01.adapted_strategy = "plot_reconstruction"
+
+    issues = check_reconstructed_dependency_chains(state)
+
+    assert len(issues) == 1
+    assert issues[0].severity.value == "warning"
+    assert "CM01" in issues[0].evidence
 
 
 def test_uncovered_commitment_missing_payoff_not_reported(state_dict):

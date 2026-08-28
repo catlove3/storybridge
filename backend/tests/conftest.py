@@ -126,6 +126,7 @@ def mock_client() -> MockLLMClient:
                     {"commitment_id": "NC02", "status": "preserved", "explanation": ""},
                     {"commitment_id": "NC03", "status": "needs_review", "explanation": "彩礼线未动"},
                 ],
+                "checked_scene_ids": ["S01", "S02", "S03", "S04", "S05", "S06", "S07", "S08"],
             },
             {
                 "issues": [],
@@ -134,6 +135,7 @@ def mock_client() -> MockLLMClient:
                     {"commitment_id": "NC02", "status": "preserved", "explanation": ""},
                     {"commitment_id": "NC03", "status": "preserved", "explanation": ""},
                 ],
+                "checked_scene_ids": ["S01", "S02", "S03", "S04", "S05", "S06", "S07", "S08"],
             },
         ],
     )

@@ -104,7 +104,13 @@ async def cmd_apply(args) -> None:
         "affected": [a.scene_id for a in result.applied.propagation.affected_scenes],
         "rewritten": result.applied.rewritten_scene_ids,
         "repair_rounds": result.repair_rounds,
+        "status": result.report.overall_status,
         "score": result.report.consistency_score,
+        "coverage": {
+            "static_checks": f"{result.report.static_checks_passed}/{result.report.static_checks_total}",
+            "commitments": f"{result.report.commitments_verified}/{result.report.commitments_total}",
+            "scenes": f"{result.report.scenes_checked}/{result.report.scenes_total}",
+        },
     }
     print(json.dumps(payload["summary"], ensure_ascii=False, indent=2))
 
@@ -155,7 +161,11 @@ async def cmd_demo(args) -> None:
         f"[4/5] applied B: affected={result.applied.propagation.summary}, "
         f"repair_rounds={result.repair_rounds}"
     )
-    print(f"[5/5] consistency_score={result.report.consistency_score}")
+    print(
+        f"[5/5] status={result.report.overall_status}, "
+        f"consistency_score={result.report.consistency_score}, "
+        f"scene_coverage={result.report.scenes_checked}/{result.report.scenes_total}"
+    )
     if args.bible:
         path = export_bible(workflow, meta.id, Path(args.bible))
         print(f"bible: {path}")

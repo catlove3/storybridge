@@ -258,14 +258,28 @@ function VerificationPanel({ report, applyResult, disabled, onVerify }: {
 }) {
   const score = Math.round(report.consistency_score * 100)
   const scoreStyle = { '--score': `${score}%` } as CSSProperties
+  const errors = report.issues.filter((issue) => issue.severity === 'error').length
+  const warnings = report.issues.filter((issue) => issue.severity === 'warning').length
+  const statusCopy = {
+    not_run: '尚未运行验证',
+    pass: '验证通过',
+    needs_review: '需要人工复核',
+    fail: '存在阻塞问题',
+  }[report.overall_status]
   return (
     <div className="verification-panel">
-      <div className="score-card">
+      <div className={`score-card score-card--${report.overall_status}`}>
         <div className="score-ring" style={scoreStyle}><strong>{score}</strong><span>/ 100</span></div>
         <div>
-          <span className="detail-label">Consistency Score</span>
-          <h4>{score >= 90 ? '叙事一致性良好' : score >= 70 ? '建议人工复核' : '存在阻塞问题'}</h4>
+          <span className="detail-label">Overall Status · {report.overall_status.toUpperCase()}</span>
+          <h4>{statusCopy}</h4>
           <p>自动修复 {applyResult.repair_rounds} 轮{applyResult.repaired_scene_ids.length > 0 ? `，涉及 ${applyResult.repaired_scene_ids.join('、')}` : '，无需额外修复'}</p>
+          <div className="verification-coverage">
+            <span>静态检查 <strong>{report.static_checks_passed}/{report.static_checks_total}</strong></span>
+            <span>承诺已验证 <strong>{report.commitments_verified}/{report.commitments_total}</strong></span>
+            <span>场景覆盖 <strong>{report.scenes_checked}/{report.scenes_total}</strong></span>
+            <span>语义问题 <strong>{errors} error · {warnings} warning</strong></span>
+          </div>
         </div>
         <button className="secondary-action" disabled={disabled} onClick={onVerify} type="button">{disabled ? '验证中…' : '重新验证最新状态'}</button>
       </div>

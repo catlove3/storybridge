@@ -203,6 +203,31 @@ async def test_verify_issues_with_null_scene_ids(tmp_path):
     assert report.issues[0].scene_id is None
 
 
+async def test_incomplete_verification_coverage_never_reports_pass(tmp_path):
+    wf, client = _wf(tmp_path)
+    meta = await wf.create_project("partial-verify", "script", MarketProfile())
+    await wf.analyze(meta.id)
+    client.set_response(
+        "verify_consistency",
+        {
+            "issues": [],
+            "commitment_checks": [
+                {"commitment_id": "NC01", "status": "preserved", "explanation": "ok"}
+            ],
+            "checked_scene_ids": ["S01", "S99"],
+        },
+    )
+
+    report = await wf.verify(meta.id)
+
+    assert report.overall_status == "needs_review"
+    assert report.scenes_checked == 1
+    assert report.scenes_total == 8
+    assert report.commitments_verified == 1
+    assert report.commitments_total == 3
+    assert report.consistency_score < 1.0
+
+
 async def test_duplicate_ids_in_llm_output(tmp_path):
     state_dict = sample_story_state_dict()
     state_dict["characters"].append(dict(state_dict["characters"][0]))
