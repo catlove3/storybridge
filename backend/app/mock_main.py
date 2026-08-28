@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from app.api.routes import router
@@ -8,16 +10,21 @@ from app.jobs import JobManager
 from app.llm import MockLLMClient
 from app.workflow.engine import build_default_workflow
 
-app = FastAPI(title="StoryBridge Mock API", version="0.1.0-mock")
-app.include_router(router)
 
-
-@app.on_event("startup")
-async def startup() -> None:
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     mock = MockLLMClient()
     _load_default_mock_fixtures(mock)
     app.state.workflow = build_default_workflow(mock)
     app.state.jobs = JobManager()
+    try:
+        yield
+    finally:
+        await app.state.jobs.shutdown()
+
+
+app = FastAPI(title="StoryBridge Mock API", version="0.1.0-mock", lifespan=lifespan)
+app.include_router(router)
 
 
 @app.get("/healthz")

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import json
+import random
 import time
 
 import httpx
@@ -10,7 +12,7 @@ from app.llm.base import LLMRequest, LLMResponse
 
 
 class OpenAICompatClient:
-    _TRANSIENT_GATEWAY_STATUSES = {502, 503, 504}
+    _TRANSIENT_STATUSES = {408, 429, 500, 502, 503, 504}
 
     def __init__(
         self,
@@ -23,6 +25,24 @@ class OpenAICompatClient:
         self.profile_name = profile_name
         self._transport = transport
         self._unsupported_extra_keys: set[str] = set()
+        self._client = httpx.AsyncClient(
+            timeout=profile.timeout_seconds,
+            transport=transport,
+        )
+
+    async def aclose(self) -> None:
+        await self._client.aclose()
+
+    async def _backoff(self, retry_index: int, response: httpx.Response | None = None) -> None:
+        retry_after = response.headers.get("retry-after") if response is not None else None
+        try:
+            delay = float(retry_after) if retry_after is not None else None
+        except ValueError:
+            delay = None
+        if delay is None:
+            base = self.profile.retry_base_delay * (2**retry_index)
+            delay = base + random.uniform(0, base * 0.2)
+        await asyncio.sleep(max(0.0, delay))
 
     @staticmethod
     def _content_text(content: object) -> str:
@@ -92,7 +112,7 @@ class OpenAICompatClient:
         }
 
     def _drop_unsupported_optional(self, payload: dict, error_text: str) -> bool:
-        candidates = ["frequency_penalty", "response_format"]
+        candidates = ["frequency_penalty", "response_format", "stream_options"]
         candidates.extend(
             key for key in self.profile.extra_body if key in payload
         )
@@ -106,12 +126,6 @@ class OpenAICompatClient:
                     self._unsupported_extra_keys.add(key)
                 return True
 
-        for key in candidates:
-            if key in payload:
-                payload.pop(key, None)
-                if key in self.profile.extra_body:
-                    self._unsupported_extra_keys.add(key)
-                return True
         return False
 
     async def complete(self, request: LLMRequest) -> LLMResponse:
@@ -141,6 +155,7 @@ class OpenAICompatClient:
                 payload[key] = value
         if self.profile.stream:
             payload["stream"] = True
+            payload["stream_options"] = {"include_usage": True}
 
         headers = {"Content-Type": "application/json"}
         api_key = api_key_for(self.profile)
@@ -149,24 +164,22 @@ class OpenAICompatClient:
 
         url = f"{self.profile.base_url.rstrip('/')}/chat/completions"
         started = time.monotonic()
-        async with httpx.AsyncClient(timeout=120, transport=self._transport) as client:
-            # Not every OpenAI-compatible implementation supports JSON mode.
-            # Validation failures are commonly reported as either 400 or 422;
-            # retry without unsupported optional parameters. The JSON fallback
-            # still relies on the existing strict prompt, extractor, Pydantic
-            # validation and correction loop.
-            gateway_retries = 0
-            while True:
+        transient_retries = 0
+        http_attempts = 0
+        while True:
+            http_attempts += 1
+            try:
                 if payload.get("stream"):
-                    async with client.stream(
+                    async with self._client.stream(
                         "POST", url, json=payload, headers=headers
                     ) as response:
                         if (
-                            response.status_code in self._TRANSIENT_GATEWAY_STATUSES
-                            and gateway_retries < 1
+                            response.status_code in self._TRANSIENT_STATUSES
+                            and transient_retries < self.profile.max_retries
                         ):
                             await response.aread()
-                            gateway_retries += 1
+                            await self._backoff(transient_retries, response)
+                            transient_retries += 1
                             continue
                         if response.status_code in {400, 422}:
                             error_text = (await response.aread()).decode(
@@ -183,12 +196,13 @@ class OpenAICompatClient:
                             data = response.json()
                         break
 
-                response = await client.post(url, json=payload, headers=headers)
+                response = await self._client.post(url, json=payload, headers=headers)
                 if (
-                    response.status_code in self._TRANSIENT_GATEWAY_STATUSES
-                    and gateway_retries < 1
+                    response.status_code in self._TRANSIENT_STATUSES
+                    and transient_retries < self.profile.max_retries
                 ):
-                    gateway_retries += 1
+                    await self._backoff(transient_retries, response)
+                    transient_retries += 1
                     continue
                 if response.status_code in {400, 422}:
                     if self._drop_unsupported_optional(
@@ -198,10 +212,17 @@ class OpenAICompatClient:
                 response.raise_for_status()
                 data = response.json()
                 break
+            except httpx.TransportError:
+                if transient_retries >= self.profile.max_retries:
+                    raise
+                await self._backoff(transient_retries)
+                transient_retries += 1
         latency_ms = int((time.monotonic() - started) * 1000)
 
         usage = data.get("usage") or {}
         text = self._message_text(data)
+        choices = data.get("choices") or []
+        finish_reason = choices[0].get("finish_reason") if choices else None
         return LLMResponse(
             text=text,
             model=data.get("model") or self.profile.model,
@@ -210,4 +231,6 @@ class OpenAICompatClient:
             prompt_tokens=int(usage.get("prompt_tokens", 0)),
             completion_tokens=int(usage.get("completion_tokens", 0)),
             latency_ms=latency_ms,
+            finish_reason=finish_reason,
+            http_attempts=http_attempts,
         )

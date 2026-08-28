@@ -37,6 +37,7 @@ async def test_project_not_found_paths(client):
     assert (await client.get("/api/projects/nope/graph")).status_code == 404
     assert (await client.get("/api/projects/nope/propagate?mechanism=CM01")).status_code == 404
     assert (await client.get("/api/jobs/doesnotexist")).status_code == 404
+    assert (await client.post("/api/jobs/doesnotexist/cancel")).status_code == 404
 
 
 async def test_create_project_empty_script(client):
@@ -78,11 +79,11 @@ async def test_job_flow_analyze_and_apply(client):
     job = (
         await client.post(f"/api/projects/{project_id}/jobs", json={"kind": "analyze"})
     ).json()
-    assert job["status"] == "running"
-    payload = {"status": "running"}
+    assert job["status"] in {"queued", "running"}
+    payload = {"status": "queued"}
     for _ in range(50):
         payload = (await client.get(f"/api/jobs/{job['job_id']}")).json()
-        if payload["status"] != "running":
+        if payload["status"] not in {"queued", "running"}:
             break
         await asyncio.sleep(0.02)
     assert payload["status"] == "done"
@@ -104,10 +105,10 @@ async def test_job_flow_analyze_and_apply(client):
             },
         )
     ).json()
-    payload = {"status": "running"}
+    payload = {"status": "queued"}
     for _ in range(100):
         payload = (await client.get(f"/api/jobs/{apply_job['job_id']}")).json()
-        if payload["status"] != "running":
+        if payload["status"] not in {"queued", "running"}:
             break
         await asyncio.sleep(0.02)
     assert payload["status"] == "done"

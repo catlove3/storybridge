@@ -135,7 +135,7 @@ async def test_job_manager_idempotency_and_project_serialization():
     second = manager.submit("verify", "project-a", work, idempotency_key="verify-op")
 
     assert first.id == duplicate.id
-    while first.status == "running" or second.status == "running":
+    while first.status in {"queued", "running"} or second.status in {"queued", "running"}:
         await asyncio.sleep(0.01)
 
     assert calls == 2
@@ -161,7 +161,7 @@ async def test_job_manager_allows_different_projects_in_parallel():
         manager.submit("analyze", "project-a", work),
         manager.submit("analyze", "project-b", work),
     ]
-    while any(job.status == "running" for job in jobs):
+    while any(job.status in {"queued", "running"} for job in jobs):
         await asyncio.sleep(0.01)
 
     assert all(job.status == "done" for job in jobs)

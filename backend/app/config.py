@@ -21,6 +21,9 @@ class ProfileConfig(BaseModel):
     max_tokens: int = 4096
     json_mode: bool = True
     stream: bool = False
+    timeout_seconds: float = Field(default=120.0, gt=0)
+    max_retries: int = Field(default=3, ge=0, le=8)
+    retry_base_delay: float = Field(default=0.5, ge=0, le=30)
     extra_body: dict[str, object] = Field(default_factory=dict)
 
 
@@ -41,6 +44,7 @@ class LoggingConfig(BaseModel):
 
 class StorageConfig(BaseModel):
     projects_dir: Path = BACKEND_ROOT / "data" / "projects"
+    jobs_file: Path = BACKEND_ROOT / "data" / "jobs.json"
 
 
 class AppConfig(BaseModel):
@@ -56,6 +60,15 @@ def get_config() -> AppConfig:
     if config_path.exists():
         raw = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
     config = AppConfig.model_validate(raw)
+
+    for section, field_name in (
+        (config.logging, "sft_log_dir"),
+        (config.storage, "projects_dir"),
+        (config.storage, "jobs_file"),
+    ):
+        path = getattr(section, field_name)
+        if not path.is_absolute():
+            setattr(section, field_name, (BACKEND_ROOT / path).resolve())
 
     # The default profile is the normal runtime path for every current skill.
     # Keep advanced per-step profiles in YAML, while allowing one .env file to

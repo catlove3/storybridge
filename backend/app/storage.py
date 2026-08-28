@@ -77,7 +77,8 @@ class ProjectStore:
             if temporary_path.exists():
                 temporary_path.unlink()
 
-    def _read_json(self, path: Path):
+    @staticmethod
+    def _read_json(path: Path):
         if not path.exists():
             return None
         try:

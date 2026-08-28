@@ -69,6 +69,10 @@ export const api = {
     return request<Job<TResult>>(`/jobs/${jobId}`, { signal })
   },
 
+  cancelJob<TResult = unknown>(jobId: string, signal?: AbortSignal) {
+    return request<Job<TResult>>(`/jobs/${jobId}/cancel`, { method: 'POST', signal })
+  },
+
   getStoryState(projectId: string, signal?: AbortSignal) {
     return request<StoryState>(`/projects/${projectId}/state`, { signal })
   },

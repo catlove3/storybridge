@@ -20,11 +20,17 @@ class SFTCallLogger:
         if not self.enabled:
             return
         entry = {
+            "run_id": request.run_id,
             "step": request.step,
+            "attempt": request.attempt,
+            "prompt_version": request.prompt_version,
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
             "model": response.model,
             "messages": request.to_messages(),
             "completion": response.text,
+            "latency_ms": response.latency_ms,
+            "http_attempts": response.http_attempts,
+            "finish_reason": response.finish_reason,
             "usage": {
                 "prompt_tokens": response.prompt_tokens,
                 "completion_tokens": response.completion_tokens,
@@ -62,6 +68,10 @@ class LLMRouter(LLMClient):
         if self._logger is not None:
             self._logger.record(request, response)
         return response
+
+    async def aclose(self) -> None:
+        for client in self._clients.values():
+            await client.aclose()
 
 
 def build_router() -> LLMRouter:

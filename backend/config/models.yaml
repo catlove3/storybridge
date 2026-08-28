@@ -43,3 +43,4 @@ logging:
 
 storage:
   projects_dir: data/projects
+  jobs_file: data/jobs.json

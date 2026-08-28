@@ -312,6 +312,15 @@ async def get_job(job_id: str, request: Request):
     return job.serialize()
 
 
+@router.post("/jobs/{job_id}/cancel")
+async def cancel_job(job_id: str, request: Request):
+    jobs = request.app.state.jobs
+    job = jobs.cancel(job_id)
+    if job is None:
+        raise HTTPException(404, f"unknown job: {job_id}")
+    return job.serialize()
+
+
 @router.get("/projects/{project_id}/jobs")
 async def list_jobs(project_id: str, request: Request):
     jobs = request.app.state.jobs
