@@ -2,16 +2,18 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import tempfile
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from app.schemas import (
     AdaptationPlan,
     AppliedAdaptation,
+    DataPolicy,
     Revision,
     StoryState,
     TargetScript,
@@ -23,15 +25,26 @@ def _now() -> datetime:
 
 
 class MarketProfile(BaseModel):
-    market: str = ""
-    audience: str = ""
-    format: str = ""
-    genre: str = ""
-    source_language: str = "zh-CN"
-    target_language: str = "English"
-    target_locale: str = "en-US"
-    style_guide: str = ""
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    market: str = Field(default="", max_length=200)
+    audience: str = Field(default="", max_length=200)
+    format: str = Field(default="", max_length=200)
+    genre: str = Field(default="", max_length=200)
+    source_language: str = Field(default="zh-CN", min_length=1, max_length=100)
+    target_language: str = Field(default="English", min_length=1, max_length=100)
+    target_locale: str = Field(default="en-US", max_length=100)
+    style_guide: str = Field(default="", max_length=10_000)
     terminology_map: dict[str, str] = Field(default_factory=dict)
+
+    @field_validator("terminology_map")
+    @classmethod
+    def _bounded_terminology_map(cls, value: dict[str, str]) -> dict[str, str]:
+        if len(value) > 500:
+            raise ValueError("terminology_map cannot contain more than 500 entries")
+        if any(not key or len(key) > 200 or not term or len(term) > 500 for key, term in value.items()):
+            raise ValueError("terminology_map keys and values must be non-empty and bounded")
+        return value
 
 
 class ProjectMeta(BaseModel):
@@ -40,6 +53,8 @@ class ProjectMeta(BaseModel):
     created_at: datetime = Field(default_factory=_now)
     script_text: str
     market: MarketProfile = Field(default_factory=MarketProfile)
+    owner_id: str = "local"
+    data_policy: DataPolicy = Field(default_factory=DataPolicy)
 
 
 class ProjectStore:
@@ -97,9 +112,24 @@ class ProjectStore:
         except (json.JSONDecodeError, UnicodeDecodeError, OSError):
             return None
 
-    def create_project(self, name: str, script_text: str, market: MarketProfile) -> ProjectMeta:
+    def create_project(
+        self,
+        name: str,
+        script_text: str,
+        market: MarketProfile,
+        *,
+        owner_id: str = "local",
+        data_policy: DataPolicy | None = None,
+    ) -> ProjectMeta:
         project_id = uuid.uuid4().hex
-        meta = ProjectMeta(id=project_id, name=name, script_text=script_text, market=market)
+        meta = ProjectMeta(
+            id=project_id,
+            name=name,
+            script_text=script_text,
+            market=market,
+            owner_id=owner_id,
+            data_policy=data_policy or DataPolicy(),
+        )
         self._write_json(self._dir(project_id) / "project.json", meta.model_dump(mode="json"))
         return meta
 
@@ -114,6 +144,13 @@ class ProjectStore:
     def load_meta(self, project_id: str) -> ProjectMeta | None:
         raw = self._read_json(self._peek_dir(project_id) / "project.json")
         return ProjectMeta.model_validate(raw) if raw else None
+
+    def delete_project(self, project_id: str) -> bool:
+        project_dir = self._peek_dir(project_id)
+        if not project_dir.exists():
+            return False
+        shutil.rmtree(project_dir)
+        return True
 
     def load_state(self, project_id: str) -> StoryState | None:
         raw = self._read_json(self._peek_dir(project_id) / "state.json")

@@ -32,7 +32,19 @@ async def test_job_failure_captured():
     await asyncio.sleep(0.1)
     done = manager.get(job.id)
     assert done.status == "failed"
-    assert "ValueError" in done.error
+    assert done.error == "job_execution_failed"
+
+
+async def test_find_idempotent_job():
+    manager = JobManager()
+
+    async def work():
+        return "ok"
+
+    job = manager.submit("analyze", "p1", work, idempotency_key="same")
+    assert manager.find_idempotent("p1", "same") is job
+    assert manager.find_idempotent("p1", "missing") is None
+    await manager.shutdown()
 
 
 async def test_list_for_project():

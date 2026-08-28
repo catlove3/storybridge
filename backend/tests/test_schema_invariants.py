@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from app.schemas import AdaptationPlan, StoryState, TargetScript
+from app.schemas import AdaptationPlan, DataPolicy, StoryState, TargetScript
 from tests.fixtures import sample_story_state_dict
 
 
@@ -110,3 +110,16 @@ def test_target_script_rejects_blank_text_and_duplicate_scenes():
     ]
     with pytest.raises(ValidationError, match="scene ids must be unique"):
         TargetScript.model_validate(payload)
+
+
+def test_sft_opt_in_requires_provenance_and_consent():
+    with pytest.raises(ValidationError, match="content_source"):
+        DataPolicy(sft_opt_in=True)
+
+    policy = DataPolicy(
+        sft_opt_in=True,
+        content_source="author upload",
+        license="authorized adaptation",
+        consent_note="author explicitly opted in",
+    )
+    assert policy.sft_opt_in is True

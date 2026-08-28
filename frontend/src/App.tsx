@@ -15,6 +15,7 @@ import type {
   PlotFunction,
   PropagationResult,
   Revision,
+  RuntimePolicy,
   SceneDiff,
   SocialFunction,
   StoryGraphResponse,
@@ -381,6 +382,11 @@ function App() {
   const [genre, setGenre] = useState('Urban drama')
   const [targetLanguage, setTargetLanguage] = useState('English')
   const [targetLocale, setTargetLocale] = useState('en-US')
+  const [sftOptIn, setSftOptIn] = useState(false)
+  const [contentSource, setContentSource] = useState('')
+  const [contentLicense, setContentLicense] = useState('')
+  const [consentNote, setConsentNote] = useState('')
+  const [runtimePolicy, setRuntimePolicy] = useState<RuntimePolicy | null>(null)
   const [phase, setPhase] = useState<AnalyzePhase>('idle')
   const [project, setProject] = useState<{ id: string; name: string } | null>(null)
   const [analyzeJob, setAnalyzeJob] = useState<Job | null>(null)
@@ -422,7 +428,14 @@ function App() {
     return ids
   }, [propagation, selectedMechanismId])
 
-  useEffect(() => () => controllerRef.current?.abort(), [])
+  useEffect(() => {
+    const controller = new AbortController()
+    api.getRuntimePolicy(controller.signal).then(setRuntimePolicy).catch(() => undefined)
+    return () => {
+      controller.abort()
+      controllerRef.current?.abort()
+    }
+  }, [])
 
   const analyzeBusy = ['creating', 'analyzing', 'loading-state'].includes(phase)
   const actionBusy = action !== 'idle'
@@ -470,6 +483,13 @@ function App() {
         market: {
           market: market.trim(), audience: audience.trim(), format: format.trim(), genre: genre.trim(),
           source_language: 'zh-CN', target_language: targetLanguage.trim(), target_locale: targetLocale.trim(),
+        },
+        data_policy: {
+          sft_opt_in: sftOptIn,
+          content_source: sftOptIn ? contentSource.trim() : '',
+          license: sftOptIn ? contentLicense.trim() : '',
+          consent_note: sftOptIn ? consentNote.trim() : '',
+          retention_days: runtimePolicy?.sft_retention_days ?? 30,
         },
       }, controller.signal)
       setProject(created)
@@ -671,6 +691,16 @@ function App() {
               <label><span>目标语言</span><input required value={targetLanguage} onChange={(event) => setTargetLanguage(event.target.value)} /></label>
               <label><span>目标 locale</span><input required value={targetLocale} onChange={(event) => setTargetLocale(event.target.value)} /></label>
             </div></fieldset>
+            <fieldset><legend>数据与 SFT 政策</legend><div className="field-grid">
+              <label><span>运行时模型</span><input readOnly value={runtimePolicy ? `${runtimePolicy.model} · ${runtimePolicy.provider_endpoint}` : '正在读取后端政策…'} /></label>
+              <label><span>服务端采集状态</span><input readOnly value={runtimePolicy?.sft_collection_enabled ? `可选开启 · 脱敏 ${runtimePolicy.sft_redaction_enabled ? '开' : '关'} · ${runtimePolicy.sft_retention_days} 天` : '关闭（不保存 SFT 全文）'} /></label>
+              <label><span>授权 SFT 采集</span><input checked={sftOptIn} disabled={!runtimePolicy?.sft_collection_enabled} onChange={(event) => setSftOptIn(event.target.checked)} type="checkbox" /></label>
+              {sftOptIn && <>
+                <label><span>内容来源</span><input required value={contentSource} onChange={(event) => setContentSource(event.target.value)} /></label>
+                <label><span>授权 / License</span><input required value={contentLicense} onChange={(event) => setContentLicense(event.target.value)} /></label>
+                <label><span>明确同意说明</span><input required value={consentNote} onChange={(event) => setConsentNote(event.target.value)} /></label>
+              </>}
+            </div><p className="mock-disclosure">未勾选时不会把完整 prompt 或 completion 写入 SFT 数据；运行日志仅记录 BLAKE2b 摘要、耗时和 token metadata。</p></fieldset>
             <button className="primary-action" type="submit" disabled={!script.trim() || analyzeBusy || actionBusy}><span>{analyzeBusy ? '分析进行中' : '创建项目并分析'}</span><span aria-hidden="true">→</span></button>
             <p className="mock-disclosure">页面不内置分析结果。mock 模式仅替换 LLM 响应；项目、HTTP、job、Graph、Propagation、Diff 与 revisions 均走真实后端代码。</p>
           </form>

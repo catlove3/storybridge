@@ -7,9 +7,11 @@ from pydantic import BaseModel
 
 from app.config import get_config
 from app.llm import LLMClient
+from app.privacy import project_data_context
 from app.schemas import (
     AdaptationPlan,
     AppliedAdaptation,
+    DataPolicy,
     PropagationResult,
     StoryState,
     TargetScript,
@@ -65,12 +67,25 @@ class StoryBridgeWorkflow:
         name: str,
         script_text: str,
         market: MarketProfile | None = None,
+        *,
+        owner_id: str = "local",
+        data_policy: DataPolicy | None = None,
     ) -> ProjectMeta:
-        return self.store.create_project(name, script_text, market or MarketProfile())
+        return self.store.create_project(
+            name,
+            script_text,
+            market or MarketProfile(),
+            owner_id=owner_id,
+            data_policy=data_policy,
+        )
 
     async def analyze(self, project_id: str) -> StoryState:
         async with self._project_locks[project_id]:
-            return await self._analyze_locked(project_id)
+            meta = self.store.load_meta(project_id)
+            if meta is None:
+                raise KeyError(f"unknown project: {project_id}")
+            with project_data_context(project_id, meta.data_policy):
+                return await self._analyze_locked(project_id)
 
     async def _analyze_locked(self, project_id: str) -> StoryState:
         meta = self.store.load_meta(project_id)
@@ -100,7 +115,11 @@ class StoryBridgeWorkflow:
     async def plan(self, project_id: str, mechanism_id: str) -> AdaptationPlan:
         async with self._project_locks[project_id]:
             state = self.require_state(project_id)
-            return await self._plan_locked(project_id, state, mechanism_id)
+            meta = self.store.load_meta(project_id)
+            if meta is None:
+                raise KeyError(f"unknown project: {project_id}")
+            with project_data_context(project_id, meta.data_policy):
+                return await self._plan_locked(project_id, state, mechanism_id)
 
     async def _plan_locked(
         self,
@@ -132,14 +151,18 @@ class StoryBridgeWorkflow:
         operation_id: str | None = None,
     ) -> ApplyResult:
         async with self._project_locks[project_id]:
-            return await self._apply_locked(
-                project_id,
-                mechanism_id,
-                option_label,
-                auto_verify_and_repair,
-                based_on_version,
-                operation_id,
-            )
+            meta = self.store.load_meta(project_id)
+            if meta is None:
+                raise KeyError(f"unknown project: {project_id}")
+            with project_data_context(project_id, meta.data_policy):
+                return await self._apply_locked(
+                    project_id,
+                    mechanism_id,
+                    option_label,
+                    auto_verify_and_repair,
+                    based_on_version,
+                    operation_id,
+                )
 
     async def _apply_locked(
         self,
@@ -227,12 +250,18 @@ class StoryBridgeWorkflow:
     async def verify(self, project_id: str) -> VerifyReport:
         async with self._project_locks[project_id]:
             state = self.require_state(project_id)
+            meta = self.store.load_meta(project_id)
+            if meta is None:
+                raise KeyError(f"unknown project: {project_id}")
             applied = self.store.load_applied(project_id)
             summary = "; ".join(
                 f"{a.plan_culture_mechanism_id} -> {a.chosen_option.replacement_definition}"
                 for a in applied
             )
-            return await self.verifier.verify(state, applied_adaptations_summary=summary)
+            with project_data_context(project_id, meta.data_policy):
+                return await self.verifier.verify(
+                    state, applied_adaptations_summary=summary
+                )
 
     async def render_target_script(self, project_id: str) -> TargetScript:
         async with self._project_locks[project_id]:
@@ -240,7 +269,11 @@ class StoryBridgeWorkflow:
             cached = self.store.load_target_script(project_id)
             if cached is not None:
                 return cached
-            target_script = await self.renderer.render(state)
+            meta = self.store.load_meta(project_id)
+            if meta is None:
+                raise KeyError(f"unknown project: {project_id}")
+            with project_data_context(project_id, meta.data_policy):
+                target_script = await self.renderer.render(state)
             self.store.save_target_script(project_id, target_script)
             return target_script
 

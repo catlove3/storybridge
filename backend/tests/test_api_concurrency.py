@@ -128,7 +128,7 @@ async def test_api_job_for_project_without_state(client):
             break
         await asyncio.sleep(0.02)
     assert payload["status"] == "failed"
-    assert "analyze" in payload["error"] or "KeyError" in payload["error"]
+    assert payload["error"] == "job_execution_failed"
 
 
 async def test_api_malformed_market(client):
