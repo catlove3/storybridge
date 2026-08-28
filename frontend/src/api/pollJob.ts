@@ -6,6 +6,7 @@ interface PollJobOptions<TResult> {
   timeoutMs?: number
   signal?: AbortSignal
   onUpdate?: (job: Job<TResult>) => void
+  cancelOnInterrupt?: boolean
 }
 
 function wait(ms: number, signal?: AbortSignal): Promise<void> {
@@ -34,26 +35,35 @@ export async function pollJob<TResult = unknown>(
     timeoutMs = 180_000,
     signal,
     onUpdate,
+    cancelOnInterrupt = true,
   }: PollJobOptions<TResult> = {},
 ): Promise<Job<TResult>> {
   const startedAt = Date.now()
 
-  while (Date.now() - startedAt <= timeoutMs) {
-    const job = await api.getJob<TResult>(jobId, signal)
-    onUpdate?.(job)
+  try {
+    while (Date.now() - startedAt <= timeoutMs) {
+      const job = await api.getJob<TResult>(jobId, signal)
+      onUpdate?.(job)
 
-    if (job.status === 'done') {
-      return job
-    }
-    if (job.status === 'failed') {
-      throw new Error(job.error || '分析任务失败，但后端没有返回错误详情。')
-    }
-    if (job.status === 'cancelled') {
-      throw new Error('任务已取消。')
-    }
+      if (job.status === 'done') {
+        return job
+      }
+      if (job.status === 'failed') {
+        throw new Error(job.error || '分析任务失败，但后端没有返回错误详情。')
+      }
+      if (job.status === 'cancelled') {
+        throw new Error('任务已取消。')
+      }
 
-    await wait(intervalMs, signal)
+      await wait(intervalMs, signal)
+    }
+  } catch (error) {
+    if (cancelOnInterrupt && error instanceof DOMException && error.name === 'AbortError') {
+      await api.cancelJob(jobId).catch(() => undefined)
+    }
+    throw error
   }
 
+  if (cancelOnInterrupt) await api.cancelJob(jobId).catch(() => undefined)
   throw new Error(`任务轮询超过 ${Math.round(timeoutMs / 1_000)} 秒，请稍后重试。`)
 }

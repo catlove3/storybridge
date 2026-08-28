@@ -2,6 +2,8 @@ import type {
   CreateProjectRequest,
   CreateProjectResponse,
   Job,
+  ProjectDetail,
+  ProjectSummary,
   PropagationResult,
   Revision,
   RuntimePolicy,
@@ -57,6 +59,14 @@ export const api = {
     return request<RuntimePolicy>('/runtime-policy', { signal })
   },
 
+  listProjects(signal?: AbortSignal) {
+    return request<ProjectSummary[]>('/projects', { signal })
+  },
+
+  getProject(projectId: string, signal?: AbortSignal) {
+    return request<ProjectDetail>(`/projects/${projectId}`, { signal })
+  },
+
   createProject(body: CreateProjectRequest, signal?: AbortSignal) {
     return request<CreateProjectResponse>('/projects', {
       method: 'POST',
@@ -79,6 +89,10 @@ export const api = {
 
   cancelJob<TResult = unknown>(jobId: string, signal?: AbortSignal) {
     return request<Job<TResult>>(`/jobs/${jobId}/cancel`, { method: 'POST', signal })
+  },
+
+  listJobs(projectId: string, signal?: AbortSignal) {
+    return request<Job[]>(`/projects/${projectId}/jobs`, { signal })
   },
 
   getStoryState(projectId: string, signal?: AbortSignal) {
