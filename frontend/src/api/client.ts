@@ -2,6 +2,10 @@ import type {
   CreateProjectRequest,
   CreateProjectResponse,
   Job,
+  PropagationResult,
+  Revision,
+  SceneDiff,
+  StoryGraphResponse,
   StoryState,
   SubmitJobRequest,
   SubmitJobResponse,
@@ -67,5 +71,29 @@ export const api = {
 
   getStoryState(projectId: string, signal?: AbortSignal) {
     return request<StoryState>(`/projects/${projectId}/state`, { signal })
+  },
+
+  getPropagation(projectId: string, mechanismId: string, signal?: AbortSignal) {
+    const query = new URLSearchParams({ mechanism: mechanismId })
+    return request<PropagationResult>(`/projects/${projectId}/propagate?${query}`, { signal })
+  },
+
+  getGraph(
+    projectId: string,
+    focus?: string,
+    depth = 3,
+    signal?: AbortSignal,
+  ) {
+    const query = new URLSearchParams({ depth: String(depth) })
+    if (focus) query.set('focus', focus)
+    return request<StoryGraphResponse>(`/projects/${projectId}/graph?${query}`, { signal })
+  },
+
+  getDiff(projectId: string, signal?: AbortSignal) {
+    return request<SceneDiff[]>(`/projects/${projectId}/diff`, { signal })
+  },
+
+  getRevisions(projectId: string, signal?: AbortSignal) {
+    return request<Revision[]>(`/projects/${projectId}/revisions`, { signal })
   },
 }
