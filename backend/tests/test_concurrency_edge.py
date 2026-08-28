@@ -5,12 +5,12 @@ import json
 
 import pytest
 
+from app.baselines.metrics import evaluate_output
+from app.baselines.runner import BaselineRunner
 from app.llm import MockLLMClient
+from app.schemas import StoryState
 from app.storage import MarketProfile, ProjectStore
 from app.workflow.engine import StoryBridgeWorkflow
-from app.baselines.runner import BaselineRunner
-from app.baselines.metrics import evaluate_output
-from app.schemas import StoryState
 from tests.fixtures import sample_story_state_dict
 
 
@@ -35,7 +35,7 @@ async def test_baseline_empty_mechanism_list(tmp_path):
 
     runner = BaselineRunner(wf, client)
     with pytest.raises(KeyError):
-        result = await runner.run_experiment(
+        await runner.run_experiment(
             "empty", "script", [("CM01", "B")], MarketProfile(market="US")
         )
 
@@ -87,7 +87,6 @@ async def test_concurrent_apply_same_project(tmp_path):
         wf.apply_adaptation(meta.id, "CM01", "B"),
         wf.apply_adaptation(meta.id, "CM01", "B"),
     )
-    applied_list = wf.store.load_applied(meta.id)
     final = wf.require_state(meta.id)
     assert len(final.scenes) == 8
     revisions = wf.store.list_revisions(meta.id)
@@ -98,7 +97,7 @@ async def test_duplicate_analyze_jobs_same_project(tmp_path):
     wf, _ = _wf(tmp_path)
     meta = await wf.create_project("dupjobs", "script", MarketProfile())
 
-    results = await asyncio.gather(wf.analyze(meta.id), wf.analyze(meta.id))
+    await asyncio.gather(wf.analyze(meta.id), wf.analyze(meta.id))
     revisions = wf.store.list_revisions(meta.id)
     assert len(revisions) == 2
     assert wf.store.load_state(meta.id) is not None

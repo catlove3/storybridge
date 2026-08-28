@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
@@ -102,7 +102,7 @@ class StoryState(BaseModel):
     dependencies: list[Dependency] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def _dedupe_and_reindex(self) -> "StoryState":
+    def _dedupe_and_reindex(self) -> StoryState:
         seen_nodes: set[str] = set()
         for attr in (
             "characters",
@@ -168,7 +168,7 @@ class StoryState(BaseModel):
 
 class Revision(BaseModel):
     revision_id: int
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     kind: Literal[
         "initial_parse",
         "friction_detection",

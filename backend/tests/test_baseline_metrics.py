@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import json
-
 from app.baselines.metrics import (
     compute_scene_recall,
     count_stale_references,

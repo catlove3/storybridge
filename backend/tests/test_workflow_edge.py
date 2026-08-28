@@ -1,15 +1,12 @@
 from __future__ import annotations
 
-import json
-
 import pytest
 
+from app.export.bible import changed_scenes_diff, export_bible
 from app.llm import MockLLMClient
 from app.schemas import StoryState
 from app.storage import MarketProfile, ProjectStore
 from app.workflow.engine import StoryBridgeWorkflow
-from app.workflow.rewriter import SceneRewriter
-from app.export.bible import export_bible, changed_scenes_diff
 from tests.fixtures import sample_story_state_dict
 
 
@@ -119,7 +116,6 @@ async def test_repair_issue_without_scene_id_noop(tmp_path):
 
 def test_bible_project_without_state_raises(tmp_path):
     wf, _ = _wf(tmp_path)
-    store = wf.store
     meta_store = ProjectStore(tmp_path / "p")
     meta = meta_store.create_project("empty", "script", MarketProfile())
     with pytest.raises(KeyError):
@@ -142,7 +138,6 @@ def await_sync_create(wf):
 
 
 async def test_concurrent_projects_isolation(tmp_path):
-    import asyncio
 
     wf, _ = _wf(tmp_path)
     ids = []

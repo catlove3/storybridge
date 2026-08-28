@@ -10,7 +10,7 @@
 
 | 资产 | 位置 | 状态 |
 |---|---|---|
-| 完整后端闭环 | `backend/app/` | 132 测试全绿，真 LLM 7 题材验证过 |
+| 完整后端闭环 | `backend/app/` | 135 测试全绿，真 LLM 7 题材验证过 |
 | 测试语料库 | `backend/data/scripts/` | demo_v0（编制彩礼）+ 5 题材 corpus 剧本 |
 | 外部数据 | `backend/data/external/` | kunpeng 章节 + idiom 验证集（50条）|
 | SFT 语料积累 | `backend/data/sft_logs/`（gitignore）| 每次真实调用自动落盘，按 skill 分文件 |
@@ -112,7 +112,7 @@ _REGISTRY["my_step"] = MY_STEP   # all_skills 之外手动加或改列表
 cd backend && source .venv/bin/activate
 
 # 测试（改任何代码后必跑）
-python -m pytest tests/ -q                     # 全量 132 个，~10s
+python -m pytest tests/ -q                     # 全量 135 个
 python -m pytest tests/test_graph.py -q        # 只跑图引擎
 
 # 真 LLM 全流程演示（~2元）

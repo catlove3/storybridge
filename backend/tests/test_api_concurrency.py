@@ -1,94 +1,98 @@
 from __future__ import annotations
 
 import asyncio
-import json
 
 import pytest
-from fastapi.testclient import TestClient
+from httpx import ASGITransport, AsyncClient
 
 from app.llm import MockLLMClient
 from app.main import app
 from app.storage import ProjectStore
 from app.workflow.engine import StoryBridgeWorkflow
-from tests.fixtures import sample_story_state_dict
 
 
 @pytest.fixture
-def client(tmp_path):
+async def client(tmp_path):
     from app.cli import _load_default_mock_fixtures
     from app.jobs import JobManager
 
     mock = MockLLMClient()
     _load_default_mock_fixtures(mock)
     store = ProjectStore(tmp_path / "projects")
-    with TestClient(app, raise_server_exceptions=False) as c:
-        app.state.workflow = StoryBridgeWorkflow(store, mock)
-        app.state.jobs = JobManager()
-        yield c, mock
+    app.state.workflow = StoryBridgeWorkflow(store, mock)
+    app.state.jobs = JobManager()
+    async with AsyncClient(
+        transport=ASGITransport(app=app, raise_app_exceptions=False),
+        base_url="http://testserver",
+    ) as api_client:
+        yield api_client, mock
 
 
-def test_api_concurrent_create_and_analyze(client):
-    c, mock = client
-    pids = [c.post("/api/projects", json={"script": f"s{i}"}).json()["id"] for i in range(3)]
-
-    import threading
-
-    def analyze(pid):
-        r = c.post(f"/api/projects/{pid}/analyze")
-        return r.status_code
-
-    threads = [threading.Thread(target=analyze, args=(p,)) for p in pids]
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join()
-    for pid in pids:
-        assert c.get(f"/api/projects/{pid}/state").status_code == 200
+async def test_api_concurrent_create_and_analyze(client):
+    api_client, _ = client
+    project_ids = [
+        (await api_client.post("/api/projects", json={"script": f"s{i}"})).json()["id"]
+        for i in range(3)
+    ]
+    responses = await asyncio.gather(
+        *(api_client.post(f"/api/projects/{project_id}/analyze") for project_id in project_ids)
+    )
+    assert all(response.status_code == 200 for response in responses)
+    for project_id in project_ids:
+        assert (await api_client.get(f"/api/projects/{project_id}/state")).status_code == 200
 
 
-def test_api_same_project_double_plan(client):
-    c, mock = client
-    pid = c.post("/api/projects", json={"script": "x"}).json()["id"]
-    c.post(f"/api/projects/{pid}/analyze")
-
-    import threading
-
-    results = []
-
-    def plan():
-        r = c.post(f"/api/projects/{pid}/adaptations/plan", json={"culture_mechanism_id": "CM01"})
-        results.append(r.status_code)
-
-    threads = [threading.Thread(target=plan) for _ in range(4)]
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join()
-    assert all(code == 200 for code in results), results
-    plans = c.get(f"/api/projects/{pid}/state").status_code
-    assert plans == 200
+async def test_api_same_project_double_plan(client):
+    api_client, _ = client
+    project_id = (
+        await api_client.post("/api/projects", json={"script": "x"})
+    ).json()["id"]
+    await api_client.post(f"/api/projects/{project_id}/analyze")
+    responses = await asyncio.gather(
+        *(
+            api_client.post(
+                f"/api/projects/{project_id}/adaptations/plan",
+                json={"culture_mechanism_id": "CM01"},
+            )
+            for _ in range(4)
+        )
+    )
+    assert all(response.status_code == 200 for response in responses), responses
+    assert (await api_client.get(f"/api/projects/{project_id}/state")).status_code == 200
 
 
-def test_api_job_for_project_without_state(client):
-    c, _ = client
-    pid = c.post("/api/projects", json={"script": "x"}).json()["id"]
-    job = c.post(f"/api/projects/{pid}/jobs", json={"kind": "apply", "culture_mechanism_id": "CM01", "option_label": "B"}).json()
-    import time
-
+async def test_api_job_for_project_without_state(client):
+    api_client, _ = client
+    project_id = (
+        await api_client.post("/api/projects", json={"script": "x"})
+    ).json()["id"]
+    job = (
+        await api_client.post(
+            f"/api/projects/{project_id}/jobs",
+            json={
+                "kind": "apply",
+                "culture_mechanism_id": "CM01",
+                "option_label": "B",
+            },
+        )
+    ).json()
     payload = {"status": "running"}
     for _ in range(50):
-        payload = c.get(f"/api/jobs/{job['job_id']}").json()
+        payload = (await api_client.get(f"/api/jobs/{job['job_id']}")).json()
         if payload["status"] != "running":
             break
-        time.sleep(0.02)
+        await asyncio.sleep(0.02)
     assert payload["status"] == "failed"
     assert "analyze" in payload["error"] or "KeyError" in payload["error"]
 
 
-def test_api_malformed_market(client):
-    c, _ = client
-    r = c.post("/api/projects", json={"script": "x", "market": {"market": 123, "audience": None}})
-    assert r.status_code == 422
+async def test_api_malformed_market(client):
+    api_client, _ = client
+    response = await api_client.post(
+        "/api/projects",
+        json={"script": "x", "market": {"market": 123, "audience": None}},
+    )
+    assert response.status_code == 422
 
 
 def test_openai_client_server_error_retry_semantics():

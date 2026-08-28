@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import json
 
-from app.storage import MarketProfile, ProjectStore
 from app.schemas import StoryState
+from app.storage import MarketProfile, ProjectStore
 from tests.fixtures import sample_story_state_dict
 
 
@@ -57,7 +57,7 @@ def test_plan_survives_corrupted_plans_file(tmp_path):
 
     assert store.load_plans(meta.id) == []
     try:
-        from app.schemas import AdaptationPlan, AdaptationOption, AdaptationStrategy
+        from app.schemas import AdaptationOption, AdaptationPlan, AdaptationStrategy
 
         plan = AdaptationPlan(
             culture_mechanism_id="CM01",

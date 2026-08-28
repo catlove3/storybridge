@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from collections import deque
 
-import networkx as nx
-
 from app.graph.build import StoryGraph
 from app.schemas import (
     AffectedScene,

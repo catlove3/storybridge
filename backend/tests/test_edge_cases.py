@@ -48,9 +48,6 @@ async def test_apply_twice_same_mechanism(tmp_path):
     first = await wf.apply_adaptation(meta.id, "CM01", "B")
     assert first.repair_rounds >= 0
 
-    state_before = wf.require_state(meta.id)
-    s01_before = state_before.scene_by_id("S01").text
-
     second = await wf.apply_adaptation(meta.id, "CM01", "B")
     assert second.applied.chosen_option.option_label == "B"
     assert wf.require_state(meta.id).scene_by_id("S01").text
@@ -72,14 +69,13 @@ async def test_apply_multiple_mechanisms_sequentially(tmp_path):
     await wf.analyze(meta.id)
 
     await wf.apply_adaptation(meta.id, "CM01", "B")
-    result2 = await wf.apply_adaptation(meta.id, "CM02", "B")
+    await wf.apply_adaptation(meta.id, "CM02", "B")
 
     state = wf.require_state(meta.id)
     cm01 = next(m for m in state.culture_mechanisms if m.id == "CM01")
     cm02 = next(m for m in state.culture_mechanisms if m.id == "CM02")
     assert cm01.adapted_to and cm02.adapted_to
 
-    static_issues = wf.verifier and result2.report
     applied_list = wf.store.load_applied(meta.id)
     assert len(applied_list) == 2
 

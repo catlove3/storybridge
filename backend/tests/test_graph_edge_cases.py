@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-import pytest
-
 from app.graph import PropagationEngine, StoryGraph
 from app.schemas import Dependency, EdgeRelation, StoryState
-from tests.fixtures import sample_story_state_dict
 
 
 def _state_with_dependencies(state_dict, deps: list[Dependency]) -> StoryState:

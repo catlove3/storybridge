@@ -9,7 +9,7 @@ from app.graph import PropagationEngine, StoryGraph
 from app.llm import MockLLMClient
 from app.llm.router import LLMRouter
 from app.llm.structured import _unwrap_array
-from app.schemas import Dependency, EdgeRelation, StoryState
+from app.schemas import StoryState
 from app.storage import MarketProfile, ProjectStore
 from app.workflow.engine import StoryBridgeWorkflow
 from tests.fixtures import sample_story_state_dict
@@ -133,7 +133,6 @@ async def test_apply_with_scene_ids_unpadded(tmp_path):
     for scene in state_dict["scenes"]:
         num = int(scene["id"][1:])
         scene["id"] = f"S{num}"
-    remap = {"S1": "S1"}
     for dep in state_dict["dependencies"]:
         for field in ("source_id", "target_id"):
             if dep[field].startswith("S") and dep[field][1:].isdigit():
