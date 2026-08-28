@@ -27,6 +27,7 @@ async def test_detector_drops_misextracted_mechanism(tmp_path):
         {
             "mechanisms": [
                 {"id": "CM01", "friction_level": "high", "narrative_importance": "high"},
+                {"id": "CM02", "friction_level": "high", "narrative_importance": "high"},
                 {"id": "CM03", "friction_level": "low", "narrative_importance": "low", "drop": True},
             ]
         },

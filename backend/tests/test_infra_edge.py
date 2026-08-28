@@ -139,11 +139,17 @@ async def test_apply_with_scene_ids_unpadded(tmp_path):
                 dep[field] = f"S{int(dep[field][1:])}"
     for cm in state_dict["culture_mechanisms"]:
         cm["scene_ids"] = [f"S{int(s[1:])}" for s in cm["scene_ids"]]
+    for event in state_dict["events"]:
+        event["scene_ids"] = [f"S{int(s[1:])}" for s in event["scene_ids"]]
+    for commitment in state_dict["commitments"]:
+        for field in ("established_at_scene_id", "payoff_scene_id"):
+            scene_id = commitment[field]
+            if scene_id is not None:
+                commitment[field] = f"S{int(scene_id[1:])}"
 
     client = MockLLMClient()
     _load_default_mock_fixtures(client)
     client.set_response("parse_story", state_dict)
-    client.set_response("detect_frictions", {"mechanisms": []})
     wf = StoryBridgeWorkflow(ProjectStore(tmp_path / "p"), client)
     meta = await wf.create_project("unpad", "s", MarketProfile())
     await wf.analyze(meta.id)

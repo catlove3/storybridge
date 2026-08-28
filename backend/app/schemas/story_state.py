@@ -102,8 +102,9 @@ class StoryState(BaseModel):
     dependencies: list[Dependency] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def _dedupe_and_reindex(self) -> StoryState:
-        seen_nodes: set[str] = set()
+    def _validate_invariants(self) -> StoryState:
+        node_locations: dict[str, str] = {}
+        duplicate_nodes: list[str] = []
         for attr in (
             "characters",
             "scenes",
@@ -112,13 +113,15 @@ class StoryState(BaseModel):
             "culture_mechanisms",
             "commitments",
         ):
-            items = getattr(self, attr)
-            unique: list = []
-            for item in items:
-                if item.id not in seen_nodes:
-                    seen_nodes.add(item.id)
-                    unique.append(item)
-            setattr(self, attr, unique)
+            for item in getattr(self, attr):
+                previous = node_locations.get(item.id)
+                if previous is not None:
+                    duplicate_nodes.append(f"{item.id} ({previous}, {attr})")
+                else:
+                    node_locations[item.id] = attr
+
+        if duplicate_nodes:
+            raise ValueError(f"duplicate node ids: {', '.join(duplicate_nodes)}")
 
         seen_edges: set[tuple[str, str, str]] = set()
         unique_deps: list[Dependency] = []
@@ -128,6 +131,47 @@ class StoryState(BaseModel):
                 seen_edges.add(key)
                 unique_deps.append(dep)
         self.dependencies = unique_deps
+
+        character_ids = {character.id for character in self.characters}
+        scene_ids = {scene.id for scene in self.scenes}
+        event_ids = {event.id for event in self.events}
+        reference_errors: list[str] = []
+
+        def require_ids(owner: str, field: str, values: list[str], valid: set[str]) -> None:
+            missing = sorted(set(values) - valid)
+            if missing:
+                reference_errors.append(f"{owner}.{field} -> {', '.join(missing)}")
+
+        for scene in self.scenes:
+            require_ids(scene.id, "character_ids", scene.character_ids, character_ids)
+            require_ids(scene.id, "event_ids", scene.event_ids, event_ids)
+        for event in self.events:
+            require_ids(event.id, "scene_ids", event.scene_ids, scene_ids)
+        for mechanism in self.culture_mechanisms:
+            require_ids(mechanism.id, "scene_ids", mechanism.scene_ids, scene_ids)
+        for commitment in self.commitments:
+            commitment_scene_ids = [
+                scene_id
+                for scene_id in (
+                    commitment.established_at_scene_id,
+                    commitment.payoff_scene_id,
+                )
+                if scene_id is not None
+            ]
+            require_ids(commitment.id, "scene_ids", commitment_scene_ids, scene_ids)
+        for dependency in self.dependencies:
+            for endpoint_name, endpoint_id in (
+                ("source_id", dependency.source_id),
+                ("target_id", dependency.target_id),
+            ):
+                if endpoint_id not in node_locations:
+                    reference_errors.append(
+                        f"dependency {dependency.source_id}->{dependency.target_id} "
+                        f"has unknown {endpoint_name} {endpoint_id}"
+                    )
+
+        if reference_errors:
+            raise ValueError("dangling references: " + "; ".join(reference_errors))
         return self
 
     def node(self, node_id: str) -> BaseModel | None:

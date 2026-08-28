@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Callable
 from typing import TypeVar
 
 from pydantic import BaseModel, ValidationError
@@ -101,6 +102,7 @@ async def generate_structured(
     max_tokens: int | None = None,
     temperature: float | None = None,
     frequency_penalty: float | None = None,
+    result_validator: Callable[[T], None] | None = None,
 ) -> T:
     history: list[Message] = []
     last_error = ""
@@ -147,7 +149,10 @@ async def generate_structured(
                         "output has no recognized top-level schema fields: "
                         f"expected one of {sorted(schema.model_fields)}"
                     )
-                return schema.model_validate(raw)
+                result = schema.model_validate(raw)
+                if result_validator is not None:
+                    result_validator(result)
+                return result
             except json.JSONDecodeError as exc:
                 last_error = f"invalid JSON: {exc}"
             except ValidationError as exc:

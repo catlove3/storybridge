@@ -111,12 +111,14 @@ async def get_graph(project_id: str, request: Request, focus: str | None = None,
     nodes = [{"id": n, "kind": sub.nodes[n].get("kind", ""), "label": label_for(n)} for n in sub.nodes]
     edges = [
         {
+            "id": edge_key,
             "source": u,
             "target": v,
             "relation": d.get("relation", ""),
             "evidence": d.get("evidence", ""),
+            "confidence": d.get("confidence", 1.0),
         }
-        for u, v, d in sub.edges(data=True)
+        for u, v, edge_key, d in sub.edges(keys=True, data=True)
     ]
     return {"nodes": nodes, "edges": edges}
 

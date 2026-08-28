@@ -20,18 +20,16 @@ def _wf(tmp_path, responses=None, handler=None):
     return StoryBridgeWorkflow(ProjectStore(tmp_path / "p"), client), client
 
 
-async def test_scene_listed_in_propagation_but_missing(tmp_path):
+async def test_scene_listed_in_propagation_but_missing_is_rejected(tmp_path):
     state_dict = sample_story_state_dict()
     state_dict["dependencies"].append(
         {"source_id": "CM01", "target_id": "S77", "relation": "references"}
     )
     wf, _ = _wf(tmp_path, {"parse_story": state_dict})
     meta = await wf.create_project("ghostscene", "script", MarketProfile())
-    await wf.analyze(meta.id)
-    propagation = wf.propagate(meta.id, "CM01")
-    assert "S77" not in {a.scene_id for a in propagation.affected_scenes}
-    result = await wf.apply_adaptation(meta.id, "CM01", "B")
-    assert "S77" not in result.applied.rewritten_scene_ids
+    with pytest.raises(Exception, match="dangling references"):
+        await wf.analyze(meta.id)
+    assert wf.store.load_state(meta.id) is None
 
 
 async def test_zero_affected_scenes_apply(tmp_path):
@@ -56,6 +54,12 @@ async def test_zero_affected_scenes_apply(tmp_path):
 async def test_no_commitments_verify(tmp_path):
     state_dict = sample_story_state_dict()
     state_dict["commitments"] = []
+    state_dict["dependencies"] = [
+        dependency
+        for dependency in state_dict["dependencies"]
+        if not dependency["source_id"].startswith("NC")
+        and not dependency["target_id"].startswith("NC")
+    ]
     wf, client = _wf(tmp_path, {"parse_story": state_dict})
     meta = await wf.create_project("nocommit", "script", MarketProfile())
     await wf.analyze(meta.id)

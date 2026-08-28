@@ -53,3 +53,36 @@ def test_reason_paths_record_evidence(state):
     result = PropagationEngine(StoryGraph(state)).find_affected_scenes("CM01")
     s02 = next(a for a in result.affected_scenes if a.scene_id == "S02")
     assert "references" in s02.evidence or "motivates" in s02.evidence
+
+
+def test_parallel_relations_are_preserved_and_propagated(state_dict):
+    state_dict["dependencies"] = [
+        {
+            "source_id": "CM01",
+            "target_id": "E01",
+            "relation": "motivates",
+            "confidence": 0.8,
+        },
+        {
+            "source_id": "CM01",
+            "target_id": "E01",
+            "relation": "causes",
+            "confidence": 0.9,
+        },
+        {
+            "source_id": "E01",
+            "target_id": "S02",
+            "relation": "appears_in",
+            "confidence": 1.0,
+        },
+    ]
+    graph = StoryGraph(StoryState.model_validate(state_dict))
+
+    edge_data = graph.graph.get_edge_data("CM01", "E01")
+    assert edge_data is not None
+    assert {data["relation"] for data in edge_data.values()} == {"motivates", "causes"}
+
+    result = PropagationEngine(graph).find_affected_scenes("CM01")
+    affected = next(scene for scene in result.affected_scenes if scene.scene_id == "S02")
+    assert set(affected.impact_kinds) >= {ImpactKind.MOTIVATION, ImpactKind.CAUSAL}
+    assert affected.path_confidence == pytest.approx(0.9)
