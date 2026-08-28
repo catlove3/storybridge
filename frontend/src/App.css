@@ -1650,6 +1650,23 @@ footer {
   font-size: 10px;
 }
 
+.verification-coverage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 12px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.verification-coverage span {
+  white-space: nowrap;
+}
+
+.verification-coverage strong {
+  color: var(--ink);
+}
+
 .score-card .secondary-action {
   margin: 0;
 }

@@ -37,6 +37,14 @@ class CommitmentCheck(BaseModel):
 class VerifyReport(BaseModel):
     issues: list[VerificationIssue] = Field(default_factory=list)
     commitment_checks: list[CommitmentCheck] = Field(default_factory=list)
+    checked_scene_ids: list[str] = Field(default_factory=list)
+    static_checks_passed: int = Field(default=0, ge=0)
+    static_checks_total: int = Field(default=0, ge=0)
+    commitments_verified: int = Field(default=0, ge=0)
+    commitments_total: int = Field(default=0, ge=0)
+    scenes_checked: int = Field(default=0, ge=0)
+    scenes_total: int = Field(default=0, ge=0)
+    overall_status: Literal["not_run", "pass", "needs_review", "fail"] = "not_run"
     consistency_score: float = Field(
         default=1.0,
         ge=0.0,
@@ -52,6 +60,30 @@ class VerifyReport(BaseModel):
         errors = len(self.blocking_issues)
         warnings = sum(1 for i in self.issues if i.severity == Severity.WARNING)
         violated = sum(1 for c in self.commitment_checks if c.status == "violated")
-        penalty = 0.15 * errors + 0.05 * warnings + 0.2 * violated
+        needs_review = sum(1 for c in self.commitment_checks if c.status == "needs_review")
+        scene_coverage_gap = (
+            max(0.0, 1.0 - self.scenes_checked / self.scenes_total)
+            if self.scenes_total
+            else 0.0
+        )
+        penalty = (
+            0.15 * errors
+            + 0.05 * warnings
+            + 0.2 * violated
+            + 0.1 * needs_review
+            + 0.2 * scene_coverage_gap
+        )
         self.consistency_score = max(0.0, round(1.0 - penalty, 3))
+
+        incomplete_coverage = (
+            self.static_checks_passed < self.static_checks_total
+            or self.commitments_verified < self.commitments_total
+            or self.scenes_checked < self.scenes_total
+        )
+        if errors or violated:
+            self.overall_status = "fail"
+        elif warnings or needs_review or incomplete_coverage:
+            self.overall_status = "needs_review"
+        else:
+            self.overall_status = "pass"
         return self.consistency_score
