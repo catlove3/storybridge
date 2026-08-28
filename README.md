@@ -19,9 +19,9 @@
 cd backend
 uv venv .venv && source .venv/bin/activate
 uv pip install -e ".[dev]"
-cp .env.example .env        # 填入 DEEPSEEK_API_KEY
+cp .env.example .env        # 填 LLM_BASE_URL / LLM_API_KEY / LLM_MODEL
 
-python -m pytest tests/ -q                              # 129 个离线测试
+python -m pytest tests/ -q                              # 132 个离线测试
 python -m app.cli --mock demo data/scripts/demo_v0.md   # 零成本跑通全闭环
 uvicorn app.main:app --reload                           # 起服务 http://localhost:8000/docs
 ```
