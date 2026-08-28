@@ -1,0 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap');
+
+:root {
+  font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  color: #20231f;
+  background: #f1eee7;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --ink: #20231f;
+  --muted: #6e7069;
+  --paper: #f8f5ee;
+  --paper-strong: #fffdf8;
+  --line: #d8d2c5;
+  --indigo: #263e65;
+  --vermilion: #bd4c37;
+  --gold: #b98b47;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    linear-gradient(rgba(38, 62, 101, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(38, 62, 101, 0.025) 1px, transparent 1px),
+    #f1eee7;
+  background-size: 32px 32px;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 3px solid rgba(38, 62, 101, 0.28);
+  outline-offset: 2px;
+}
+
+::selection {
+  color: #fffdf8;
+  background: #263e65;
+}
