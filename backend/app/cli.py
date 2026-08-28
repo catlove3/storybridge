@@ -6,7 +6,7 @@ import json
 import sys
 from pathlib import Path
 
-from app.baselines.runner import BaselineRunner, save_experiment
+from app.baselines.runner import BaselineRunner, EvalAnnotations, save_experiment
 from app.config import get_config
 from app.export.bible import export_bible
 from app.llm import MockLLMClient, build_router
@@ -17,6 +17,28 @@ from app.workflow.engine import StoryBridgeWorkflow, build_default_workflow
 def _rewrite_echo_handler(request) -> str:
     import json as _json
     import re
+
+    if request.step == "render_target_script":
+        scene_ids = list(dict.fromkeys(re.findall(r'"id": "(S\d+)"', request.user_prompt)))
+        target_match = re.search(r"目标语言：([^\n]+)", request.user_prompt)
+        target_language = target_match.group(1).strip() if target_match else "English"
+        return _json.dumps(
+            {
+                "source_language": "zh-CN",
+                "target_language": target_language,
+                "target_locale": "en-US",
+                "scenes": [
+                    {
+                        "id": scene_id,
+                        "title": f"{scene_id} target",
+                        "summary": f"Target-language summary for {scene_id}",
+                        "text": f"[TARGET {scene_id}] localized target-language scene",
+                    }
+                    for scene_id in scene_ids
+                ],
+            },
+            ensure_ascii=False,
+        )
 
     match = re.search(r'"id": "(S\d+)"', request.user_prompt)
     scene_id = match.group(1) if match else "S01"
@@ -54,12 +76,56 @@ def _workflow(mock: bool, mock_responses: str | None) -> StoryBridgeWorkflow:
     return build_default_workflow(build_router())
 
 
+def _json_object_file(path: str | None) -> dict:
+    if not path:
+        return {}
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError(f"expected a JSON object in {path}")
+    return payload
+
+
+def _market_profile(args) -> MarketProfile:
+    return MarketProfile(
+        market=args.market,
+        audience=getattr(args, "audience", ""),
+        format=getattr(args, "format", ""),
+        genre=getattr(args, "genre", ""),
+        source_language=args.source_language,
+        target_language=args.target_language,
+        target_locale=args.target_locale,
+        style_guide=getattr(args, "style_guide", ""),
+        terminology_map=_json_object_file(getattr(args, "terminology_map", None)),
+    )
+
+
+def _adaptation_plans(values: list[str]) -> list[tuple[str, str]]:
+    plans: list[tuple[str, str]] = []
+    for value in values:
+        parts = value.strip().split(":", 1)
+        if len(parts) != 2 or not all(parts):
+            raise ValueError(f"invalid plan {value!r}; expected MECHANISM_ID:OPTION_LABEL")
+        plans.append((parts[0], parts[1]))
+    return plans
+
+
+def _add_localization_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--source-language", default="zh-CN")
+    parser.add_argument("--target-language", default="English")
+    parser.add_argument("--target-locale", default="en-US")
+    parser.add_argument("--style-guide", default="")
+    parser.add_argument(
+        "--terminology-map",
+        default=None,
+        metavar="JSON_FILE",
+        help="JSON object mapping frozen source terms to target-language terms",
+    )
+
+
 async def cmd_create(args) -> None:
     workflow = _workflow(args.mock, args.mock_responses)
     script = Path(args.script).read_text(encoding="utf-8") if args.script else sys.stdin.read()
-    meta = await workflow.create_project(
-        args.name, script, MarketProfile(market=args.market, audience=args.audience)
-    )
+    meta = await workflow.create_project(args.name, script, _market_profile(args))
     print(json.dumps({"id": meta.id}, ensure_ascii=False))
 
 
@@ -127,13 +193,33 @@ async def cmd_bible(args) -> None:
     print(f"saved: {path}")
 
 
+async def cmd_render(args) -> None:
+    workflow = _workflow(args.mock, args.mock_responses)
+    target = await workflow.render_target_script(args.project_id)
+    text = (
+        json.dumps(target.model_dump(), ensure_ascii=False, indent=2)
+        if args.json
+        else target.text
+    )
+    if args.out:
+        Path(args.out).write_text(text + "\n", encoding="utf-8")
+        print(f"saved: {args.out}")
+    else:
+        print(text)
+
+
 async def cmd_baseline(args) -> None:
     workflow = _workflow(args.mock, args.mock_responses)
     script = Path(args.script).read_text(encoding="utf-8")
-    plans = [(m.strip().split(":")[0], m.strip().split(":")[1]) for m in args.plans]
+    plans = _adaptation_plans(args.plans)
+    annotations = None
+    if args.annotations:
+        payload = _json_object_file(args.annotations)
+        payload.setdefault("source", Path(args.annotations).name)
+        annotations = EvalAnnotations.model_validate(payload)
     runner = BaselineRunner(workflow, workflow.rewriter.client)
     result = await runner.run_experiment(
-        args.name, script, plans, MarketProfile(market=args.market)
+        args.name, script, plans, _market_profile(args), annotations=annotations
     )
     save_experiment(result, Path(args.out_dir))
     from app.baselines.metrics import format_metrics_table
@@ -184,6 +270,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--name", default="")
     p.add_argument("--market", default="")
     p.add_argument("--audience", default="")
+    p.add_argument("--format", default="")
+    p.add_argument("--genre", default="")
+    _add_localization_args(p)
     p.set_defaults(func=cmd_create)
 
     p = sub.add_parser("analyze")
@@ -215,12 +304,25 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("out")
     p.set_defaults(func=cmd_bible)
 
+    p = sub.add_parser("render")
+    p.add_argument("project_id")
+    p.add_argument("--out", default=None)
+    p.add_argument("--json", action="store_true", help="emit the structured artifact")
+    p.set_defaults(func=cmd_render)
+
     p = sub.add_parser("baseline")
     p.add_argument("script")
     p.add_argument("--name", default="experiment")
     p.add_argument("--market", default="United States")
     p.add_argument("--plans", nargs="+", required=True, help="e.g. CM01:B CM02:B")
+    p.add_argument(
+        "--annotations",
+        default=None,
+        metavar="JSON_FILE",
+        help="human expected_affected_ids and forbidden_target_terms",
+    )
     p.add_argument("--out-dir", default="data/baselines")
+    _add_localization_args(p)
     p.set_defaults(func=cmd_baseline)
 
     p = sub.add_parser("demo")
@@ -242,6 +344,9 @@ def main(argv: list[str] | None = None) -> None:
     except KeyError as exc:
         print(f"error: {exc}", file=sys.stderr)
         raise SystemExit(3) from exc
+    except ValueError as exc:
+        print(f"error: invalid input: {exc}", file=sys.stderr)
+        raise SystemExit(4) from exc
 
 
 if __name__ == "__main__":

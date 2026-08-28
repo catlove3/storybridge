@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-from app.schemas import StoryState
+from app.schemas import StoryState, TargetScript
 
 
 def _normalize(text: str) -> str:
@@ -26,7 +26,7 @@ class SystemOutput:
 @dataclass
 class EvalMetrics:
     system_name: str
-    stale_reference_count: int = 0
+    stale_reference_count: int | None = None
     stale_details: list[str] = field(default_factory=list)
     affected_scene_recall: float | None = None
     changed_scene_ids: list[str] = field(default_factory=list)
@@ -63,6 +63,21 @@ def count_stale_references(original: StoryState, adapted_script: str) -> tuple[i
     return count, details
 
 
+def count_forbidden_target_terms(
+    adapted_script: str,
+    forbidden_terms: dict[str, list[str]],
+) -> tuple[int, list[str]]:
+    adapted_text = adapted_script.casefold()
+    count = 0
+    details: list[str] = []
+    for mechanism_id, terms in forbidden_terms.items():
+        for term in sorted(set(terms)):
+            if term and term.casefold() in adapted_text:
+                count += 1
+                details.append(f"{mechanism_id}: forbidden target-language term '{term}'")
+    return count, details
+
+
 def compute_scene_recall(
     expected_ids: list[str],
     output_state: StoryState,
@@ -81,6 +96,24 @@ def compute_scene_recall(
     return round(hit / len(expected_ids), 3), changed
 
 
+def compute_target_scene_recall(
+    expected_ids: list[str],
+    output_script: TargetScript,
+    reference_script: TargetScript,
+) -> tuple[float, list[str]]:
+    reference_by_id = {scene.id: scene for scene in reference_script.scenes}
+    changed = [
+        scene.id
+        for scene in output_script.scenes
+        if scene.id in reference_by_id
+        and _normalize(scene.text) != _normalize(reference_by_id[scene.id].text)
+    ]
+    if not expected_ids:
+        return 1.0, changed
+    hit = sum(scene_id in changed for scene_id in expected_ids)
+    return round(hit / len(expected_ids), 3), changed
+
+
 def evaluate_output(
     original_state: StoryState,
     adapted_state: StoryState | None,
@@ -88,15 +121,41 @@ def evaluate_output(
     system_name: str,
     expected_affected_ids: list[str],
     commitment_checks: list[dict] | None = None,
+    *,
+    output_language: str = "",
+    source_language: str = "",
+    forbidden_terms: dict[str, list[str]] | None = None,
+    target_output: TargetScript | None = None,
+    target_reference: TargetScript | None = None,
 ) -> EvalMetrics:
     metrics = EvalMetrics(system_name=system_name)
 
-    metrics.stale_reference_count, metrics.stale_details = count_stale_references(
-        original_state, adapted_script
-    )
+    if forbidden_terms is not None:
+        metrics.stale_reference_count, metrics.stale_details = count_forbidden_target_terms(
+            adapted_script, forbidden_terms
+        )
+    elif output_language and source_language and output_language != source_language:
+        metrics.notes.append(
+            "target-language forbidden-term annotations missing; stale references are N/A"
+        )
+    else:
+        metrics.stale_reference_count, metrics.stale_details = count_stale_references(
+            original_state, adapted_script
+        )
     metrics.expected_scene_ids = expected_affected_ids
 
-    if adapted_state is not None:
+    if target_output is not None and target_reference is not None:
+        metrics.affected_scene_recall, metrics.changed_scene_ids = (
+            compute_target_scene_recall(
+                expected_affected_ids,
+                target_output,
+                target_reference,
+            )
+        )
+        metrics.collateral_scene_ids = sorted(
+            set(metrics.changed_scene_ids) - set(expected_affected_ids)
+        )
+    elif adapted_state is not None:
         metrics.affected_scene_recall, metrics.changed_scene_ids = compute_scene_recall(
             expected_affected_ids, adapted_state, original_state
         )
@@ -129,10 +188,7 @@ def format_metrics_table(metrics_list: list[EvalMetrics]) -> str:
             if m.commitment_total
             else "N/A"
         )
-        if m.stale_reference_count < 0:
-            stale = "N/A(未改编)"
-        else:
-            stale = str(m.stale_reference_count)
+        stale = "N/A" if m.stale_reference_count is None else str(m.stale_reference_count)
         collateral = str(m.collateral_count) if m.affected_scene_recall is not None else "N/A"
         rows.append(
             f"| {m.system_name:<22} | {stale:>10} | {recall:>10} | {collateral:>12} | {commitment:>10} |"

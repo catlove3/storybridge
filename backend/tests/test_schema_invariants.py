@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from app.schemas import AdaptationPlan, StoryState
+from app.schemas import AdaptationPlan, StoryState, TargetScript
 from tests.fixtures import sample_story_state_dict
 
 
@@ -94,3 +94,19 @@ def test_adaptation_plan_rejects_strategy_label_mismatch():
                 ],
             }
         )
+
+
+def test_target_script_rejects_blank_text_and_duplicate_scenes():
+    payload = {
+        "target_language": " English ",
+        "scenes": [{"id": "S01", "text": "   "}],
+    }
+    with pytest.raises(ValidationError):
+        TargetScript.model_validate(payload)
+
+    payload["scenes"] = [
+        {"id": "S01", "text": "one"},
+        {"id": "S01", "text": "two"},
+    ]
+    with pytest.raises(ValidationError, match="scene ids must be unique"):
+        TargetScript.model_validate(payload)

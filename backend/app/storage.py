@@ -9,7 +9,13 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field, ValidationError
 
-from app.schemas import AdaptationPlan, AppliedAdaptation, Revision, StoryState
+from app.schemas import (
+    AdaptationPlan,
+    AppliedAdaptation,
+    Revision,
+    StoryState,
+    TargetScript,
+)
 
 
 def _now() -> datetime:
@@ -21,6 +27,11 @@ class MarketProfile(BaseModel):
     audience: str = ""
     format: str = ""
     genre: str = ""
+    source_language: str = "zh-CN"
+    target_language: str = "English"
+    target_locale: str = "en-US"
+    style_guide: str = ""
+    terminology_map: dict[str, str] = Field(default_factory=dict)
 
 
 class ProjectMeta(BaseModel):
@@ -229,3 +240,22 @@ class ProjectStore:
             for item in applied
             if item.state_version == 0 or item.state_version <= state.version
         ]
+
+    def save_target_script(self, project_id: str, target_script: TargetScript) -> None:
+        self._write_json(
+            self._dir(project_id) / "target_script.json",
+            target_script.model_dump(mode="json"),
+        )
+
+    def load_target_script(self, project_id: str) -> TargetScript | None:
+        raw = self._read_json(self._peek_dir(project_id) / "target_script.json")
+        if raw is None:
+            return None
+        try:
+            target_script = TargetScript.model_validate(raw)
+        except ValidationError:
+            return None
+        state = self.load_state(project_id)
+        if state is None or target_script.source_state_version != state.version:
+            return None
+        return target_script

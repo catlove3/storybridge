@@ -19,12 +19,13 @@ import type {
   SocialFunction,
   StoryGraphResponse,
   StoryState,
+  TargetScript,
   VerifyReport,
 } from './types/api'
 import './App.css'
 
 type AnalyzePhase = 'idle' | 'creating' | 'analyzing' | 'loading-state' | 'done' | 'error'
-type AdaptationAction = 'idle' | 'planning' | 'loading-impact' | 'applying' | 'verifying'
+type AdaptationAction = 'idle' | 'planning' | 'loading-impact' | 'applying' | 'verifying' | 'rendering'
 type NarrativeFunction = PlotFunction | SocialFunction | EmotionalFunction
 
 const levelMeta: Record<Level, { label: string; description: string }> = {
@@ -73,6 +74,7 @@ const actionCopy: Record<AdaptationAction, string> = {
   'loading-impact': '正在计算传播范围并读取聚焦图谱…',
   applying: '正在改写受影响场景，并执行 Verify / Repair…',
   verifying: '正在重新验证最新 Story State…',
+  rendering: '正在将冻结的结构稿渲染为目标语言剧本…',
 }
 
 function readableError(caught: unknown) {
@@ -351,6 +353,25 @@ function CompleteScript({ state }: { state: StoryState }) {
   )
 }
 
+function TargetLanguageScript({ script }: { script: TargetScript }) {
+  return (
+    <div className="complete-script target-script">
+      <header>
+        <div><span className="detail-label">VERSIONED TARGET ARTIFACT</span><h3>{script.target_language} 完整剧本</h3></div>
+        <div><strong>v{script.source_state_version}</strong><span>{script.target_locale || script.target_language}</span></div>
+      </header>
+      <div className="script-scenes">
+        {script.scenes.map((scene) => (
+          <article key={scene.id}>
+            <header><code>{scene.id}</code><div><h4>{scene.title || scene.id}</h4><p>{scene.summary}</p></div></header>
+            <p className="script-scene__text">{scene.text}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function App() {
   const [name, setName] = useState('跨文化分析 Demo')
   const [script, setScript] = useState('')
@@ -358,6 +379,8 @@ function App() {
   const [audience, setAudience] = useState('18–30')
   const [format, setFormat] = useState('Short drama')
   const [genre, setGenre] = useState('Urban drama')
+  const [targetLanguage, setTargetLanguage] = useState('English')
+  const [targetLocale, setTargetLocale] = useState('en-US')
   const [phase, setPhase] = useState<AnalyzePhase>('idle')
   const [project, setProject] = useState<{ id: string; name: string } | null>(null)
   const [analyzeJob, setAnalyzeJob] = useState<Job | null>(null)
@@ -376,6 +399,7 @@ function App() {
   const [verifyReport, setVerifyReport] = useState<VerifyReport | null>(null)
   const [diffs, setDiffs] = useState<SceneDiff[]>([])
   const [revisions, setRevisions] = useState<Revision[]>([])
+  const [targetScript, setTargetScript] = useState<TargetScript | null>(null)
   const controllerRef = useRef<AbortController | null>(null)
 
   const sortedMechanisms = useMemo(() => sortMechanisms(storyState?.culture_mechanisms ?? []), [storyState])
@@ -426,6 +450,7 @@ function App() {
     setVerifyReport(null)
     setDiffs([])
     setRevisions([])
+    setTargetScript(null)
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -442,7 +467,10 @@ function App() {
       setPhase('creating')
       const created = await api.createProject({
         name: name.trim(), script: script.trim(),
-        market: { market: market.trim(), audience: audience.trim(), format: format.trim(), genre: genre.trim() },
+        market: {
+          market: market.trim(), audience: audience.trim(), format: format.trim(), genre: genre.trim(),
+          source_language: 'zh-CN', target_language: targetLanguage.trim(), target_locale: targetLocale.trim(),
+        },
       }, controller.signal)
       setProject(created)
       setPhase('analyzing')
@@ -472,6 +500,7 @@ function App() {
     setLastApply(null)
     setVerifyReport(null)
     setDiffs([])
+    setTargetScript(null)
     setActionMessage('')
     setActionError('')
   }
@@ -559,6 +588,7 @@ function App() {
       setGraph(nextGraph)
       setLastApply({ mechanismId: selectedMechanism.id, result: completed.result })
       setVerifyReport(completed.result.report)
+      setTargetScript(null)
       setActionMessage(`Apply 完成：改写 ${completed.result.applied.rewritten_scene_ids.length} 个场景，自动修复 ${completed.result.repair_rounds} 轮。`)
     } catch (caught) {
       const message = readableError(caught)
@@ -581,6 +611,31 @@ function App() {
       if (!completed.result) throw new Error('Verify job 已完成，但没有返回 Verify Report。')
       setVerifyReport(completed.result)
       setActionMessage('最新 Story State 已重新验证。')
+    } catch (caught) {
+      const message = readableError(caught)
+      if (message) setActionError(message)
+    } finally {
+      setAction('idle')
+    }
+  }
+
+  async function handleRenderTarget() {
+    if (!project || !storyState || actionBusy) return
+    const controller = nextController()
+    setAction('rendering')
+    setActionError('')
+    setActionMessage('')
+    setActiveJob(null)
+    try {
+      const submitted = await api.submitJob(project.id, {
+        kind: 'render', idempotency_key: `render-v${storyState.version}`,
+      }, controller.signal)
+      await pollJob<TargetScript>(submitted.job_id, {
+        signal: controller.signal, timeoutMs: 15 * 60_000, onUpdate: setActiveJob,
+      })
+      const rendered = await api.getTargetScript(project.id, controller.signal)
+      setTargetScript(rendered)
+      setActionMessage(`目标语言剧本已生成，并绑定 Story State v${rendered.source_state_version}。`)
     } catch (caught) {
       const message = readableError(caught)
       if (message) setActionError(message)
@@ -613,6 +668,8 @@ function App() {
               <label><span>受众</span><input value={audience} onChange={(event) => setAudience(event.target.value)} /></label>
               <label><span>形式</span><input value={format} onChange={(event) => setFormat(event.target.value)} /></label>
               <label><span>类型</span><input value={genre} onChange={(event) => setGenre(event.target.value)} /></label>
+              <label><span>目标语言</span><input required value={targetLanguage} onChange={(event) => setTargetLanguage(event.target.value)} /></label>
+              <label><span>目标 locale</span><input required value={targetLocale} onChange={(event) => setTargetLocale(event.target.value)} /></label>
             </div></fieldset>
             <button className="primary-action" type="submit" disabled={!script.trim() || analyzeBusy || actionBusy}><span>{analyzeBusy ? '分析进行中' : '创建项目并分析'}</span><span aria-hidden="true">→</span></button>
             <p className="mock-disclosure">页面不内置分析结果。mock 模式仅替换 LLM 响应；项目、HTTP、job、Graph、Propagation、Diff 与 revisions 均走真实后端代码。</p>
@@ -633,7 +690,7 @@ function App() {
             {!storyState && !error && <div className="empty-state"><div className="empty-state__orb"><span>故事</span><i /><span>文化</span></div><h3>{analyzeBusy ? 'Agent 正在搭建故事的结构地图' : '分析结果将在这里展开'}</h3><p>完成后可点击真实 Culture Friction，继续生成方案、传播分析、改写和验证。</p></div>}
             {storyState && <div className="results">
               <div className="result-summary"><div><strong>{storyState.scenes.length}</strong><span>场景</span></div><div><strong>{storyState.characters.length}</strong><span>角色</span></div><div><strong>{storyState.culture_mechanisms.length}</strong><span>文化机制</span></div><div><strong>{storyState.dependencies.length}</strong><span>依赖关系</span></div></div>
-              <div className="result-context"><span>目标市场</span><strong>{storyState.target_market || market}</strong>{(storyState.audience || audience) && <small>{storyState.audience || audience}</small>}</div>
+              <div className="result-context"><span>目标市场与语言</span><strong>{storyState.target_market || market}</strong>{(storyState.audience || audience) && <small>{storyState.audience || audience} · {storyState.target_language} ({storyState.target_locale})</small>}</div>
               {sortedMechanisms.length > 0 ? <div className="friction-list">{sortedMechanisms.map((mechanism, index) => <FrictionCard disabled={actionBusy} key={mechanism.id} mechanism={mechanism} onSelect={() => handleSelectMechanism(mechanism.id)} order={index} selected={selectedMechanismId === mechanism.id} />)}</div> : <div className="no-frictions">当前 Story State 没有保留下来的文化摩擦点。</div>}
             </div>}
           </div>
@@ -665,6 +722,7 @@ function App() {
             <section className="workbench-section"><div className="subsection-heading"><span>09</span><div><p className="eyebrow">VERIFY / REPAIR</p><h3>一致性验证结果</h3></div><p>Apply job 内置自动验证与修复</p></div><VerificationPanel applyResult={lastApply.result} disabled={actionBusy} onVerify={handleVerify} report={verifyReport} /></section>
             <section className="workbench-section"><div className="subsection-heading"><span>10</span><div><p className="eyebrow">REVISION HISTORY</p><h3>改编修订记录</h3></div><p>{revisions.length} 个已保存版本</p></div><RevisionTimeline revisions={revisions} /></section>
             <section className="workbench-section" id="final-script"><div className="subsection-heading"><span>11</span><div><p className="eyebrow">FINAL SCRIPT</p><h3>完整演示产物</h3></div><p>由最新 Story State 场景顺序组装</p></div><CompleteScript state={storyState} /></section>
+            <section className="workbench-section"><div className="subsection-heading"><span>12</span><div><p className="eyebrow">TARGET-LANGUAGE ARTIFACT</p><h3>目标语言交付稿</h3></div><button className="secondary-action" disabled={actionBusy} onClick={handleRenderTarget} type="button">{targetScript ? '读取当前版本语言稿' : `生成 ${storyState.target_language} 剧本`}</button></div>{targetScript ? <TargetLanguageScript script={targetScript} /> : <div className="inline-empty">结构改编稿已冻结；点击生成与当前状态版本绑定的目标语言剧本。</div>}</section>
           </div>}
         </section>}
       </main>

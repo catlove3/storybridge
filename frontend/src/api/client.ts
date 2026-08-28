@@ -9,6 +9,7 @@ import type {
   StoryState,
   SubmitJobRequest,
   SubmitJobResponse,
+  TargetScript,
 } from '../types/api'
 
 const API_ROOT = '/api'
@@ -99,5 +100,9 @@ export const api = {
 
   getRevisions(projectId: string, signal?: AbortSignal) {
     return request<Revision[]>(`/projects/${projectId}/revisions`, { signal })
+  },
+
+  getTargetScript(projectId: string, signal?: AbortSignal) {
+    return request<TargetScript>(`/projects/${projectId}/target-script`, { signal })
   },
 }

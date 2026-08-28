@@ -5,7 +5,7 @@ from .prompts import (
     BASELINE_TRANSLATE_SYSTEM,
     BASELINE_TRANSLATE_USER,
 )
-from .runner import BaselineRunner, ExperimentResult, save_experiment
+from .runner import BaselineRunner, EvalAnnotations, ExperimentResult, save_experiment
 
 __all__ = [
     "BASELINE_STRONG_PROMPT_SYSTEM",
@@ -14,6 +14,7 @@ __all__ = [
     "BASELINE_TRANSLATE_USER",
     "BaselineRunner",
     "EvalMetrics",
+    "EvalAnnotations",
     "ExperimentResult",
     "evaluate_output",
     "format_metrics_table",

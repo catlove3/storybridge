@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from app.llm import MockLLMClient
-from app.schemas import StoryState, VerifyReport
+from app.schemas import StoryState, TargetScript, VerifyReport
 from app.skills import all_skills, get_skill
 from tests.fixtures import sample_story_state_dict
 
@@ -12,6 +12,7 @@ SKILL_NAMES = [
     "detect_frictions",
     "plan_adaptation",
     "rewrite_scene",
+    "render_target_script",
     "verify_consistency",
 ]
 
@@ -28,6 +29,7 @@ def test_get_skill_unknown_raises():
 def test_skill_schemas_bound():
     assert get_skill("parse_story").schema is StoryState
     assert get_skill("verify_consistency").schema is VerifyReport
+    assert get_skill("render_target_script").schema is TargetScript
     assert get_skill("parse_story").max_tokens == 8192
 
 

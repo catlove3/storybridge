@@ -30,6 +30,7 @@ from .story_state import (
     Setting,
     StoryState,
 )
+from .target import TargetScene, TargetScript
 from .verification import (
     CommitmentCheck,
     IssueType,
@@ -69,6 +70,8 @@ __all__ = [
     "Severity",
     "SocialFunction",
     "StoryState",
+    "TargetScene",
+    "TargetScript",
     "VerificationIssue",
     "VerifyReport",
 ]
