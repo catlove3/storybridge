@@ -112,12 +112,14 @@ class DataExportResponse(BaseModel):
     revisions: list[Revision]
     adaptations: list[dict[str, Any]]
     target_script: TargetScript | None
+    llm_runs: list[dict[str, Any]]
 
 
 class DeleteProjectResponse(BaseModel):
     deleted: bool
     project_id: str
     sft_samples_deleted: int
+    run_records_deleted: int
 
 
 class RuntimePolicyResponse(BaseModel):
@@ -128,6 +130,7 @@ class RuntimePolicyResponse(BaseModel):
     sft_redaction_enabled: bool
     sft_retention_days: int
     max_script_chars: int
+    max_project_llm_tokens: int
 
 
 class StateSummaryResponse(BaseModel):

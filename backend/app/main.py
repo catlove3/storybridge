@@ -25,10 +25,11 @@ async def lifespan(app: FastAPI):
     app.state.jobs = JobManager(storage_path=config.storage.jobs_file)
     app.state.usage_guard = ApiUsageGuard()
     logger.info(
-        "StoryBridge paths: projects=%s jobs=%s sft_logs=%s",
+        "StoryBridge paths: projects=%s jobs=%s sft_logs=%s run_logs=%s",
         config.storage.projects_dir,
         config.storage.jobs_file,
         config.logging.sft_log_dir,
+        config.logging.run_log_dir,
     )
     logger.info(
         "StoryBridge security mode=%s sft_collection=%s",
@@ -59,6 +60,8 @@ async def readyz(response: Response) -> dict:
         and os.access(config.storage.projects_dir, os.R_OK | os.W_OK),
         "jobs_storage": config.storage.jobs_file.parent.is_dir()
         and os.access(config.storage.jobs_file.parent, os.R_OK | os.W_OK),
+        "run_log_storage": config.logging.run_log_dir.is_dir()
+        and os.access(config.logging.run_log_dir, os.R_OK | os.W_OK),
         "llm_profile": config.llm.default_profile in config.llm.profiles,
     }
     ready = all(checks.values())

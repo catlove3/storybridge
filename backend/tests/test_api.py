@@ -49,6 +49,7 @@ async def test_liveness_and_readiness_are_distinct(client):
     assert set(readiness.json()["checks"]) == {
         "projects_storage",
         "jobs_storage",
+        "run_log_storage",
         "llm_profile",
     }
 

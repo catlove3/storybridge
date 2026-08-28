@@ -25,6 +25,8 @@ class ProfileConfig(BaseModel):
     timeout_seconds: float = Field(default=120.0, gt=0)
     max_retries: int = Field(default=3, ge=0, le=8)
     retry_base_delay: float = Field(default=0.5, ge=0, le=30)
+    input_cost_per_million_usd: float = Field(default=0.0, ge=0)
+    output_cost_per_million_usd: float = Field(default=0.0, ge=0)
     extra_body: dict[str, object] = Field(default_factory=dict)
 
 
@@ -40,6 +42,7 @@ class LLMConfig(BaseModel):
 
 class LoggingConfig(BaseModel):
     sft_log_dir: Path = BACKEND_ROOT / "data" / "sft_logs"
+    run_log_dir: Path = BACKEND_ROOT / "data" / "run_logs"
     sft_log_enabled: bool = False
     sft_redact_pii: bool = True
     sft_retention_days: int = Field(default=30, ge=1, le=365)
@@ -48,9 +51,10 @@ class LoggingConfig(BaseModel):
 class SecurityConfig(BaseModel):
     api_keys_env: str = "STORYBRIDGE_API_KEYS"
     default_owner: str = "local"
-    max_script_chars: int = Field(default=500_000, ge=1)
+    max_script_chars: int = Field(default=500_000, ge=1, le=500_000)
     max_active_jobs_per_owner: int = Field(default=4, ge=1, le=100)
     max_job_submissions_per_minute: int = Field(default=30, ge=1, le=10_000)
+    max_project_llm_tokens: int = Field(default=1_000_000, ge=0)
 
 
 class StorageConfig(BaseModel):
@@ -75,6 +79,7 @@ def get_config() -> AppConfig:
 
     for section, field_name in (
         (config.logging, "sft_log_dir"),
+        (config.logging, "run_log_dir"),
         (config.storage, "projects_dir"),
         (config.storage, "jobs_file"),
     ):
@@ -86,6 +91,7 @@ def get_config() -> AppConfig:
         ("STORYBRIDGE_PROJECTS_DIR", config.storage, "projects_dir"),
         ("STORYBRIDGE_JOBS_FILE", config.storage, "jobs_file"),
         ("STORYBRIDGE_SFT_LOG_DIR", config.logging, "sft_log_dir"),
+        ("STORYBRIDGE_RUN_LOG_DIR", config.logging, "run_log_dir"),
     ):
         override = os.environ.get(env_name, "").strip()
         if override:

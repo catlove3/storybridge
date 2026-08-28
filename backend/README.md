@@ -1,173 +1,138 @@
 # StoryBridge Backend
 
-> 面向中文短剧/网文出海的 AI 跨文化故事改编智能体后端。
-> 不是翻译，是**叙事功能保持的本土化改编**：显式 Story State + 依赖传播 + 局部重写 + 双层一致性验证。
+FastAPI 后端负责显式故事状态、文化摩擦分析、图传播、局部重写、验证/修复、版本提交和目标语言渲染。LLM 负责语义抽取与生成；节点引用、传播范围、版本冲突、静态验证和提交顺序由代码控制。
 
 ## 快速开始
 
 ```bash
-cd backend
 uv sync --frozen --extra dev
-source .venv/bin/activate
-cp .env.example .env          # 填 LLM_BASE_URL / LLM_API_KEY / LLM_MODEL
-
-# 离线测试（无需 key，135 个测试）
-python -m pytest tests/ -q
-
-# 起服务
-uvicorn app.main:app --reload   # http://localhost:8000/docs
-
-# 一条命令跑通全闭环（离线 mock，无需 key）
-python -m app.cli --mock demo data/scripts/demo_v0.md --bible /tmp/bible.md
+cp .env.example .env
+uv run pytest -q
+uv run uvicorn app.main:app --reload
 ```
 
-## OpenAI-compatible LLM 配置
+离线 mock 服务和 CLI：
 
-所有当前 workflow skill 默认走同一个 `general` profile，并可直接通过
-`backend/.env` 切换 OpenAI-compatible 服务：
+```bash
+uv run uvicorn app.mock_main:app --reload
+uv run python -m app.cli --mock demo data/scripts/demo_v0.md --bible /tmp/bible.md
+```
+
+## LLM 配置
+
+`.env` 只保存运行时 secret 和默认模型覆盖：
 
 ```dotenv
-LLM_BASE_URL=https://your-provider.example/v1
-LLM_API_KEY=your-secret-key
-LLM_MODEL=your-model-name
+LLM_BASE_URL=https://provider.example/v1
+LLM_API_KEY=secret
+LLM_MODEL=model-name
 ```
 
-`LLM_BASE_URL` 应停在 `/chat/completions` 之前；客户端会自动拼接该路径。
-密钥只从环境变量读取，不写入 YAML、代码或日志。`config/models.yaml` 仍保留
-按 step 路由到其他 profile 的能力，供本地微调模型等高级用法使用。
+`config/models.yaml` 负责 step route、超时、重试、最大输出、stream、模型价格以及安全配额。客户端复用 `httpx.AsyncClient`，支持 SSE usage、408/429/5xx 与连接错误的指数退避、jitter、`Retry-After`，并只在上游明确指出不支持时移除可选参数。
 
-结构化步骤会优先发送 OpenAI 风格的
-`response_format={"type":"json_object"}`。如果兼容服务以 400/422 拒绝该参数，
-客户端会自动移除它并重试；随后仍经过 JSON 提取、Pydantic schema 校验和原有纠错重试，
-因此不支持原生 JSON mode 的服务也可以接入，但其输出稳定性仍取决于具体模型。
-
-## 核心闭环
-
-```
-中文剧本
-  ① StoryParser (LLM)        抽取人物/场景/事件/文化机制/叙事承诺/依赖边
-  ② FrictionDetector (LLM)    摩擦度分级(锚定标准) + 叙事功能标签 + drop否决误抽
-  ③ AdaptationPlanner (LLM)   A保留 / B功能等效替换 / C剧情重构 三方案
-  ④ find_affected_scenes      ★纯代码图查询(不走LLM) 定位受影响场景+影响路径
-  ⑤ SceneRewriter (LLM)       只重写受影响场景, 锁定必须保留的承诺
-  ⑥ Verifier 双层验证         代码静态层(确定性) + LLM语义层(交叉验证防幻觉)
-  ⑦ Repair Loop               error级issue自动修复重写(≤2轮)
-```
-
-**架构哲学**：LLM 负责语义理解与生成；**状态、依赖检索、修改范围、验证流程全部由代码控制**。
-这是"为什么不是 ChatGPT 套壳"的技术根据——删掉 Story Graph，系统就退化成一次性全文改写。
-
-## 目录结构
+## 工作流
 
 ```text
-app/
-├── main.py / cli.py            # FastAPI 入口 / 命令行全闭环
-├── config.py                   # 读取 config/models.yaml + .env
-├── schemas/                    # 数据契约: 6类节点/9类依赖边/方案/验证报告
-├── graph/                      # 图引擎: build(冲击方向语义) + query(find_affected_scenes ★)
-├── skills/                     # Skill层: SkillSpec(name+schema+prompt工厂+生成参数) + 5skill注册表
-├── llm/                        # router(step→model路由) / openai_compat / mock / structured(JSON重试)
-├── prompts/templates.py        # Prompt模板唯一真源(微调格式与此锁定)
-├── workflow/                   # engine编排+repair循环 / 六步模块 / static_checks静态验证
-├── storage.py                  # JSON持久化 + rev001..N版本快照(审计) + 容错
-├── jobs.py                     # 异步任务管理(长LLM调用不阻塞HTTP)
-├── api/routes.py               # 16个REST端点
-├── baselines/                  # A翻译/B强Prompt/C对比实验 + 指标统计
-├── export/bible.py             # 逐场景Diff + Adaptation Bible导出
-└── external/kunpeng.py         # 外部语料桥接(kunpeng doclevel→测试剧本)
-config/models.yaml              # 模型路由配置(微调换模型只改这里)
-data/scripts/                   # 语料库: demo_v0 + 5题材corpus剧本
-data/external/                  # kunpeng章节样本 + idiom外部验证集
-tests/                          # 132个离线测试(全走MockLLM/MockTransport, 零API成本)
+StoryParser
+  → FrictionDetector
+  → AdaptationPlanner（A 保留 / B 功能替换 / C 情节重构）
+  → MultiDiGraph + PropagationEngine（纯代码）
+  → SceneRewriter（候选状态）
+  → strategy-aware static checks + semantic verifier
+  → repair loop（最多 2 轮）
+  → atomic StoryState version commit
+  → TargetScriptRenderer（带 source_state_version）
 ```
 
-## Skill 层与微调兼容
+关键不变量：
 
-每个 LLM 能力 = 一个 `SkillSpec`（`app/skills/registry.py`）：
-`name`(step路由名/SFT日志名) + `schema`(Pydantic输出模型) + `prompt工厂` + 生成参数(温度/重试/frequency_penalty)。
+- A/B/C 标签、策略和数量严格对应；LLM 输出 ID 与输入必须一致。
+- Story State 的跨对象引用、跨类型 ID 和图边端点均校验。
+- 同一节点对可保留多种依赖关系、证据与置信度。
+- 传播只自动采用置信度阈值内的路径，并返回路径解释与置信度。
+- plan 绑定 state version；陈旧 plan/apply 返回冲突。
+- apply 先在深拷贝候选状态上完成重写和验证，最后一次提交。
+- 项目级锁串行化同项目工作；operation/job idempotency key 防止重复执行。
 
-微调落地三步，**workflow 代码零改动**：
+## 持久化与任务
 
-1. 语料：真实调用自动落盘 `data/sft_logs/{skill}.jsonl`（messages+completion，可直接转训练集）
-2. 训练：用 `app/prompts/templates.py` 同款格式构造 SFT 数据（保证推理格式一致）
-3. 部署：vLLM/Ollama 起服务 → `config/models.yaml` 的 `step_routes` 把 skill 指向新端点
+`ProjectStore` 采用同目录临时文件、flush/fsync 和原子替换。history、revision、adaptation 先写，`state.json` 最后作为提交标记；读取只暴露不高于已提交 state version 的记录。
 
-```yaml
-# config/models.yaml — 例: 只把改写skill换成微调模型
-step_routes:
-  rewrite_scene: rewriter_ft
-profiles:
-  rewriter_ft:
-    base_url: http://localhost:8000/v1   # vLLM
-    model: storybridge-rewriter-v1
+`JobManager` 持久化 queued/running/done/failed/cancelled、progress、取消标志和幂等映射。服务重启会把中断任务收敛为失败状态，已完成结果仍可查询；TTL 清理和项目级串行已启用。当前部署仍限定单进程/单 worker。
+
+路径默认相对 `backend/` 解析，可用以下变量隔离运行数据：
+
+```text
+STORYBRIDGE_PROJECTS_DIR
+STORYBRIDGE_JOBS_FILE
+STORYBRIDGE_SFT_LOG_DIR
+STORYBRIDGE_RUN_LOG_DIR
 ```
 
-## API 契约（前端对接）
+## API
+
+所有业务端点在 `/api` 下并声明 response model。完整交互契约以 `/docs` 和 `/openapi.json` 为准。
 
 | 方法 | 路径 | 说明 |
 |---|---|---|
-| POST | `/api/projects` | `{name, script, market:{market,audience,format,genre}}` |
-| GET | `/api/projects` / `/{id}` | 列表 / 元信息 |
-| POST | `/api/projects/{id}/analyze` | 解析+摩擦检测（慢，建议走 jobs） |
-| GET | `/api/projects/{id}/state` | 完整 StoryState |
-| GET | `/api/projects/{id}/graph?focus=CM01&depth=2` | `{nodes:[{id,kind,label}], edges:[...]}` |
-| GET | `/api/projects/{id}/propagate?mechanism=CM01` | 受影响场景+影响类型+证据路径 |
-| POST | `/api/projects/{id}/adaptations/plan` | `{culture_mechanism_id}` → A/B/C |
-| POST | `/api/projects/{id}/adaptations/apply` | `{culture_mechanism_id, option_label}` |
-| POST | `/api/projects/{id}/verify` | 双层一致性检查 |
-| GET | `/api/projects/{id}/diff` | 逐场景 before/after/diff |
-| GET | `/api/projects/{id}/bible` | 导出 Adaptation Bible |
-| GET | `/api/projects/{id}/revisions` | 版本历史(审计) |
-| POST | `/api/projects/{id}/jobs` | `{kind: analyze\|plan\|apply\|verify}` |
-| GET | `/api/jobs/{job_id}` | 轮询任务状态/结果 |
+| GET | `/healthz` / `/readyz` | 存活 / storage、run log、模型配置就绪检查 |
+| GET | `/api/runtime-policy` | 模型端点、SFT、输入和 token 配额披露 |
+| POST / GET | `/api/projects` | 创建 / 列出当前 owner 的项目 |
+| GET / DELETE | `/api/projects/{id}` | 项目详情 / 删除项目及关联数据 |
+| POST | `/api/projects/{id}/analyze` | 同步分析 |
+| GET | `/api/projects/{id}/state` | 最新已提交 Story State |
+| GET | `/api/projects/{id}/graph` | 可聚焦的多关系图 |
+| GET | `/api/projects/{id}/propagate` | 确定性影响传播 |
+| POST | `/api/projects/{id}/adaptations/plan` | 生成或读取当前版本的 A/B/C 方案 |
+| POST | `/api/projects/{id}/adaptations/apply` | 版本化、可幂等的改编提交 |
+| POST | `/api/projects/{id}/verify` | 验证当前状态 |
+| POST / GET | `/api/projects/{id}/target-script` | 生成 / 读取版本化目标语言稿 |
+| GET | `/api/projects/{id}/diff` / `revisions` / `bible` | 审计产物 |
+| GET | `/api/projects/{id}/data-export` | 项目与 LLM 元数据导出 |
+| POST | `/api/projects/{id}/jobs` | 提交 analyze/plan/apply/verify/render |
+| GET | `/api/projects/{id}/jobs` | 项目任务历史 |
+| GET / POST | `/api/jobs/{job_id}` / `cancel` | 轮询 / 取消 |
 
-**前端注意**：analyze/apply 串联多次 LLM 调用（30s~3min），务必走 jobs 轮询。
+## 身份、配额与隐私
 
-## CLI
+本地默认是显式单用户模式。联网部署用 JSON 环境变量启用 API key 与 owner 隔离：
 
-```bash
-python -m app.cli create <script> --name X --market "United States"
-python -m app.cli analyze <pid>            # 或 propagate/plan/apply/verify/bible
-python -m app.cli baseline <script> --plans CM01:B CM02:B   # 三系统对比实验
-python -m app.cli --mock demo data/scripts/demo_v0.md       # 离线演示
+```dotenv
+STORYBRIDGE_API_KEYS={"token-a":"owner-a","token-b":"owner-b"}
 ```
 
-## 依赖边方向约定（图引擎核心语义）
+客户端用 `X-API-Key`。API 对项目枚举与所有读写统一执行 owner 检查，并限制剧本长度、每 owner 活动任务数、分钟提交数和每项目 LLM token 总量。
 
-| relation | 冲击方向 | 例 |
-|---|---|---|
-| motivates / causes / sets_up / appears_in | **正向**（改 source → 查 target） | 机制变了 → 它激发的事件要查 |
-| references / depends_on / reveals / pays_off | **反向**（改 target → 查 source） | 机制变了 → 引用它的场景要查 |
-| conflicts_with | 双向 | — |
+SFT 全文日志默认关闭。启用后仍要求项目提供 `sft_opt_in`、内容来源、许可和同意说明；日志脱敏、有 retention、标为 `unreviewed`，不会自动成为 gold data。
 
-## 验证体系（双层）
+独立的 run metadata 默认开启，但不保存 prompt/completion 正文，只保存 BLAKE2b 指纹、run ID、step、prompt version、模型、延迟、重试、token 与按配置价格计算的成本估算。上游不返回 usage 时会使用保守字符估计。项目导出与删除会包含/清除这些记录。
 
-| 层 | 实现 | 特点 |
-|---|---|---|
-| 代码静态层 | `workflow/static_checks.py`：机制名残留扫描、承诺payoff校验 | 确定性、可复现、baseline硬指标 |
-| LLM语义层 | `workflow/verifier.py` + 交叉验证四条件 | 抓同义说法/动机断裂/承诺违反 |
-| 防幻觉 | 证据必须含旧探针且场景实际存在旧词 | 9轮实测沉淀：捏造引用/新表述冤枉/未改编误报/复读截断 全防住 |
+## Baseline 与评测
 
-## 质量现状
-
-- **135 个离线测试**全绿（MockLLM/MockTransport 驱动，零 API 成本）
-- **真 LLM 验证**：10 样本 × 7 题材（都市/古言/悬疑/现实/玄幻讽刺/网文长章）analyze 全过；
-  难题材 apply（冲喜/彩礼/世家）score 1.0、残留清零
-- **抽取稳定性**：温度 0 + 分级锚定后，同剧本 3 次重复 analyze 机制识别完全一致
-- **9 轮 bug 狩猎**修 17 个真 bug，全部有测试固化（见 git log）
-
-## 已知边界（MVP）
-
-- 单进程同步存储，无并发锁（演示够用；上 SQLite 只需换 storage.py）
-- Naturalness 维度未自动化（比赛口径：LLM Judge 辅助 + 人工）
-- 图抽取质量依赖 LLM；关键节点可手工改 `data/projects/{id}/state.json` 后再 apply
-- repair 循环上限 2 轮，用尽仍报 score < 1 时需人工介入看 issues
-
-## Baseline 实验（初评数据）
+三套系统都输出相同 `TargetScript` 结构、相同目标语言、locale 和场景 ID：直接翻译、强 Prompt 全文改写、StoryBridge。可用人工 annotations 提供 affected scenes 和目标语言禁用词；没有人工标注时输出明确标为 `lexical_fallback`，不可用于强结论。
 
 ```bash
-python -m app.cli baseline data/scripts/demo_v0.md --plans CM01:B --out-dir data/baselines
+uv run python -m app.cli baseline data/scripts/demo_v0.md \
+  --plans CM01:B \
+  --annotations data/eval/your_annotations.json \
+  --out-dir data/baselines
 ```
 
-产出三系统对比表（残留引用数 / 场景覆盖率 / **无关场景改动数** / 承诺保持）。
-核心差异：强 Prompt 全文重写会误伤未受影响场景（实测 9 场全改），StoryBridge 只动该动的。
+每次结果带 run manifest：输入与输出 BLAKE2b、annotation 来源、方案、目标画像、模型 route、prompt version、run ID 和可选 `STORYBRIDGE_COMMIT`。真正的多人盲评与重复真实模型实验仍需要单独执行。
+
+## 质量检查
+
+```bash
+uv run ruff check app tests
+uv run pytest -q --cov=app --cov-report=term-missing --cov-fail-under=85
+```
+
+CI 还运行前端 typecheck/lint/build 与 Playwright mock E2E。测试数量不写死在文档里，以当前 CI 收集结果为准。
+
+## 已知边界
+
+- JSON storage 和任务文件适合单机单进程；多 worker/多机需要数据库和外部 worker 协调。
+- 尚未实现 SQLite migration，因此 schema 发生破坏性变化时需要显式迁移工具。
+- 尚未实现超长文本分块、跨块 entity merge 和 checkpoint；API 字符上限不是质量承诺。
+- Naturalness、文化准确性和刻板印象风险必须由盲评补齐，当前自动指标不能替代目标文化评审者。
+- OpenAPI 契约严格，但前端 client/types 仍未自动生成。

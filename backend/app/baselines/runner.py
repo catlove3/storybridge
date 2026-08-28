@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import os
+import uuid
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 
 from pydantic import BaseModel, Field
@@ -15,6 +19,7 @@ from app.baselines.prompts import (
 )
 from app.llm import LLMClient
 from app.llm.structured import generate_structured
+from app.privacy import project_data_context
 from app.schemas import StoryState, TargetScript
 from app.storage import MarketProfile
 from app.workflow.engine import StoryBridgeWorkflow
@@ -28,6 +33,7 @@ class ExperimentResult:
     target_language: str
     target_locale: str
     annotation_source: str
+    run_manifest: dict
 
 
 class EvalAnnotations(BaseModel):
@@ -40,6 +46,38 @@ class BaselineRunner:
     def __init__(self, workflow: StoryBridgeWorkflow, client: LLMClient) -> None:
         self.workflow = workflow
         self.client = client
+
+    @staticmethod
+    def _blake2b(text: str) -> str:
+        return hashlib.blake2b(text.encode("utf-8"), digest_size=32).hexdigest()
+
+    def _model_manifest(self) -> dict[str, dict]:
+        result: dict[str, dict] = {}
+        for step in (
+            "parse_story",
+            "detect_frictions",
+            "plan_adaptation",
+            "rewrite_scene",
+            "verify_consistency",
+            "render_target_script",
+            "baseline_translate",
+            "baseline_strong_prompt",
+        ):
+            profile_for_step = getattr(self.client, "profile_for_step", None)
+            if callable(profile_for_step):
+                profile_name, profile = profile_for_step(step)
+                result[step] = {
+                    "profile": profile_name,
+                    "model": profile.model,
+                    "temperature": profile.temperature,
+                    "max_tokens": profile.max_tokens,
+                }
+            else:
+                result[step] = {
+                    "profile": "mock" if hasattr(self.client, "model") else "unknown",
+                    "model": getattr(self.client, "model", "unknown"),
+                }
+        return result
 
     @staticmethod
     def _state_with_target_text(state: StoryState, target: TargetScript) -> StoryState:
@@ -168,8 +206,9 @@ class BaselineRunner:
         bridge_target = await self.workflow.render_target_script(meta.id)
 
         scene_ids = [scene.id for scene in original_state.scenes]
-        translate_out = await self.run_baseline_translate(script, profile, scene_ids)
-        strong_out = await self.run_baseline_strong_prompt(script, profile, scene_ids)
+        with project_data_context(meta.id, meta.data_policy):
+            translate_out = await self.run_baseline_translate(script, profile, scene_ids)
+            strong_out = await self.run_baseline_strong_prompt(script, profile, scene_ids)
         forbidden_terms = (
             {
                 mechanism_id: annotations.forbidden_target_terms[mechanism_id]
@@ -184,9 +223,10 @@ class BaselineRunner:
         )
 
         async def commitment_checks(state: StoryState, target: TargetScript) -> list[dict]:
-            report = await self.workflow.verifier.verify(
-                self._state_with_target_text(state, target)
-            )
+            with project_data_context(meta.id, meta.data_policy):
+                report = await self.workflow.verifier.verify(
+                    self._state_with_target_text(state, target)
+                )
             return [check.model_dump() for check in report.commitment_checks]
 
         metrics: list[EvalMetrics] = []
@@ -242,18 +282,49 @@ class BaselineRunner:
                     "affected-scene truth uses lexical fallback; provide human annotations for claims"
                 )
 
+        scripts = {
+            "original": script,
+            "baseline_translate": translate_out.text,
+            "baseline_strong_prompt": strong_out.text,
+            "storybridge": bridge_target.text,
+        }
+        annotation_payload = annotations.model_dump(mode="json") if annotations else None
+        run_manifest = {
+            "schema_version": 1,
+            "run_id": uuid.uuid4().hex,
+            "generated_at": datetime.now(UTC).isoformat(),
+            "code_revision": os.environ.get("STORYBRIDGE_COMMIT", "unrecorded"),
+            "scenario": scenario_name,
+            "input_blake2b": self._blake2b(script),
+            "input_chars": len(script),
+            "mechanism_plans": [
+                {"culture_mechanism_id": mechanism_id, "option_label": option_label}
+                for mechanism_id, option_label in mechanism_plans
+            ],
+            "localization": profile.model_dump(mode="json"),
+            "annotation_source": annotation_source,
+            "annotations_blake2b": (
+                self._blake2b(
+                    json.dumps(annotation_payload, ensure_ascii=False, sort_keys=True)
+                )
+                if annotation_payload is not None
+                else None
+            ),
+            "models": self._model_manifest(),
+            "prompt_version": "v1",
+            "systems": ["baseline_translate", "baseline_strong_prompt", "storybridge"],
+            "output_blake2b": {
+                name: self._blake2b(text) for name, text in scripts.items()
+            },
+        }
         return ExperimentResult(
             scenario_name=scenario_name,
             metrics=metrics,
-            scripts={
-                "original": script,
-                "baseline_translate": translate_out.text,
-                "baseline_strong_prompt": strong_out.text,
-                "storybridge": bridge_target.text,
-            },
+            scripts=scripts,
             target_language=profile.target_language,
             target_locale=profile.target_locale,
             annotation_source=annotation_source,
+            run_manifest=run_manifest,
         )
 
 
@@ -264,6 +335,7 @@ def save_experiment(result: ExperimentResult, out_dir: Path) -> Path:
         "target_language": result.target_language,
         "target_locale": result.target_locale,
         "annotation_source": result.annotation_source,
+        "run_manifest": result.run_manifest,
         "metrics": [m.__dict__ for m in result.metrics],
     }
     json_path = out_dir / f"{result.scenario_name}.json"
@@ -275,6 +347,13 @@ def save_experiment(result: ExperimentResult, out_dir: Path) -> Path:
         f"# Baseline 对比：{result.scenario_name}",
         "",
         format_metrics_table(result.metrics),
+        "",
+        "## Run manifest",
+        "",
+        f"- Run ID: `{result.run_manifest['run_id']}`",
+        f"- Code revision: `{result.run_manifest['code_revision']}`",
+        f"- Input BLAKE2b: `{result.run_manifest['input_blake2b']}`",
+        f"- Annotation source: `{result.annotation_source}`",
         "",
     ]
     for m in result.metrics:
