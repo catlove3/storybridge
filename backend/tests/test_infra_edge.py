@@ -71,6 +71,7 @@ def test_config_paths_are_resolved_against_backend_root():
         assert config.storage.projects_dir == (BACKEND_ROOT / "data/projects").resolve()
         assert config.storage.jobs_file == (BACKEND_ROOT / "data/jobs.json").resolve()
         assert config.logging.sft_log_dir == (BACKEND_ROOT / "data/sft_logs").resolve()
+        assert config.logging.sft_log_enabled is False
     finally:
         get_config.cache_clear()
 
@@ -111,7 +112,7 @@ async def test_failed_job_error_surfaced(tmp_path):
     await asyncio.sleep(0.2)
     done = manager.get(job.id)
     assert done.status == "failed"
-    assert "llm down" in done.error
+    assert done.error == "job_execution_failed"
     payload = done.serialize()
     assert payload["status"] == "failed"
 

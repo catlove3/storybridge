@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
 import uuid
 from collections.abc import Callable, Coroutine
@@ -10,6 +11,8 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from app.storage import ProjectStore
+
+logger = logging.getLogger(__name__)
 
 
 class Job(BaseModel):
@@ -105,6 +108,20 @@ class JobManager:
     def list_for_project(self, project_id: str) -> list[Job]:
         return [j for j in self._jobs.values() if j.project_id == project_id]
 
+    def find_idempotent(self, project_id: str, idempotency_key: str) -> Job | None:
+        job_id = self._idempotent_jobs.get((project_id, idempotency_key))
+        return self._jobs.get(job_id) if job_id is not None else None
+
+    def delete_for_project(self, project_id: str) -> int:
+        jobs = self.list_for_project(project_id)
+        for job in jobs:
+            self.cancel(job.id)
+            self._jobs.pop(job.id, None)
+            if job.idempotency_key:
+                self._idempotent_jobs.pop((project_id, job.idempotency_key), None)
+        self._persist()
+        return len(jobs)
+
     def cancel(self, job_id: str) -> Job | None:
         job = self._jobs.get(job_id)
         if job is None:
@@ -167,8 +184,15 @@ class JobManager:
                 job.error = None
                 job.progress = 1.0
             except Exception as exc:
+                logger.error(
+                    "job failed: id=%s kind=%s project_id=%s exception_type=%s",
+                    job.id,
+                    job.kind,
+                    job.project_id,
+                    type(exc).__name__,
+                )
                 job.status = "failed"
-                job.error = f"{type(exc).__name__}: {exc}"
+                job.error = "job_execution_failed"
                 job.progress = 1.0
             finally:
                 job.finished_at = job.finished_at or time.time()

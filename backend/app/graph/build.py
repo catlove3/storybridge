@@ -43,9 +43,13 @@ class StoryGraph:
 
     def _build(self) -> None:
         collections = self.state.node_collections()
-        for kind, members in collections.items():
+        for members in collections.values():
             for node_id in members:
-                self.graph.add_node(node_id, kind=kind)
+                node_kind = self.state.node_kind(node_id)
+                self.graph.add_node(
+                    node_id,
+                    kind=node_kind.value if node_kind is not None else "",
+                )
 
         for dep in self.state.dependencies:
             dependency_key = f"{dep.source_id}->{dep.target_id}:{dep.relation.value}"

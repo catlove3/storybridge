@@ -278,10 +278,29 @@ export interface MarketProfile {
   terminology_map?: Record<string, string>
 }
 
+export interface DataPolicy {
+  sft_opt_in: boolean
+  content_source: string
+  license: string
+  consent_note: string
+  retention_days: number
+}
+
 export interface CreateProjectRequest {
   name: string
   script: string
   market: MarketProfile
+  data_policy?: DataPolicy
+}
+
+export interface RuntimePolicy {
+  authentication_required: boolean
+  provider_endpoint: string
+  model: string
+  sft_collection_enabled: boolean
+  sft_redaction_enabled: boolean
+  sft_retention_days: number
+  max_script_chars: number
 }
 
 export interface CreateProjectResponse {

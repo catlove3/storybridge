@@ -40,10 +40,22 @@ async def test_project_not_found_paths(client):
     assert (await client.post("/api/jobs/doesnotexist/cancel")).status_code == 404
 
 
+async def test_liveness_and_readiness_are_distinct(client):
+    health = await client.get("/healthz")
+    readiness = await client.get("/readyz")
+    assert health.status_code == 200
+    assert health.json() == {"status": "ok"}
+    assert readiness.status_code in {200, 503}
+    assert set(readiness.json()["checks"]) == {
+        "projects_storage",
+        "jobs_storage",
+        "llm_profile",
+    }
+
+
 async def test_create_project_empty_script(client):
     response = await client.post("/api/projects", json={"script": ""})
-    assert response.status_code == 200
-    assert response.json()["id"]
+    assert response.status_code == 422
 
 
 async def test_create_project_missing_script(client):
@@ -93,7 +105,7 @@ async def test_job_flow_analyze_and_apply(client):
         f"/api/projects/{project_id}/jobs",
         json={"kind": "apply", "option_label": "B"},
     )
-    assert bad.status_code == 400
+    assert bad.status_code == 422
 
     apply_job = (
         await client.post(
@@ -123,7 +135,7 @@ async def test_job_unknown_kind(client):
     response = await client.post(
         f"/api/projects/{project_id}/jobs", json={"kind": "explode"}
     )
-    assert response.status_code == 400
+    assert response.status_code == 422
 
 
 async def test_diff_and_bible_endpoints(client):
@@ -143,13 +155,13 @@ async def test_diff_and_bible_endpoints(client):
     assert len(diff) == 5
     bible = await client.get(f"/api/projects/{project_id}/bible")
     assert bible.status_code == 200
-    assert "Adaptation Bible" in bible.json()["saved"] or bible.json()["saved"]
+    assert "Adaptation Bible" in bible.json()["content"]
 
     revisions = (await client.get(f"/api/projects/{project_id}/revisions")).json()
     assert [revision["kind"] for revision in revisions][0] == "initial_parse"
 
 
-async def test_apply_invalid_option_404(client):
+async def test_apply_invalid_option_rejected_by_contract(client):
     project_id = (await client.post("/api/projects", json={"script": "abc"})).json()["id"]
     mock_client = app.state.workflow.rewriter.client
     mock_client.set_response("parse_story", sample_story_state_dict())
@@ -158,7 +170,7 @@ async def test_apply_invalid_option_404(client):
         f"/api/projects/{project_id}/adaptations/apply",
         json={"culture_mechanism_id": "CM01", "option_label": "Z"},
     )
-    assert response.status_code == 404
+    assert response.status_code == 422
 
 
 async def test_direct_apply_operation_id_cannot_commit_twice(client):

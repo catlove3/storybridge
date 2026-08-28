@@ -4,6 +4,7 @@ import type {
   Job,
   PropagationResult,
   Revision,
+  RuntimePolicy,
   SceneDiff,
   StoryGraphResponse,
   StoryState,
@@ -13,6 +14,7 @@ import type {
 } from '../types/api'
 
 const API_ROOT = '/api'
+const API_KEY = import.meta.env.VITE_STORYBRIDGE_API_KEY as string | undefined
 
 export class ApiError extends Error {
   readonly status: number
@@ -29,6 +31,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (init?.body) {
     headers.set('Content-Type', 'application/json')
   }
+  if (API_KEY) headers.set('X-API-Key', API_KEY)
 
   const response = await fetch(`${API_ROOT}${path}`, { ...init, headers })
   if (!response.ok) {
@@ -50,6 +53,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  getRuntimePolicy(signal?: AbortSignal) {
+    return request<RuntimePolicy>('/runtime-policy', { signal })
+  },
+
   createProject(body: CreateProjectRequest, signal?: AbortSignal) {
     return request<CreateProjectResponse>('/projects', {
       method: 'POST',
