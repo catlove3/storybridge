@@ -71,6 +71,7 @@ def test_config_paths_are_resolved_against_backend_root():
         assert config.storage.projects_dir == (BACKEND_ROOT / "data/projects").resolve()
         assert config.storage.jobs_file == (BACKEND_ROOT / "data/jobs.json").resolve()
         assert config.logging.sft_log_dir == (BACKEND_ROOT / "data/sft_logs").resolve()
+        assert config.logging.run_log_dir == (BACKEND_ROOT / "data/run_logs").resolve()
         assert config.logging.sft_log_enabled is False
     finally:
         get_config.cache_clear()
@@ -82,12 +83,14 @@ def test_config_storage_paths_support_environment_overrides(tmp_path, monkeypatc
     monkeypatch.setenv("STORYBRIDGE_PROJECTS_DIR", str(tmp_path / "projects"))
     monkeypatch.setenv("STORYBRIDGE_JOBS_FILE", str(tmp_path / "jobs.json"))
     monkeypatch.setenv("STORYBRIDGE_SFT_LOG_DIR", str(tmp_path / "sft"))
+    monkeypatch.setenv("STORYBRIDGE_RUN_LOG_DIR", str(tmp_path / "runs"))
     get_config.cache_clear()
     try:
         config = get_config()
         assert config.storage.projects_dir == (tmp_path / "projects").resolve()
         assert config.storage.jobs_file == (tmp_path / "jobs.json").resolve()
         assert config.logging.sft_log_dir == (tmp_path / "sft").resolve()
+        assert config.logging.run_log_dir == (tmp_path / "runs").resolve()
     finally:
         get_config.cache_clear()
 

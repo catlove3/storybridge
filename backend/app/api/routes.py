@@ -25,6 +25,7 @@ from app.api.contracts import (
 from app.api.security import require_owner, usage_guard
 from app.config import api_key_owners, get_config
 from app.graph import StoryGraph
+from app.llm.router import LLMBudgetExceeded
 from app.schemas import (
     AdaptationPlan,
     DataPolicy,
@@ -66,6 +67,11 @@ def _project_or_404(workflow: StoryBridgeWorkflow, project_id: str, request: Req
 
 
 def _upstream_failure(operation: str, project_id: str, exc: Exception) -> HTTPException:
+    if isinstance(exc, LLMBudgetExceeded):
+        return HTTPException(
+            status_code=429,
+            detail={"code": "llm_budget_exhausted", "message": str(exc)},
+        )
     logger.error(
         "%s failed for project %s exception_type=%s",
         operation,
@@ -88,6 +94,23 @@ def _submit(jobs, *args, **kwargs):
         raise HTTPException(
             status_code=409,
             detail={"code": "idempotency_conflict", "message": str(exc)},
+        ) from exc
+
+
+def _run_logger(workflow: StoryBridgeWorkflow):
+    return getattr(workflow.rewriter.client, "run_logger", None)
+
+
+def _enforce_llm_budget(workflow: StoryBridgeWorkflow, project_id: str) -> None:
+    run_logger = _run_logger(workflow)
+    if run_logger is None:
+        return
+    try:
+        run_logger.ensure_budget(project_id)
+    except LLMBudgetExceeded as exc:
+        raise HTTPException(
+            status_code=429,
+            detail={"code": "llm_budget_exhausted", "message": str(exc)},
         ) from exc
 
 
@@ -123,12 +146,22 @@ async def runtime_policy():
         "sft_redaction_enabled": config.logging.sft_redact_pii,
         "sft_retention_days": config.logging.sft_retention_days,
         "max_script_chars": config.security.max_script_chars,
+        "max_project_llm_tokens": config.security.max_project_llm_tokens,
     }
 
 
 @router.post("/projects", response_model=ProjectCreated)
 async def create_project(body: CreateProjectBody, request: Request):
     workflow = _workflow(request)
+    max_chars = get_config().security.max_script_chars
+    if len(body.script) > max_chars:
+        raise HTTPException(
+            status_code=413,
+            detail={
+                "code": "script_too_large",
+                "message": f"Script exceeds the configured {max_chars} character limit",
+            },
+        )
     meta = await workflow.create_project(
         body.name,
         body.script,
@@ -166,6 +199,7 @@ async def get_project(project_id: str, request: Request):
 async def analyze(project_id: str, request: Request):
     workflow = _workflow(request)
     _project_or_404(workflow, project_id, request)
+    _enforce_llm_budget(workflow, project_id)
     try:
         state = await workflow.analyze(project_id)
     except Exception as exc:
@@ -244,6 +278,7 @@ async def propagate(project_id: str, request: Request, mechanism: str):
 async def create_plan(project_id: str, body: PlanBody, request: Request):
     workflow = _workflow(request)
     _project_or_404(workflow, project_id, request)
+    _enforce_llm_budget(workflow, project_id)
     try:
         plan = await workflow.plan(project_id, body.culture_mechanism_id)
     except KeyError as exc:
@@ -257,6 +292,7 @@ async def create_plan(project_id: str, body: PlanBody, request: Request):
 async def apply_adaptation(project_id: str, body: ApplyBody, request: Request):
     workflow = _workflow(request)
     _project_or_404(workflow, project_id, request)
+    _enforce_llm_budget(workflow, project_id)
     try:
         result: ApplyResult = await workflow.apply_adaptation(
             project_id,
@@ -279,6 +315,7 @@ async def apply_adaptation(project_id: str, body: ApplyBody, request: Request):
 async def verify(project_id: str, request: Request):
     workflow = _workflow(request)
     _project_or_404(workflow, project_id, request)
+    _enforce_llm_budget(workflow, project_id)
     try:
         report: VerifyReport = await workflow.verify(project_id)
     except Exception as exc:
@@ -290,6 +327,7 @@ async def verify(project_id: str, request: Request):
 async def render_target_script(project_id: str, request: Request):
     workflow = _workflow(request)
     _project_or_404(workflow, project_id, request)
+    _enforce_llm_budget(workflow, project_id)
     try:
         target_script = await workflow.render_target_script(project_id)
     except KeyError as exc:
@@ -363,6 +401,11 @@ async def export_project_data(project_id: str, request: Request):
             for item in workflow.store.load_applied(project_id)
         ],
         "target_script": workflow.store.load_target_script(project_id),
+        "llm_runs": (
+            _run_logger(workflow).entries(project_id)
+            if _run_logger(workflow) is not None
+            else []
+        ),
     }
 
 
@@ -373,15 +416,20 @@ async def delete_project(project_id: str, request: Request):
     jobs = request.app.state.jobs
     jobs.delete_for_project(project_id)
     sft_deleted = 0
+    run_records_deleted = 0
     llm_client = workflow.rewriter.client
     call_logger = getattr(llm_client, "logger", None)
     if call_logger is not None and hasattr(call_logger, "delete_project"):
         sft_deleted = call_logger.delete_project(project_id)
+    run_logger = getattr(llm_client, "run_logger", None)
+    if run_logger is not None and hasattr(run_logger, "delete_project"):
+        run_records_deleted = run_logger.delete_project(project_id)
     deleted = workflow.store.delete_project(project_id)
     return {
         "deleted": deleted,
         "project_id": project_id,
         "sft_samples_deleted": sft_deleted,
+        "run_records_deleted": run_records_deleted,
     }
 
 
@@ -412,6 +460,7 @@ async def submit_job(project_id: str, body: JobSubmitBody, request: Request):
     workflow = _workflow(request)
     jobs = request.app.state.jobs
     _project_or_404(workflow, project_id, request)
+    _enforce_llm_budget(workflow, project_id)
     existing = (
         jobs.find_idempotent(project_id, body.idempotency_key)
         if body.idempotency_key

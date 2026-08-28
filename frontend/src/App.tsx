@@ -654,6 +654,7 @@ function App() {
             <fieldset><legend>数据与 SFT 政策</legend><div className="field-grid">
               <label><span>运行时模型</span><input readOnly value={runtimePolicy ? `${runtimePolicy.model} · ${runtimePolicy.provider_endpoint}` : '正在读取后端政策…'} /></label>
               <label><span>服务端采集状态</span><input readOnly value={runtimePolicy?.sft_collection_enabled ? `可选开启 · 脱敏 ${runtimePolicy.sft_redaction_enabled ? '开' : '关'} · ${runtimePolicy.sft_retention_days} 天` : '关闭（不保存 SFT 全文）'} /></label>
+              <label><span>项目模型额度</span><input readOnly value={runtimePolicy ? (runtimePolicy.max_project_llm_tokens ? `${runtimePolicy.max_project_llm_tokens.toLocaleString('zh-CN')} tokens` : '未设置上限') : '正在读取后端政策…'} /></label>
               <label><span>授权 SFT 采集</span><input checked={sftOptIn} disabled={!runtimePolicy?.sft_collection_enabled} onChange={(event) => setSftOptIn(event.target.checked)} type="checkbox" /></label>
               {sftOptIn && <>
                 <label><span>内容来源</span><input required value={contentSource} onChange={(event) => setContentSource(event.target.value)} /></label>

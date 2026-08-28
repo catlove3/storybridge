@@ -5,7 +5,7 @@ import json
 import pytest
 
 from app.llm import LLMRequest, LLMResponse, MockLLMClient
-from app.llm.router import SFTCallLogger
+from app.llm.router import LLMBudgetExceeded, RunMetadataLogger, SFTCallLogger
 from app.privacy import project_data_context
 from app.schemas import DataPolicy
 from app.storage import MarketProfile, ProjectStore
@@ -142,3 +142,54 @@ def test_sft_logger_redacts_and_deletes_project_samples(sft_dir):
     assert text.count("[REDACTED]") >= 3
     assert call_logger.delete_project("project-private") == 1
     assert path.read_text(encoding="utf-8") == ""
+
+
+def test_run_metadata_logger_records_no_content_and_enforces_budget(tmp_path):
+    logger = RunMetadataLogger(tmp_path / "runs", max_tokens_per_project=10)
+    request = LLMRequest(
+        step="parse_story",
+        system_prompt="private system text",
+        user_prompt="private script text",
+        run_id="run-1",
+    )
+    response = LLMResponse(
+        text="private completion text",
+        model="mock",
+        profile_name="mock",
+        step="parse_story",
+        prompt_tokens=6,
+        completion_tokens=4,
+    )
+    with project_data_context("project-a", DataPolicy()):
+        logger.record(
+            request,
+            response,
+            input_cost_per_million_usd=1,
+            output_cost_per_million_usd=2,
+        )
+
+    raw = (tmp_path / "runs" / "project-a.jsonl").read_text(encoding="utf-8")
+    assert "private system text" not in raw
+    assert "private script text" not in raw
+    assert "private completion text" not in raw
+    entry = json.loads(raw)
+    assert entry["usage"]["total_tokens"] == 10
+    assert entry["usage"]["provider_reported"] is True
+    assert entry["prompt_blake2b"]
+    assert entry["estimated_cost_usd"] == 0.000014
+    with pytest.raises(LLMBudgetExceeded):
+        logger.ensure_budget("project-a")
+    assert logger.delete_project("project-a") == 1
+    assert not (tmp_path / "runs" / "project-a.jsonl").exists()
+
+
+def test_run_metadata_budget_tolerates_corrupt_records(tmp_path):
+    logger = RunMetadataLogger(tmp_path / "runs", max_tokens_per_project=10)
+    path = tmp_path / "runs" / "project-b.jsonl"
+    path.write_text(
+        '{broken}\n{"project_id":"project-b","usage":"bad"}\n'
+        '{"project_id":"project-b","usage":{"total_tokens":"bad"}}\n',
+        encoding="utf-8",
+    )
+    assert logger.tokens_used("project-b") == 0
+    logger.ensure_budget("project-b")

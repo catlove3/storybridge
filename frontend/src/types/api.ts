@@ -301,6 +301,7 @@ export interface RuntimePolicy {
   sft_redaction_enabled: boolean
   sft_retention_days: number
   max_script_chars: number
+  max_project_llm_tokens: number
 }
 
 export interface CreateProjectResponse {

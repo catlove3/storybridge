@@ -4,6 +4,38 @@
 > 范围：产品定位、评测可信度、Agent 工作流、图模型、存储与并发、LLM 接入、API、前端、测试、部署、安全与数据治理。  
 > 原则：先保证比赛演示和实验结论可信，再处理生产化扩展；不建议为了“智能体感”盲目增加 Agent 数量。
 
+## 实施状态（2026-08-29）
+
+本文第 1～8 节保留的是审查当时的证据快照，便于解释为什么要改；其中的测试数量、失败现象和“当前没有”类表述不再代表最新代码。当前运行说明以根目录与前后端 README 为准。
+
+已完成并分别提交：
+
+| 范围 | 结果 | Commit |
+|---|---|---|
+| 审查基线 | 严格评审、研究依据、分阶段验收标准 | `ac2cc07` |
+| 可复现性 | `uv.lock`、Python/Node 版本、CI、ruff、coverage、前端构建 | `7933ea7`、`e1586af` |
+| Schema 与 Graph | 业务不变量、跨引用校验、MultiDiGraph、多关系传播和置信度 | `922480a` |
+| 验证 | strategy-aware 静态规则、commitment coverage、非虚假绿色状态 | `170ed00` |
+| 状态正确性 | 原子写、提交标记、state/plan version、项目锁、幂等 operation | `74b9f4d` |
+| 任务与 LLM | 持久化 queued/cancel/TTL job、共享 client、退避与 usage | `04c63fe` |
+| 产物与评测 | 版本化目标语言稿、统一 baseline、外部 annotations | `19969cc` |
+| API 与隐私 | owner/API key、配额、typed OpenAPI、通用错误、SFT opt-in、导出删除 | `f7ce6dd` |
+| 前端 | 刷新恢复、服务端取消、关系可读、组件拆分、Playwright E2E | `443542d` |
+
+本轮最终补齐：每项目 LLM token 上限、仅元数据运行账本、token/成本估算、BLAKE2b 输入输出指纹、baseline run manifest、85% coverage gate，以及全部运行/交接文档同步。
+
+### 明确保留为后续工作的项目
+
+以下内容没有被包装成“已完成”：
+
+1. **人工评测执行**：代码已支持外部 gold annotations、统一目标语言与 run manifest，但冻结 8～12 个样本、多人盲评、每样本多次真实模型运行需要真实评审者和模型预算。
+2. **SQLite 与 migration**：当前采用单机单进程、项目锁、原子 JSON 和持久化 job；尚未迁移为数据库事务或多 worker claim。
+3. **长文本分块**：尚未实现 scene checkpoint、跨块实体合并与二次承诺链接，API 字符上限不等于已验证的长篇质量。
+4. **OpenAPI client 自动生成**：后端 response model 已严格化，前端契约仍是手工维护。
+5. **大型图交互**：关系已有键盘/触屏可读文本，但缩放、筛选和降噪仍可继续增强。
+
+这些边界需要在实验报告、答辩和部署说明中保持一致，不能用 mock E2E 或自动指标替代人工质量证据。
+
 ## 1. 结论先行
 
 StoryBridge 已不是一个空壳 Demo：显式 `StoryState`、依赖传播、局部改写、双层验证、版本记录和完整前端闭环都已落地，120 个非 API 测试可以快速通过。项目当前大致处于“功能型 MVP 已成立，但实验与工程可复现性不足”的阶段。

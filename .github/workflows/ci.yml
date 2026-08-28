@@ -17,7 +17,7 @@ jobs:
           python-version: "3.12"
       - run: uv sync --frozen --extra dev
       - run: uv run ruff check app tests
-      - run: uv run pytest tests -q --cov=app --cov-report=term-missing --cov-fail-under=80
+      - run: uv run pytest tests -q --cov=app --cov-report=term-missing --cov-fail-under=85
 
   frontend:
     runs-on: ubuntu-latest

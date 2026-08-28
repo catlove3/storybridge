@@ -93,6 +93,10 @@ async def test_baseline_uses_external_annotations_without_circular_truth(tmp_pat
     )
 
     assert result.annotation_source == "reviewer-v1"
+    assert result.run_manifest["annotation_source"] == "reviewer-v1"
+    assert result.run_manifest["annotations_blake2b"]
+    assert result.run_manifest["input_blake2b"]
+    assert result.run_manifest["models"]["baseline_translate"]["model"] == "mock-model"
     assert all(metric.expected_scene_ids == ["S01", "S08"] for metric in result.metrics)
     assert result.metrics[0].affected_scene_recall == 0
     assert result.metrics[1].affected_scene_recall == 1
