@@ -274,3 +274,35 @@ export interface Job<TResult = unknown> {
   result: TResult | null
   error: string | null
 }
+
+export interface GraphNode {
+  id: string
+  kind: NodeKind
+  label: string
+}
+
+export interface GraphEdge {
+  source: string
+  target: string
+  relation: EdgeRelation
+  evidence: string
+}
+
+export interface StoryGraphResponse {
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+}
+
+export interface SceneDiff {
+  scene_id: string
+  before: string
+  after: string
+  diff: string[]
+}
+
+export interface ApplyResult {
+  applied: AppliedAdaptation
+  report: VerifyReport
+  repair_rounds: number
+  repaired_scene_ids: string[]
+}
