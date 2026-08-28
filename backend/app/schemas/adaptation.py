@@ -60,6 +60,7 @@ class AdaptationOption(BaseModel):
 class AdaptationPlan(BaseModel):
     culture_mechanism_id: str
     original_name: str
+    based_on_version: int = Field(default=0, ge=0)
     friction_level: Level = Level.MEDIUM
     options: list[AdaptationOption]
 
@@ -88,6 +89,8 @@ class AdaptationPlan(BaseModel):
 
 class AppliedAdaptation(BaseModel):
     plan_culture_mechanism_id: str
+    state_version: int = Field(default=0, ge=0)
+    operation_id: str | None = None
     chosen_option: AdaptationOption
     propagation: PropagationResult
     rewritten_scene_ids: list[str]

@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
+
+import pytest
 
 from app.schemas import StoryState
 from app.storage import MarketProfile, ProjectStore
@@ -102,3 +105,41 @@ def test_history_snapshot_written(tmp_path):
     history = tmp_path / "p" / meta.id / "history"
     files = sorted(f.name for f in history.iterdir())
     assert files == ["rev001.json", "rev002.json"]
+
+
+def test_state_commit_marker_hides_partial_transaction(tmp_path, monkeypatch):
+    import app.storage as storage_module
+
+    store = ProjectStore(tmp_path / "p")
+    meta = store.create_project("atomic", "script", MarketProfile())
+    original = StoryState.model_validate(sample_story_state_dict())
+    store.save_state(meta.id, original, "initial_parse")
+
+    candidate = original.model_copy(deep=True)
+    candidate.scene_by_id("S01").text = "candidate that must not become visible"
+    real_replace = storage_module.os.replace
+
+    def fail_state_commit(source, target):
+        if Path(target).name == "state.json":
+            raise OSError("simulated crash before commit marker")
+        real_replace(source, target)
+
+    monkeypatch.setattr(storage_module.os, "replace", fail_state_commit)
+    with pytest.raises(OSError, match="simulated crash"):
+        store.save_state(meta.id, candidate, "adaptation_applied")
+
+    committed = store.load_state(meta.id)
+    assert committed.version == 1
+    assert committed.scene_by_id("S01").text != candidate.scene_by_id("S01").text
+    assert [revision.state_version for revision in store.list_revisions(meta.id)] == [1]
+
+
+def test_atomic_replace_keeps_existing_json_when_serialization_fails(tmp_path):
+    path = tmp_path / "value.json"
+    ProjectStore._write_json(path, {"value": "old"})
+
+    with pytest.raises(TypeError):
+        ProjectStore._write_json(path, {"value": object()})
+
+    assert json.loads(path.read_text(encoding="utf-8")) == {"value": "old"}
+    assert list(tmp_path.glob(".*.tmp")) == []

@@ -110,6 +110,7 @@ export interface Dependency {
 }
 
 export interface StoryState {
+  version: number
   target_market: string
   audience: string
   format: string
@@ -125,6 +126,7 @@ export interface StoryState {
 
 export interface Revision {
   revision_id: number
+  state_version: number
   created_at: string
   kind: 'initial_parse' | 'friction_detection' | 'adaptation_applied' | 'repair'
   description: string
@@ -161,6 +163,7 @@ export interface AffectedScene {
   impact_kinds: ImpactKind[]
   reason_path: string[]
   evidence: string
+  path_confidence: number
 }
 
 export interface PropagationResult {
@@ -184,12 +187,15 @@ export interface AdaptationOption {
 export interface AdaptationPlan {
   culture_mechanism_id: string
   original_name: string
+  based_on_version: number
   friction_level: Level
   options: AdaptationOption[]
 }
 
 export interface AppliedAdaptation {
   plan_culture_mechanism_id: string
+  state_version: number
+  operation_id: string | null
   chosen_option: AdaptationOption
   propagation: PropagationResult
   rewritten_scene_ids: string[]
@@ -265,6 +271,8 @@ export interface SubmitJobRequest {
   kind: JobKind
   culture_mechanism_id?: string
   option_label?: string
+  based_on_version?: number
+  idempotency_key?: string
 }
 
 export interface SubmitJobResponse {
@@ -281,6 +289,7 @@ export interface Job<TResult = unknown> {
   finished_at: number | null
   result: TResult | null
   error: string | null
+  idempotency_key: string | null
 }
 
 export interface GraphNode {
@@ -290,10 +299,12 @@ export interface GraphNode {
 }
 
 export interface GraphEdge {
+  id: string
   source: string
   target: string
   relation: EdgeRelation
   evidence: string
+  confidence: number
 }
 
 export interface StoryGraphResponse {

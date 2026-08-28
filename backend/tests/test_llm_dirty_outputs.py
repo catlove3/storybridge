@@ -177,6 +177,9 @@ async def test_rewritten_scene_returns_wrong_id(tmp_path):
         await wf.apply_adaptation(meta.id, "CM01", "B")
     state = wf.require_state(meta.id)
     assert state.scene_by_id("S01").text == original_text
+    assert state.version == 1
+    assert len(wf.store.list_revisions(meta.id)) == 1
+    assert wf.store.load_applied(meta.id) == []
 
 
 async def test_verify_issues_with_null_scene_ids(tmp_path):

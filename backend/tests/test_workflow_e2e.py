@@ -49,10 +49,13 @@ async def test_full_pipeline(tmp_path, mock_client):
     assert cm01_final.adapted_strategy == "functional_replacement"
 
     revisions = store.list_revisions(meta.id)
-    assert [r.kind for r in revisions] == ["initial_parse", "adaptation_applied", "repair"]
+    assert [r.kind for r in revisions] == ["initial_parse", "adaptation_applied"]
+    assert [r.state_version for r in revisions] == [1, 2]
+    assert final_state.version == 2
 
     applied_list = store.load_applied(meta.id)
     assert len(applied_list) == 1
+    assert applied_list[0].state_version == 2
     assert applied_list[0].chosen_option.strategy.value == "functional_replacement"
 
 
@@ -80,6 +83,35 @@ async def test_apply_requires_valid_option(tmp_path, mock_client):
 
     with pytest.raises(KeyError):
         await workflow.apply_adaptation(meta.id, "CM01", "Z")
+
+
+async def test_plan_is_bound_to_state_version_and_stale_apply_is_rejected(
+    tmp_path, mock_client
+):
+    from app.workflow.engine import StateVersionConflict
+
+    store = ProjectStore(tmp_path / "projects")
+    workflow = StoryBridgeWorkflow(store, mock_client)
+    meta = await workflow.create_project("versioned", "script", MarketProfile())
+    first_state = await workflow.analyze(meta.id)
+    old_plan = await workflow.plan(meta.id, "CM01")
+
+    assert first_state.version == old_plan.based_on_version == 1
+
+    second_state = await workflow.analyze(meta.id)
+    assert second_state.version == 2
+    with pytest.raises(StateVersionConflict):
+        await workflow.apply_adaptation(
+            meta.id,
+            "CM01",
+            "B",
+            based_on_version=old_plan.based_on_version,
+        )
+
+    assert workflow.require_state(meta.id).version == 2
+    assert len(store.list_revisions(meta.id)) == 2
+    refreshed_plan = await workflow.plan(meta.id, "CM01")
+    assert refreshed_plan.based_on_version == 2
 
 
 async def test_verify_standalone(tmp_path, mock_client):

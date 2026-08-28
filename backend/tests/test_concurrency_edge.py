@@ -94,7 +94,12 @@ async def test_concurrent_apply_same_project(tmp_path):
     final = wf.require_state(meta.id)
     assert len(final.scenes) == 8
     revisions = wf.store.list_revisions(meta.id)
-    assert all(r.kind in ("initial_parse", "adaptation_applied", "repair") for r in revisions)
+    assert [revision.revision_id for revision in revisions] == [1, 2, 3]
+    assert [revision.state_version for revision in revisions] == [1, 2, 3]
+    assert final.version == 3
+    applied = wf.store.load_applied(meta.id)
+    assert [item.state_version for item in applied] == [2, 3]
+    assert {r1.applied.state_version, r2.applied.state_version} == {2, 3}
 
 
 async def test_duplicate_analyze_jobs_same_project(tmp_path):
@@ -104,7 +109,62 @@ async def test_duplicate_analyze_jobs_same_project(tmp_path):
     await asyncio.gather(wf.analyze(meta.id), wf.analyze(meta.id))
     revisions = wf.store.list_revisions(meta.id)
     assert len(revisions) == 2
+    assert [revision.state_version for revision in revisions] == [1, 2]
     assert wf.store.load_state(meta.id) is not None
+
+
+async def test_job_manager_idempotency_and_project_serialization():
+    from app.jobs import JobManager
+
+    manager = JobManager(max_concurrent=4)
+    active = 0
+    max_active = 0
+    calls = 0
+
+    async def work():
+        nonlocal active, max_active, calls
+        calls += 1
+        active += 1
+        max_active = max(max_active, active)
+        await asyncio.sleep(0.02)
+        active -= 1
+        return calls
+
+    first = manager.submit("apply", "project-a", work, idempotency_key="same-op")
+    duplicate = manager.submit("apply", "project-a", work, idempotency_key="same-op")
+    second = manager.submit("verify", "project-a", work, idempotency_key="verify-op")
+
+    assert first.id == duplicate.id
+    while first.status == "running" or second.status == "running":
+        await asyncio.sleep(0.01)
+
+    assert calls == 2
+    assert max_active == 1
+
+
+async def test_job_manager_allows_different_projects_in_parallel():
+    from app.jobs import JobManager
+
+    manager = JobManager(max_concurrent=4)
+    both_started = asyncio.Event()
+    active = 0
+
+    async def work():
+        nonlocal active
+        active += 1
+        if active == 2:
+            both_started.set()
+        await asyncio.wait_for(both_started.wait(), timeout=0.5)
+        active -= 1
+
+    jobs = [
+        manager.submit("analyze", "project-a", work),
+        manager.submit("analyze", "project-b", work),
+    ]
+    while any(job.status == "running" for job in jobs):
+        await asyncio.sleep(0.01)
+
+    assert all(job.status == "done" for job in jobs)
 
 
 async def test_job_result_serialization_with_exotic_payload():
