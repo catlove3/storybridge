@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import uuid
 from collections.abc import Callable
 from typing import TypeVar
 
@@ -107,6 +108,7 @@ async def generate_structured(
     history: list[Message] = []
     last_error = ""
     attempts = max_retries + 1
+    run_id = uuid.uuid4().hex
 
     for attempt in range(attempts):
         request = LLMRequest(
@@ -118,6 +120,8 @@ async def generate_structured(
             max_tokens=max_tokens,
             temperature=temperature,
             frequency_penalty=frequency_penalty,
+            run_id=run_id,
+            attempt=attempt + 1,
         )
         response = await client.complete(request)
 

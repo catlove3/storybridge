@@ -121,10 +121,10 @@ async def test_api_job_for_project_without_state(client):
             },
         )
     ).json()
-    payload = {"status": "running"}
+    payload = {"status": "queued"}
     for _ in range(50):
         payload = (await api_client.get(f"/api/jobs/{job['job_id']}")).json()
-        if payload["status"] != "running":
+        if payload["status"] not in {"queued", "running"}:
             break
         await asyncio.sleep(0.02)
     assert payload["status"] == "failed"
@@ -152,6 +152,7 @@ def test_openai_client_server_error_retry_semantics():
         base_url="http://127.0.0.1:1/v1",
         api_key_env="NO_KEY",
         model="m",
+        max_retries=0,
     )
     client = OpenAICompatClient(profile, "test")
 
@@ -179,6 +180,7 @@ def test_openai_client_400_without_response_format_fallback():
         api_key_env="NO_KEY",
         model="m",
         json_mode=True,
+        max_retries=0,
     )
     client = OpenAICompatClient(profile, "test")
 

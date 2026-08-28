@@ -265,7 +265,7 @@ export interface CreateProjectResponse {
 }
 
 export type JobKind = 'analyze' | 'plan' | 'apply' | 'verify'
-export type JobStatus = 'running' | 'done' | 'failed'
+export type JobStatus = 'queued' | 'running' | 'done' | 'failed' | 'cancelled'
 
 export interface SubmitJobRequest {
   kind: JobKind
@@ -290,6 +290,8 @@ export interface Job<TResult = unknown> {
   result: TResult | null
   error: string | null
   idempotency_key: string | null
+  progress: number
+  cancel_requested: boolean
 }
 
 export interface GraphNode {

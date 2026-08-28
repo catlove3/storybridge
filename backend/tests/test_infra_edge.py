@@ -62,6 +62,19 @@ def test_router_default_profile_fallback():
     assert client.profile.model == "m"
 
 
+def test_config_paths_are_resolved_against_backend_root():
+    from app.config import BACKEND_ROOT, get_config
+
+    get_config.cache_clear()
+    config = get_config()
+    try:
+        assert config.storage.projects_dir == (BACKEND_ROOT / "data/projects").resolve()
+        assert config.storage.jobs_file == (BACKEND_ROOT / "data/jobs.json").resolve()
+        assert config.logging.sft_log_dir == (BACKEND_ROOT / "data/sft_logs").resolve()
+    finally:
+        get_config.cache_clear()
+
+
 def test_unwrap_array_empty_list():
     assert _unwrap_array([], StoryState) == []
 

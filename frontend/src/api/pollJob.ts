@@ -48,6 +48,9 @@ export async function pollJob<TResult = unknown>(
     if (job.status === 'failed') {
       throw new Error(job.error || '分析任务失败，但后端没有返回错误详情。')
     }
+    if (job.status === 'cancelled') {
+      throw new Error('任务已取消。')
+    }
 
     await wait(intervalMs, signal)
   }
