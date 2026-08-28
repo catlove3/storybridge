@@ -5,11 +5,9 @@ import json
 import pytest
 
 from app.llm import MockLLMClient
-from app.llm.router import LLMRouter, SFTCallLogger
+from app.llm.router import SFTCallLogger
 from app.storage import MarketProfile, ProjectStore
 from app.workflow.engine import StoryBridgeWorkflow
-from tests.fixtures import sample_story_state_dict
-import asyncio
 
 
 @pytest.fixture
@@ -19,7 +17,6 @@ def sft_dir(tmp_path):
 
 def test_graph_fourth_direction_combo(state_dict):
     from app.graph import PropagationEngine, StoryGraph
-    from app.schemas import Dependency, EdgeRelation
 
     state_dict["dependencies"].append(
         {"source_id": "S08", "target_id": "E07", "relation": "reveals"}

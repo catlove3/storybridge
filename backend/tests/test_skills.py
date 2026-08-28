@@ -4,7 +4,7 @@ import pytest
 
 from app.llm import MockLLMClient
 from app.schemas import StoryState, VerifyReport
-from app.skills import SkillSpec, all_skills, get_skill
+from app.skills import all_skills, get_skill
 from tests.fixtures import sample_story_state_dict
 
 SKILL_NAMES = [
@@ -40,7 +40,6 @@ async def test_skill_run_uses_step_name_for_routing(tmp_path):
 
 
 async def test_skill_run_retries_on_invalid():
-    import json
 
     client = MockLLMClient(responses={"parse_story": ["not json", sample_story_state_dict()]})
     skill = get_skill("parse_story")

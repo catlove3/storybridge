@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import asyncio
+
 from app.export import changed_scenes_diff, export_bible, unified_scene_diff
+from app.llm import MockLLMClient
 from app.schemas import StoryState
 from app.storage import MarketProfile, ProjectStore
-from app.llm import MockLLMClient
 from app.workflow.engine import StoryBridgeWorkflow
 from tests.fixtures import sample_story_state_dict
-import asyncio
 
 
 def _wf(tmp_path, responses=None):
@@ -69,10 +70,14 @@ def test_diff_after_only_repair_revision(tmp_path):
 
 def test_unified_diff_multiline_and_no_change():
     diff = unified_scene_diff("a\nb", "a\nb", "S01")
-    assert diff == [] or all(not l.startswith("+") for l in diff if not l.startswith(("---", "+++", "@@")))
+    assert diff == [] or all(
+        not line.startswith("+")
+        for line in diff
+        if not line.startswith(("---", "+++", "@@"))
+    )
     diff2 = unified_scene_diff("a\nb\nc", "a\nX\nc", "S02")
-    assert any(l.startswith("-b") or l == "-b" for l in diff2)
-    assert any(l == "+X" for l in diff2)
+    assert any(line.startswith("-b") or line == "-b" for line in diff2)
+    assert any(line == "+X" for line in diff2)
 
 
 def test_bible_commitment_none_fields(tmp_path):
@@ -93,7 +98,6 @@ def test_bible_commitment_none_fields(tmp_path):
 
 
 def test_bible_written_into_project_dir_default(tmp_path):
-    from app.api.routes import _bible_path
 
     wf = _wf(tmp_path)
 

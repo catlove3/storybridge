@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-from app.config import StorageConfig, get_config
+from app.config import get_config
 from app.llm import LLMClient
 from app.schemas import (
     AdaptationPlan,
     AppliedAdaptation,
     PropagationResult,
     StoryState,
-    VerificationIssue,
     VerifyReport,
 )
 from app.storage import MarketProfile, ProjectMeta, ProjectStore

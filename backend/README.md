@@ -7,11 +7,11 @@
 
 ```bash
 cd backend
-uv venv .venv && source .venv/bin/activate
-uv pip install -e ".[dev]"
+uv sync --frozen --extra dev
+source .venv/bin/activate
 cp .env.example .env          # 填 LLM_BASE_URL / LLM_API_KEY / LLM_MODEL
 
-# 离线测试（无需 key，132 个测试）
+# 离线测试（无需 key，135 个测试）
 python -m pytest tests/ -q
 
 # 起服务
@@ -150,7 +150,7 @@ python -m app.cli --mock demo data/scripts/demo_v0.md       # 离线演示
 
 ## 质量现状
 
-- **132 个离线测试**全绿（MockLLM/MockTransport 驱动，零 API 成本）
+- **135 个离线测试**全绿（MockLLM/MockTransport 驱动，零 API 成本）
 - **真 LLM 验证**：10 样本 × 7 题材（都市/古言/悬疑/现实/玄幻讽刺/网文长章）analyze 全过；
   难题材 apply（冲喜/彩礼/世家）score 1.0、残留清零
 - **抽取稳定性**：温度 0 + 分级锚定后，同剧本 3 次重复 analyze 机制识别完全一致

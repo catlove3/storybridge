@@ -3,9 +3,7 @@ from __future__ import annotations
 import pytest
 
 from app.llm import MockLLMClient
-from app.llm.structured import StructuredGenerationError, extract_json_payload, generate_structured
-from app.prompts import parse_story_system, parse_story_user
-from app.schemas import AdaptationPlan, StoryState
+from app.llm.structured import StructuredGenerationError, extract_json_payload
 from app.storage import MarketProfile, ProjectStore
 from app.workflow.engine import StoryBridgeWorkflow
 from tests.fixtures import sample_story_state_dict
@@ -131,7 +129,7 @@ async def test_rewritten_scene_returns_wrong_id(tmp_path):
     wf = StoryBridgeWorkflow(ProjectStore(tmp_path / "p"), client)
     meta = await wf.create_project("wrongid", "script", MarketProfile())
     await wf.analyze(meta.id)
-    result = await wf.apply_adaptation(meta.id, "CM01", "B")
+    await wf.apply_adaptation(meta.id, "CM01", "B")
     state = wf.require_state(meta.id)
     s01 = state.scene_by_id("S01")
     assert "rewritten for S01" in s01.text or s01.text.startswith("[REWRITTEN") or s01.text

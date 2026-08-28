@@ -204,7 +204,6 @@ async def bible(project_id: str, request: Request):
 
 
 def _bible_path(request: Request, project_id: str):
-    from pathlib import Path
 
     from app.config import get_config
 

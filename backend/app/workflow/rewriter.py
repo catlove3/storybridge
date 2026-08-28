@@ -7,10 +7,10 @@ from app.schemas import (
     AppliedAdaptation,
     CultureMechanism,
     PropagationResult,
-    RewrittenScene,
     Scene,
     StoryState,
 )
+from app.schemas import RewrittenScene as RewrittenScene
 from app.skills import REWRITE_SCENE, SkillSpec
 
 
