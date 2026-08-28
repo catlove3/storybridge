@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from app.llm import LLMClient
-from app.schemas import StoryState
+from app.schemas import FrictionDetectionResult, StoryState
 from app.skills import DETECT_FRICTIONS, SkillSpec
 
 
@@ -46,8 +46,27 @@ class FrictionDetector:
         if not state.culture_mechanisms:
             return state
 
+        expected_ids = {mechanism.id for mechanism in state.culture_mechanisms}
+
+        def validate_result(result: FrictionDetectionResult) -> None:
+            returned_ids = {mechanism.id for mechanism in result.mechanisms}
+            if returned_ids != expected_ids:
+                missing = sorted(expected_ids - returned_ids)
+                unknown = sorted(returned_ids - expected_ids)
+                details: list[str] = []
+                if missing:
+                    details.append(f"missing: {', '.join(missing)}")
+                if unknown:
+                    details.append(f"unknown: {', '.join(unknown)}")
+                raise ValueError(
+                    "friction result must cover every input mechanism ("
+                    + "; ".join(details)
+                    + ")"
+                )
+
         result = await self.skill.run(
             self.client,
+            result_validator=validate_result,
             state_digest_json=self._digest(state),
             target_market=target_market,
         )
@@ -64,9 +83,7 @@ class FrictionDetector:
                 cm for cm in state.culture_mechanisms if cm.id not in dropped
             ]
         for cm in state.culture_mechanisms:
-            found = by_id.get(cm.id)
-            if found is None:
-                continue
+            found = by_id[cm.id]
             cm.friction_level = found.friction_level
             cm.narrative_importance = found.narrative_importance
             cm.functions = found.functions

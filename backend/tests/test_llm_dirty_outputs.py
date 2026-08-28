@@ -32,13 +32,15 @@ async def test_llm_returns_markdown_wrapped_json_with_prose(tmp_path):
     import json
 
     client = MockLLMClient()
+    from app.cli import _load_default_mock_fixtures
+
+    _load_default_mock_fixtures(client)
     client.set_response(
         "parse_story",
         "好的，以下是分析结果：\n```json\n"
         + json.dumps(state_dict, ensure_ascii=False)
         + "\n```\n希望对你有帮助！",
     )
-    client.set_response("detect_frictions", {"mechanisms": []})
     wf = StoryBridgeWorkflow(ProjectStore(tmp_path / "p"), client)
     meta = await wf.create_project("md", "script", MarketProfile())
     state = await wf.analyze(meta.id)
@@ -51,8 +53,10 @@ async def test_llm_retry_recovers_from_invalid_then_valid(tmp_path):
     bad = {"characters": [{"id": "XX99", "name": "bad id prefix"}]}
     good = sample_story_state_dict()
     client = MockLLMClient()
+    from app.cli import _load_default_mock_fixtures
+
+    _load_default_mock_fixtures(client)
     client.set_response("parse_story", [json.dumps(bad), json.dumps(good)])
-    client.set_response("detect_frictions", {"mechanisms": []})
     wf = StoryBridgeWorkflow(ProjectStore(tmp_path / "p"), client)
     meta = await wf.create_project("retry", "script", MarketProfile())
     state = await wf.analyze(meta.id)
@@ -82,6 +86,28 @@ async def test_llm_unicode_and_case_weird_ids(tmp_path):
         await wf.analyze(meta.id)
 
 
+async def test_friction_result_must_cover_exact_input_ids(tmp_path):
+    wf, client = _wf(
+        tmp_path,
+        {
+            "detect_frictions": {
+                "mechanisms": [
+                    {"id": "CM01"},
+                    {"id": "CM02"},
+                    {"id": "CM99"},
+                ]
+            }
+        },
+    )
+    meta = await wf.create_project("friction-coverage", "script", MarketProfile())
+
+    with pytest.raises(StructuredGenerationError, match="missing: CM03; unknown: CM99"):
+        await wf.analyze(meta.id)
+
+    assert wf.store.load_state(meta.id) is None
+    assert len(client.calls["detect_frictions"]) == 3
+
+
 async def test_plan_option_label_lowercase(tmp_path):
     wf, _ = _wf(tmp_path)
     meta = await wf.create_project("lower", "script", MarketProfile())
@@ -107,8 +133,24 @@ async def test_plan_missing_option_label_b(tmp_path):
     wf, _ = _wf(tmp_path, {"plan_adaptation": plan})
     meta = await wf.create_project("noB", "script", MarketProfile())
     await wf.analyze(meta.id)
-    with pytest.raises(KeyError):
-        await wf.apply_adaptation(meta.id, "CM01", "B")
+    with pytest.raises(StructuredGenerationError):
+        await wf.plan(meta.id, "CM01")
+
+
+async def test_plan_mechanism_id_must_match_request(tmp_path):
+    wf, client = _wf(tmp_path)
+    meta = await wf.create_project("wrong-plan-id", "script", MarketProfile())
+    await wf.analyze(meta.id)
+
+    plan = client.responses["plan_adaptation"]
+    assert isinstance(plan, dict)
+    wrong_plan = {**plan, "culture_mechanism_id": "CM02"}
+    client.set_response("plan_adaptation", wrong_plan)
+
+    with pytest.raises(StructuredGenerationError, match="mechanism id mismatch"):
+        await wf.plan(meta.id, "CM01")
+
+    assert wf.store.load_plan(meta.id, "CM01") is None
 
 
 async def test_rewritten_scene_returns_wrong_id(tmp_path):
@@ -126,13 +168,15 @@ async def test_rewritten_scene_returns_wrong_id(tmp_path):
     from app.cli import _load_default_mock_fixtures
 
     _load_default_mock_fixtures(client)
+    client.handler = wrong_id_handler
     wf = StoryBridgeWorkflow(ProjectStore(tmp_path / "p"), client)
     meta = await wf.create_project("wrongid", "script", MarketProfile())
     await wf.analyze(meta.id)
-    await wf.apply_adaptation(meta.id, "CM01", "B")
+    original_text = wf.require_state(meta.id).scene_by_id("S01").text
+    with pytest.raises(StructuredGenerationError, match="scene id mismatch"):
+        await wf.apply_adaptation(meta.id, "CM01", "B")
     state = wf.require_state(meta.id)
-    s01 = state.scene_by_id("S01")
-    assert "rewritten for S01" in s01.text or s01.text.startswith("[REWRITTEN") or s01.text
+    assert state.scene_by_id("S01").text == original_text
 
 
 async def test_verify_issues_with_null_scene_ids(tmp_path):
@@ -165,11 +209,9 @@ async def test_duplicate_ids_in_llm_output(tmp_path):
     state_dict["dependencies"].append(dict(state_dict["dependencies"][0]))
     wf, _ = _wf(tmp_path, {"parse_story": state_dict})
     meta = await wf.create_project("dupids", "script", MarketProfile())
-    state = await wf.analyze(meta.id)
-    ids = [c.id for c in state.characters]
-    assert len(ids) == len(set(ids)) == 4
-    edge_keys = {(d.source_id, d.target_id, d.relation) for d in state.dependencies}
-    assert len(edge_keys) == len(state.dependencies)
+    with pytest.raises(StructuredGenerationError):
+        await wf.analyze(meta.id)
+    assert wf.store.load_state(meta.id) is None
 
 
 def test_extract_json_nested_arrays_with_braces():

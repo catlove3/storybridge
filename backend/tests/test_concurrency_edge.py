@@ -28,6 +28,12 @@ async def test_baseline_empty_mechanism_list(tmp_path):
     wf, client = _wf(tmp_path)
     state_dict = sample_story_state_dict()
     state_dict["culture_mechanisms"] = []
+    state_dict["dependencies"] = [
+        dependency
+        for dependency in state_dict["dependencies"]
+        if not dependency["source_id"].startswith("CM")
+        and not dependency["target_id"].startswith("CM")
+    ]
     client.set_response("parse_story", state_dict)
     client.set_response("detect_frictions", {"mechanisms": []})
     client.set_response("baseline_translate", "english text")
@@ -47,9 +53,7 @@ async def test_baseline_ground_truth_empty_mechanism_not_in_script(tmp_path):
 
     state_dict = sample_story_state_dict()
     state_dict["culture_mechanisms"][0]["surface_text"] = ["不存在的词xyz"]
-    state_dict["culture_mechanisms"][0]["name"] = "幽灵机制"
     client.set_response("parse_story", state_dict)
-    client.set_response("detect_frictions", {"mechanisms": []})
 
     runner = BaselineRunner(wf, client)
     result = await runner.run_experiment(

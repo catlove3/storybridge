@@ -57,19 +57,33 @@ def test_plan_survives_corrupted_plans_file(tmp_path):
 
     assert store.load_plans(meta.id) == []
     try:
-        from app.schemas import AdaptationOption, AdaptationPlan, AdaptationStrategy
+        from app.schemas import AdaptationOption, AdaptationPlan
 
         plan = AdaptationPlan(
             culture_mechanism_id="CM01",
             original_name="编制",
             options=[
                 AdaptationOption(
+                    option_label="A",
+                    strategy="preserve",
+                    title="a",
+                    replacement_definition="a",
+                    rationale="a",
+                ),
+                AdaptationOption(
                     option_label="B",
-                    strategy=AdaptationStrategy.FUNCTIONAL_REPLACEMENT,
+                    strategy="functional_replacement",
                     title="t",
                     replacement_definition="d",
                     rationale="r",
-                )
+                ),
+                AdaptationOption(
+                    option_label="C",
+                    strategy="plot_reconstruction",
+                    title="c",
+                    replacement_definition="c",
+                    rationale="c",
+                ),
             ],
         )
         store.save_plan(meta.id, plan)
