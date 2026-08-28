@@ -7,6 +7,8 @@ from .templates import (
     parse_story_user,
     plan_adaptation_system,
     plan_adaptation_user,
+    render_target_script_system,
+    render_target_script_user,
     rewrite_scene_system,
     rewrite_scene_user,
     verify_consistency_system,
@@ -24,6 +26,8 @@ __all__ = [
     "plan_adaptation_user",
     "rewrite_scene_system",
     "rewrite_scene_user",
+    "render_target_script_system",
+    "render_target_script_user",
     "verify_consistency_system",
     "verify_consistency_user",
 ]

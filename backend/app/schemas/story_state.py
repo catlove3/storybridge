@@ -93,6 +93,11 @@ class StoryState(BaseModel):
     audience: str = ""
     format: str = ""
     genre: str = ""
+    source_language: str = "zh-CN"
+    target_language: str = "English"
+    target_locale: str = "en-US"
+    style_guide: str = ""
+    terminology_map: dict[str, str] = Field(default_factory=dict)
 
     characters: list[Character] = Field(default_factory=list)
     scenes: list[Scene] = Field(default_factory=list)

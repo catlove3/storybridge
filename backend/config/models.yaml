@@ -36,6 +36,9 @@ llm:
     plan_adaptation: general
     rewrite_scene: general
     verify_consistency: general
+    render_target_script: general
+    baseline_translate: general
+    baseline_strong_prompt: general
 
 logging:
   sft_log_dir: data/sft_logs

@@ -191,6 +191,24 @@ async def verify(project_id: str, request: Request):
     return report.model_dump()
 
 
+@router.post("/projects/{project_id}/target-script")
+async def render_target_script(project_id: str, request: Request):
+    workflow = _workflow(request)
+    _project_or_404(workflow, project_id)
+    target_script = await workflow.render_target_script(project_id)
+    return target_script.model_dump()
+
+
+@router.get("/projects/{project_id}/target-script")
+async def get_target_script(project_id: str, request: Request):
+    workflow = _workflow(request)
+    _project_or_404(workflow, project_id)
+    target_script = workflow.store.load_target_script(project_id)
+    if target_script is None:
+        raise HTTPException(404, "target script is missing or stale; render it first")
+    return target_script.model_dump()
+
+
 @router.get("/projects/{project_id}/revisions")
 async def revisions(project_id: str, request: Request):
     workflow = _workflow(request)
@@ -295,6 +313,14 @@ async def submit_job(project_id: str, body: JobSubmitBody, request: Request):
             "plan",
             project_id,
             lambda: workflow.plan(project_id, body.culture_mechanism_id),
+            idempotency_key=body.idempotency_key,
+        )
+    elif body.kind == "render":
+        job = _submit(
+            jobs,
+            "render",
+            project_id,
+            lambda: workflow.render_target_script(project_id),
             idempotency_key=body.idempotency_key,
         )
     else:

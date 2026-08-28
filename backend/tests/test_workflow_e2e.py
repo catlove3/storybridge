@@ -75,6 +75,34 @@ async def test_propagate_endpoint_logic(tmp_path, mock_client):
         pass
 
 
+async def test_target_script_is_version_bound_and_regenerated_after_apply(
+    tmp_path, mock_client
+):
+    store = ProjectStore(tmp_path / "projects")
+    workflow = StoryBridgeWorkflow(store, mock_client)
+    meta = await workflow.create_project(
+        "target",
+        "script",
+        MarketProfile(target_language="English", target_locale="en-US"),
+    )
+    state = await workflow.analyze(meta.id)
+
+    first = await workflow.render_target_script(meta.id)
+    cached = await workflow.render_target_script(meta.id)
+
+    assert first.model_dump() == cached.model_dump()
+    assert first.source_state_version == state.version == 1
+    assert [scene.id for scene in first.scenes] == [scene.id for scene in state.scenes]
+    assert len(mock_client.calls["render_target_script"]) == 1
+
+    await workflow.apply_adaptation(meta.id, "CM01", "B")
+    assert store.load_target_script(meta.id) is None
+    second = await workflow.render_target_script(meta.id)
+
+    assert second.source_state_version == 2
+    assert len(mock_client.calls["render_target_script"]) == 2
+
+
 async def test_apply_requires_valid_option(tmp_path, mock_client):
     store = ProjectStore(tmp_path / "projects")
     workflow = StoryBridgeWorkflow(store, mock_client)

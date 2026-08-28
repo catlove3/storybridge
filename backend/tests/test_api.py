@@ -188,3 +188,19 @@ async def test_direct_apply_operation_id_cannot_commit_twice(client):
     assert duplicate.status_code == 409
     revisions = (await client.get(f"/api/projects/{project_id}/revisions")).json()
     assert [revision["state_version"] for revision in revisions] == [1, 2]
+
+
+async def test_target_script_render_and_get(client):
+    project_id = (await client.post("/api/projects", json={"script": "abc"})).json()["id"]
+    mock_client = app.state.workflow.rewriter.client
+    mock_client.set_response("parse_story", sample_story_state_dict())
+    await client.post(f"/api/projects/{project_id}/analyze")
+
+    assert (await client.get(f"/api/projects/{project_id}/target-script")).status_code == 404
+    rendered = await client.post(f"/api/projects/{project_id}/target-script")
+    loaded = await client.get(f"/api/projects/{project_id}/target-script")
+
+    assert rendered.status_code == loaded.status_code == 200
+    assert rendered.json() == loaded.json()
+    assert rendered.json()["target_language"] == "English"
+    assert len(rendered.json()["scenes"]) == 8

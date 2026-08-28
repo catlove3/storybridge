@@ -6,12 +6,12 @@ import json
 import pytest
 
 from app.baselines.metrics import evaluate_output
-from app.baselines.runner import BaselineRunner
+from app.baselines.runner import BaselineRunner, EvalAnnotations
 from app.llm import MockLLMClient
 from app.schemas import StoryState
 from app.storage import MarketProfile, ProjectStore
 from app.workflow.engine import StoryBridgeWorkflow
-from tests.fixtures import sample_story_state_dict
+from tests.fixtures import sample_story_state_dict, sample_target_script_dict
 
 
 def _wf(tmp_path, responses=None):
@@ -48,8 +48,8 @@ async def test_baseline_empty_mechanism_list(tmp_path):
 
 async def test_baseline_ground_truth_empty_mechanism_not_in_script(tmp_path):
     wf, client = _wf(tmp_path)
-    client.set_response("baseline_translate", "plain english")
-    client.set_response("baseline_strong_prompt", "rewritten")
+    client.set_response("baseline_translate", sample_target_script_dict("TRANSLATE"))
+    client.set_response("baseline_strong_prompt", sample_target_script_dict("STRONG"))
 
     state_dict = sample_story_state_dict()
     state_dict["culture_mechanisms"][0]["surface_text"] = ["不存在的词xyz"]
@@ -69,10 +69,34 @@ async def test_baseline_llm_output_garbage(tmp_path):
     client.set_response("baseline_strong_prompt", "")
 
     runner = BaselineRunner(wf, client)
-    result = await runner.run_experiment(
-        "garbage", "script", [("CM01", "B")], MarketProfile(market="US")
+    with pytest.raises(Exception):
+        await runner.run_experiment(
+            "garbage", "script", [("CM01", "B")], MarketProfile(market="US")
+        )
+
+
+async def test_baseline_uses_external_annotations_without_circular_truth(tmp_path):
+    wf, client = _wf(tmp_path)
+    client.set_response("baseline_translate", sample_target_script_dict("TRANSLATE"))
+    client.set_response("baseline_strong_prompt", sample_target_script_dict("STRONG"))
+
+    result = await BaselineRunner(wf, client).run_experiment(
+        "annotated",
+        "script",
+        [("CM01", "B")],
+        MarketProfile(market="US"),
+        annotations=EvalAnnotations(
+            expected_affected_ids=["S08", "S01", "S01"],
+            forbidden_target_terms={"CM01": ["civil service tenure"]},
+            source="reviewer-v1",
+        ),
     )
-    assert all(isinstance(m.stale_reference_count, int) for m in result.metrics)
+
+    assert result.annotation_source == "reviewer-v1"
+    assert all(metric.expected_scene_ids == ["S01", "S08"] for metric in result.metrics)
+    assert result.metrics[0].affected_scene_recall == 0
+    assert result.metrics[1].affected_scene_recall == 1
+    assert all(metric.stale_reference_count is not None for metric in result.metrics)
 
 
 async def test_evaluate_output_zero_expected(tmp_path):

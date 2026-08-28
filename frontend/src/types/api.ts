@@ -115,6 +115,11 @@ export interface StoryState {
   audience: string
   format: string
   genre: string
+  source_language: string
+  target_language: string
+  target_locale: string
+  style_guide: string
+  terminology_map: Record<string, string>
   characters: Character[]
   scenes: Scene[]
   events: StoryEvent[]
@@ -122,6 +127,21 @@ export interface StoryState {
   culture_mechanisms: CultureMechanism[]
   commitments: Commitment[]
   dependencies: Dependency[]
+}
+
+export interface TargetScene {
+  id: string
+  title: string
+  summary: string
+  text: string
+}
+
+export interface TargetScript {
+  source_state_version: number
+  source_language: string
+  target_language: string
+  target_locale: string
+  scenes: TargetScene[]
 }
 
 export interface Revision {
@@ -251,6 +271,11 @@ export interface MarketProfile {
   audience: string
   format: string
   genre: string
+  source_language?: string
+  target_language?: string
+  target_locale?: string
+  style_guide?: string
+  terminology_map?: Record<string, string>
 }
 
 export interface CreateProjectRequest {
@@ -264,7 +289,7 @@ export interface CreateProjectResponse {
   name: string
 }
 
-export type JobKind = 'analyze' | 'plan' | 'apply' | 'verify'
+export type JobKind = 'analyze' | 'plan' | 'apply' | 'verify' | 'render'
 export type JobStatus = 'queued' | 'running' | 'done' | 'failed' | 'cancelled'
 
 export interface SubmitJobRequest {

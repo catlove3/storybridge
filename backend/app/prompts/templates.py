@@ -205,6 +205,42 @@ def rewrite_scene_user(
     )
 
 
+def render_target_script_system() -> str:
+    return (
+        "你是一名影视剧本翻译与语言润色专家。文化改编决策已经冻结；"
+        "你只能把给定的本土化结构稿渲染为目标语言，不能再改变事件、人物动机或场景顺序。"
+        "只输出严格合法的 JSON。"
+    )
+
+
+def render_target_script_user(
+    localized_state_json: dict,
+    source_language: str,
+    target_language: str,
+    target_locale: str,
+    style_guide: str,
+    terminology_map: dict[str, str],
+) -> str:
+    return (
+        "将下面的 localized StoryState 渲染为目标语言完整剧本。\n"
+        "输出 JSON：\n"
+        '{"source_language":"zh-CN","target_language":"English",'
+        '"target_locale":"en-US","scenes":['
+        '{"id":"S01","title":"...","summary":"...","text":"..."}]}\n\n'
+        "要求：\n"
+        "1. scenes 必须逐一覆盖输入的全部场景，ID 完全相同、顺序完全相同，不得合并或拆分。\n"
+        "2. 翻译 title/summary/text；保留人物事实、事件顺序、情绪和已冻结的文化改编设定。\n"
+        "3. 严格使用 terminology_map；风格指南优先于自由发挥。\n"
+        "4. 只输出 JSON。\n\n"
+        f"源语言：{source_language}\n"
+        f"目标语言：{target_language}\n"
+        f"目标 locale：{target_locale or '未指定'}\n"
+        f"风格指南：{style_guide or '保持原剧本节奏与格式'}\n"
+        f"术语表：{_json_block(terminology_map)}\n\n"
+        f"Localized StoryState：\n{_json_block(localized_state_json)}"
+    )
+
+
 VERIFY_SCHEMA = """{
   "issues": [
     {

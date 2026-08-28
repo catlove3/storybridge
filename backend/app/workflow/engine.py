@@ -12,12 +12,14 @@ from app.schemas import (
     AppliedAdaptation,
     PropagationResult,
     StoryState,
+    TargetScript,
     VerifyReport,
 )
 from app.storage import MarketProfile, ProjectMeta, ProjectStore
 from app.workflow.friction import FrictionDetector
 from app.workflow.parser import StoryParser
 from app.workflow.planner import AdaptationPlanner
+from app.workflow.renderer import TargetScriptRenderer
 from app.workflow.rewriter import SceneRewriter
 from app.workflow.verifier import Verifier
 
@@ -48,6 +50,7 @@ class StoryBridgeWorkflow:
         self.detector = FrictionDetector(client)
         self.planner = AdaptationPlanner(client)
         self.rewriter = SceneRewriter(client)
+        self.renderer = TargetScriptRenderer(client)
         self.verifier = Verifier(client)
         self._project_locks: defaultdict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
 
@@ -79,6 +82,11 @@ class StoryBridgeWorkflow:
         state.audience = meta.market.audience
         state.format = meta.market.format
         state.genre = meta.market.genre
+        state.source_language = meta.market.source_language
+        state.target_language = meta.market.target_language
+        state.target_locale = meta.market.target_locale
+        state.style_guide = meta.market.style_guide
+        state.terminology_map = meta.market.terminology_map
 
         state = await self.detector.apply(state, target_market=meta.market.market)
         self.store.save_state(
@@ -225,6 +233,16 @@ class StoryBridgeWorkflow:
                 for a in applied
             )
             return await self.verifier.verify(state, applied_adaptations_summary=summary)
+
+    async def render_target_script(self, project_id: str) -> TargetScript:
+        async with self._project_locks[project_id]:
+            state = self.require_state(project_id)
+            cached = self.store.load_target_script(project_id)
+            if cached is not None:
+                return cached
+            target_script = await self.renderer.render(state)
+            self.store.save_target_script(project_id, target_script)
+            return target_script
 
 
 def build_default_workflow(client: LLMClient) -> StoryBridgeWorkflow:

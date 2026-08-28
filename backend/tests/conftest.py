@@ -19,6 +19,24 @@ def state_dict() -> dict:
 
 
 def _rewrite_handler(request) -> str:
+    if request.step == "render_target_script":
+        scene_ids = list(dict.fromkeys(re.findall(r'"id": "(S\d+)"', request.user_prompt)))
+        return json.dumps(
+            {
+                "source_language": "zh-CN",
+                "target_language": "English",
+                "target_locale": "en-US",
+                "scenes": [
+                    {
+                        "id": scene_id,
+                        "title": f"{scene_id} target",
+                        "summary": f"Target summary {scene_id}",
+                        "text": f"[TARGET {scene_id}] localized target-language scene",
+                    }
+                    for scene_id in scene_ids
+                ],
+            }
+        )
     match = re.search(r'"id": "(S\d+)"', request.user_prompt)
     scene_id = match.group(1)
     return json.dumps(
