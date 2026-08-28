@@ -29,6 +29,22 @@ def _unwrap_array(raw, schema: type[T]):
                     return schema.model_validate({target_field: raw})
     return raw
 
+
+def _unwrap_object(raw, schema: type[T]):
+    """Unwrap a common provider-added result envelope around structured JSON."""
+    if not isinstance(raw, dict) or not hasattr(schema, "model_fields"):
+        return raw
+
+    known_fields = set(schema.model_fields)
+    if known_fields & set(raw):
+        return raw
+
+    for value in raw.values():
+        if isinstance(value, dict) and known_fields & set(value):
+            return value
+    return raw
+
+
 _FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.DOTALL)
 
 
@@ -121,11 +137,23 @@ async def generate_structured(
             try:
                 raw = json.loads(payload_text)
                 raw = _unwrap_array(raw, schema)
+                raw = _unwrap_object(raw, schema)
+                if (
+                    isinstance(raw, dict)
+                    and hasattr(schema, "model_fields")
+                    and not (set(schema.model_fields) & set(raw))
+                ):
+                    raise ValueError(
+                        "output has no recognized top-level schema fields: "
+                        f"expected one of {sorted(schema.model_fields)}"
+                    )
                 return schema.model_validate(raw)
             except json.JSONDecodeError as exc:
                 last_error = f"invalid JSON: {exc}"
             except ValidationError as exc:
                 last_error = f"schema validation failed: {exc.error_count()} error(s): {exc.errors()[:3]}"
+            except ValueError as exc:
+                last_error = f"schema validation failed: {exc}"
 
         history.append(Message(role="assistant", content=response.text))
         history.append(

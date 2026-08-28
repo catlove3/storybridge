@@ -4,12 +4,22 @@ llm:
   profiles:
     general:
       provider: openai_compat
-      base_url: https://api.deepseek.com/v1
-      api_key_env: DEEPSEEK_API_KEY
-      model: deepseek-chat
+      # Runtime values are overridden by LLM_BASE_URL / LLM_MODEL in .env.
+      base_url: http://localhost:8000/v1
+      api_key_env: LLM_API_KEY
+      model: replace-with-your-model-name
       temperature: 0.3
       max_tokens: 8192
       json_mode: true
+      # Long structured responses can exceed an upstream gateway's non-streaming
+      # response deadline. SSE keeps the connection active while preserving the
+      # same final text consumed by the workflow.
+      stream: true
+      # Provider extensions stay in configuration instead of being hard-coded in
+      # the generic client. Unsupported keys are retried once without the extra.
+      extra_body:
+        thinking:
+          type: disabled
 
     rewriter_ft:
       provider: openai_compat

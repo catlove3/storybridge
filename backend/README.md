@@ -9,9 +9,9 @@
 cd backend
 uv venv .venv && source .venv/bin/activate
 uv pip install -e ".[dev]"
-cp .env.example .env          # 填 DEEPSEEK_API_KEY=sk-xxx
+cp .env.example .env          # 填 LLM_BASE_URL / LLM_API_KEY / LLM_MODEL
 
-# 离线测试（无需 key，129 个测试）
+# 离线测试（无需 key，132 个测试）
 python -m pytest tests/ -q
 
 # 起服务
@@ -20,6 +20,26 @@ uvicorn app.main:app --reload   # http://localhost:8000/docs
 # 一条命令跑通全闭环（离线 mock，无需 key）
 python -m app.cli --mock demo data/scripts/demo_v0.md --bible /tmp/bible.md
 ```
+
+## OpenAI-compatible LLM 配置
+
+所有当前 workflow skill 默认走同一个 `general` profile，并可直接通过
+`backend/.env` 切换 OpenAI-compatible 服务：
+
+```dotenv
+LLM_BASE_URL=https://your-provider.example/v1
+LLM_API_KEY=your-secret-key
+LLM_MODEL=your-model-name
+```
+
+`LLM_BASE_URL` 应停在 `/chat/completions` 之前；客户端会自动拼接该路径。
+密钥只从环境变量读取，不写入 YAML、代码或日志。`config/models.yaml` 仍保留
+按 step 路由到其他 profile 的能力，供本地微调模型等高级用法使用。
+
+结构化步骤会优先发送 OpenAI 风格的
+`response_format={"type":"json_object"}`。如果兼容服务以 400/422 拒绝该参数，
+客户端会自动移除它并重试；随后仍经过 JSON 提取、Pydantic schema 校验和原有纠错重试，
+因此不支持原生 JSON mode 的服务也可以接入，但其输出稳定性仍取决于具体模型。
 
 ## 核心闭环
 
@@ -58,7 +78,7 @@ app/
 config/models.yaml              # 模型路由配置(微调换模型只改这里)
 data/scripts/                   # 语料库: demo_v0 + 5题材corpus剧本
 data/external/                  # kunpeng章节样本 + idiom外部验证集
-tests/                          # 129个离线测试(全走MockLLM, 零API成本)
+tests/                          # 132个离线测试(全走MockLLM/MockTransport, 零API成本)
 ```
 
 ## Skill 层与微调兼容
@@ -130,7 +150,7 @@ python -m app.cli --mock demo data/scripts/demo_v0.md       # 离线演示
 
 ## 质量现状
 
-- **129 个离线测试**全绿（MockLLM 驱动，零 API 成本，`pytest tests/ -q` 40秒）
+- **132 个离线测试**全绿（MockLLM/MockTransport 驱动，零 API 成本）
 - **真 LLM 验证**：10 样本 × 7 题材（都市/古言/悬疑/现实/玄幻讽刺/网文长章）analyze 全过；
   难题材 apply（冲喜/彩礼/世家）score 1.0、残留清零
 - **抽取稳定性**：温度 0 + 分级锚定后，同剧本 3 次重复 analyze 机制识别完全一致
