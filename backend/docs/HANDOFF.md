@@ -10,14 +10,15 @@
 
 | 资产 | 位置 | 状态 |
 |---|---|---|
-| 完整后端闭环 | `backend/app/` | 129 测试全绿，真 LLM 7 题材验证过 |
+| 完整后端闭环 | `backend/app/` | 132 测试全绿，真 LLM 7 题材验证过 |
 | 测试语料库 | `backend/data/scripts/` | demo_v0（编制彩礼）+ 5 题材 corpus 剧本 |
 | 外部数据 | `backend/data/external/` | kunpeng 章节 + idiom 验证集（50条）|
 | SFT 语料积累 | `backend/data/sft_logs/`（gitignore）| 每次真实调用自动落盘，按 skill 分文件 |
 | Baseline 数据 | `backend/data/baselines/` | 三系统对比表 + 各系统输出全文 |
 | Git 历史 | 18 commits | 每轮测试一个 commit，bug 修复都有测试固化 |
 
-**DeepSeek 余额约 112 元**（2026-08-27 查询）。一轮全流程（analyze+plan+apply+verify）约 1~2 元，省着点够用到初评后。
+真实调用的余额和单轮成本取决于 `.env` 当前配置的 OpenAI-compatible 供应商与模型，
+请在对应供应商控制台确认，不要沿用旧供应商的历史余额口径。
 
 ---
 
@@ -62,7 +63,7 @@ curl -s localhost:8321/healthz
 | 加 prompt | 低 | 只改 `prompts/templates.py`，改完跑 `pytest`（fixtures 会验 schema）|
 | 改 schema | **高** | `schemas/` 是全系统契约；改字段要同步 fixtures + 受影响测试；存储里旧 state.json 会因校验失败被当 None——**没有迁移机制**，老项目直接重建 |
 | 改图引擎方向语义 | **极高** | `graph/build.py` 的三个方向集合是传播正确性的根；任何改动先跑 `test_graph*.py` 全家 |
-| 换 LLM 供应商 | 低 | 只动 `config/models.yaml` + `.env`，OpenAI 兼容协议通吃 |
+| 换 LLM 供应商 | 低 | 默认只改 `.env` 的三个 `LLM_*` 变量；高级按-step路由再改 `config/models.yaml` |
 | 上微调模型 | 低 | 见 README「Skill 层与微调兼容」，yaml 三行 |
 
 ### 3.2 九轮测试换来的设计决定（别回退）
@@ -71,7 +72,7 @@ curl -s localhost:8321/healthz
 
 1. **verify 的 stale_reference 以静态层为真源**——LLM 报的必须过"evidence 含旧机制名 AND 场景里真有旧词"才保留。曾出现：捏造引用（call15 彩礼冤案）、把改后的新表述当残留（婚礼基金案）、复读循环 15k 字符截断（frequency_penalty=0.3 压制）。
 2. **静态探针只扫机制名，不扫 surface_text**——surface_text 是证据不是禁用词表（"家族"是"世家"的同义词但不是残留）。
-3. **parse/friction 温度 0.0**——分析型任务，温度高会导致重复运行机制识别漂移。rewrite 保持默认温度（要创造性）。
+3. **parse/friction 请求温度 0.0**——分析型任务，温度高会导致重复运行机制识别漂移；兼容层会把不被部分供应商接受的精确 0 规范化为 0.01。rewrite 保持默认温度（要创造性）。
 4. **friction detector 有 drop 否决权**——抽取层宁多勿漏，审查层枪毙误抽（"以死相抗"案），剔除时联动清依赖边。
 5. **repair 循环遇无 scene_id 的 issue 直接 break**——否则空转到 max_rounds 白烧 token。
 6. **存储读操作绝不 mkdir**（`_peek_dir`）+ project_id 白名单校验——防路径穿越和目录污染。
@@ -111,7 +112,7 @@ _REGISTRY["my_step"] = MY_STEP   # all_skills 之外手动加或改列表
 cd backend && source .venv/bin/activate
 
 # 测试（改任何代码后必跑）
-python -m pytest tests/ -q                     # 全量 129 个，~10s
+python -m pytest tests/ -q                     # 全量 132 个，~10s
 python -m pytest tests/test_graph.py -q        # 只跑图引擎
 
 # 真 LLM 全流程演示（~2元）
@@ -126,8 +127,8 @@ python -m app.cli baseline data/scripts/demo_v0.md --plans CM01:B
 # 抽kunpeng新章节做测试样本
 python -m app.external.kunpeng chapter --index <N> --out data/external/k_chN.md
 
-# 查 DeepSeek 余额
-python -c "import os,httpx;from dotenv import load_dotenv;load_dotenv('.env');print(httpx.get('https://api.deepseek.com/user/balance',headers={'Authorization':'Bearer '+os.environ['DEEPSEEK_API_KEY']}).json())"
+# 查看当前选择的端点和模型（不打印 API key）
+python -c "from app.config import get_config; p=get_config().llm.profile_for_step('parse_story'); print(p.base_url, p.model)"
 ```
 
 ### 4.1 让服务端跑 mock（前端零成本联调）

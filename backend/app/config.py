@@ -20,6 +20,8 @@ class ProfileConfig(BaseModel):
     temperature: float = 0.3
     max_tokens: int = 4096
     json_mode: bool = True
+    stream: bool = False
+    extra_body: dict[str, object] = Field(default_factory=dict)
 
 
 class LLMConfig(BaseModel):
@@ -53,7 +55,22 @@ def get_config() -> AppConfig:
     raw: dict = {}
     if config_path.exists():
         raw = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
-    return AppConfig.model_validate(raw)
+    config = AppConfig.model_validate(raw)
+
+    # The default profile is the normal runtime path for every current skill.
+    # Keep advanced per-step profiles in YAML, while allowing one .env file to
+    # switch the provider used by the complete workflow.
+    profile = config.llm.profiles.get(config.llm.default_profile)
+    if profile is not None:
+        base_url = os.environ.get("LLM_BASE_URL", "").strip()
+        model = os.environ.get("LLM_MODEL", "").strip()
+        if base_url:
+            profile.base_url = base_url
+        if model:
+            profile.model = model
+        profile.api_key_env = "LLM_API_KEY"
+
+    return config
 
 
 def api_key_for(profile: ProfileConfig) -> str:
