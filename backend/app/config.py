@@ -82,6 +82,15 @@ def get_config() -> AppConfig:
         if not path.is_absolute():
             setattr(section, field_name, (BACKEND_ROOT / path).resolve())
 
+    for env_name, section, field_name in (
+        ("STORYBRIDGE_PROJECTS_DIR", config.storage, "projects_dir"),
+        ("STORYBRIDGE_JOBS_FILE", config.storage, "jobs_file"),
+        ("STORYBRIDGE_SFT_LOG_DIR", config.logging, "sft_log_dir"),
+    ):
+        override = os.environ.get(env_name, "").strip()
+        if override:
+            setattr(section, field_name, Path(override).expanduser().resolve())
+
     # The default profile is the normal runtime path for every current skill.
     # Keep advanced per-step profiles in YAML, while allowing one .env file to
     # switch the provider used by the complete workflow.

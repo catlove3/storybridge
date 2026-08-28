@@ -308,6 +308,18 @@ export interface CreateProjectResponse {
   name: string
 }
 
+export interface ProjectSummary {
+  id: string
+  name: string
+  created_at: string
+}
+
+export interface ProjectDetail extends CreateProjectResponse {
+  market: MarketProfile
+  analyzed: boolean
+  data_policy: DataPolicy
+}
+
 export type JobKind = 'analyze' | 'plan' | 'apply' | 'verify' | 'render'
 export type JobStatus = 'queued' | 'running' | 'done' | 'failed' | 'cancelled'
 
