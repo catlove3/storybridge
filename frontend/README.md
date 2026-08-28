@@ -24,6 +24,7 @@ uvicorn app.mock_main:app --reload --port 8000
 
 ```bash
 cd frontend
+nvm use                    # Node 22.12.0；Vite 8 至少需要 Node 20.19+
 npm install
 npm run dev
 ```
