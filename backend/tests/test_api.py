@@ -158,3 +158,32 @@ async def test_apply_invalid_option_404(client):
         json={"culture_mechanism_id": "CM01", "option_label": "Z"},
     )
     assert response.status_code == 404
+
+
+async def test_direct_apply_operation_id_cannot_commit_twice(client):
+    project_id = (await client.post("/api/projects", json={"script": "abc"})).json()["id"]
+    mock_client = app.state.workflow.rewriter.client
+    mock_client.set_response("parse_story", sample_story_state_dict())
+    await client.post(f"/api/projects/{project_id}/analyze")
+    plan = (
+        await client.post(
+            f"/api/projects/{project_id}/adaptations/plan",
+            json={"culture_mechanism_id": "CM01"},
+        )
+    ).json()
+    body = {
+        "culture_mechanism_id": "CM01",
+        "option_label": "B",
+        "based_on_version": plan["based_on_version"],
+        "operation_id": "apply-once",
+    }
+
+    first = await client.post(f"/api/projects/{project_id}/adaptations/apply", json=body)
+    duplicate = await client.post(
+        f"/api/projects/{project_id}/adaptations/apply", json=body
+    )
+
+    assert first.status_code == 200
+    assert duplicate.status_code == 409
+    revisions = (await client.get(f"/api/projects/{project_id}/revisions")).json()
+    assert [revision["state_version"] for revision in revisions] == [1, 2]

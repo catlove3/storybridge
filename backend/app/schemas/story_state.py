@@ -88,6 +88,7 @@ class Dependency(BaseModel):
 
 
 class StoryState(BaseModel):
+    version: int = Field(default=0, ge=0)
     target_market: str = ""
     audience: str = ""
     format: str = ""
@@ -212,6 +213,7 @@ class StoryState(BaseModel):
 
 class Revision(BaseModel):
     revision_id: int
+    state_version: int = Field(default=0, ge=0)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     kind: Literal[
         "initial_parse",

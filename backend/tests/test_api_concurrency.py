@@ -61,6 +61,51 @@ async def test_api_same_project_double_plan(client):
     assert (await api_client.get(f"/api/projects/{project_id}/state")).status_code == 200
 
 
+async def test_api_job_idempotency_returns_original_job(client):
+    api_client, _ = client
+    project_id = (
+        await api_client.post("/api/projects", json={"script": "x"})
+    ).json()["id"]
+    body = {"kind": "analyze", "idempotency_key": "analyze-once"}
+
+    first, second = await asyncio.gather(
+        api_client.post(f"/api/projects/{project_id}/jobs", json=body),
+        api_client.post(f"/api/projects/{project_id}/jobs", json=body),
+    )
+
+    assert first.status_code == second.status_code == 200
+    assert first.json()["job_id"] == second.json()["job_id"]
+    listing = (await api_client.get(f"/api/projects/{project_id}/jobs")).json()
+    assert len(listing) == 1
+
+
+async def test_api_rejects_stale_apply_version(client):
+    api_client, _ = client
+    project_id = (
+        await api_client.post("/api/projects", json={"script": "x"})
+    ).json()["id"]
+    await api_client.post(f"/api/projects/{project_id}/analyze")
+    old_plan = (
+        await api_client.post(
+            f"/api/projects/{project_id}/adaptations/plan",
+            json={"culture_mechanism_id": "CM01"},
+        )
+    ).json()
+    await api_client.post(f"/api/projects/{project_id}/analyze")
+
+    response = await api_client.post(
+        f"/api/projects/{project_id}/adaptations/apply",
+        json={
+            "culture_mechanism_id": "CM01",
+            "option_label": "B",
+            "based_on_version": old_plan["based_on_version"],
+        },
+    )
+
+    assert response.status_code == 409
+    assert "state version conflict" in response.json()["detail"]
+
+
 async def test_api_job_for_project_without_state(client):
     api_client, _ = client
     project_id = (

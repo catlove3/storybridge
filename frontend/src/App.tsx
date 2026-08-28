@@ -446,7 +446,7 @@ function App() {
       }, controller.signal)
       setProject(created)
       setPhase('analyzing')
-      const submitted = await api.submitJob(created.id, { kind: 'analyze' }, controller.signal)
+      const submitted = await api.submitJob(created.id, { kind: 'analyze', idempotency_key: crypto.randomUUID() }, controller.signal)
       await pollJob(submitted.job_id, { signal: controller.signal, timeoutMs: 15 * 60_000, onUpdate: setAnalyzeJob })
       setPhase('loading-state')
       const state = await api.getStoryState(created.id, controller.signal)
@@ -491,7 +491,9 @@ function App() {
     setVerifyReport(null)
     setDiffs([])
     try {
-      const submitted = await api.submitJob(project.id, { kind: 'plan', culture_mechanism_id: selectedMechanism.id }, controller.signal)
+      const submitted = await api.submitJob(project.id, {
+        kind: 'plan', culture_mechanism_id: selectedMechanism.id, idempotency_key: crypto.randomUUID(),
+      }, controller.signal)
       const completed = await pollJob<AdaptationPlan>(submitted.job_id, { signal: controller.signal, timeoutMs: 15 * 60_000, onUpdate: setActiveJob })
       if (!completed.result) throw new Error('Plan job 已完成，但没有返回 Adaptation Plan。')
       setPlan(completed.result)
@@ -530,7 +532,7 @@ function App() {
   }
 
   async function handleApply() {
-    if (!project || !selectedMechanism || !selectedOption || !propagation || actionBusy) return
+    if (!project || !selectedMechanism || !selectedOption || !plan || !propagation || actionBusy) return
     const controller = nextController()
     setAction('applying')
     setActionError('')
@@ -541,6 +543,7 @@ function App() {
     try {
       const submitted = await api.submitJob(project.id, {
         kind: 'apply', culture_mechanism_id: selectedMechanism.id, option_label: selectedOption.option_label,
+        based_on_version: plan.based_on_version, idempotency_key: crypto.randomUUID(),
       }, controller.signal)
       const completed = await pollJob<ApplyResult>(submitted.job_id, { signal: controller.signal, timeoutMs: 30 * 60_000, onUpdate: setActiveJob })
       if (!completed.result) throw new Error('Apply job 已完成，但没有返回改写与验证结果。')
@@ -573,7 +576,7 @@ function App() {
     setActionMessage('')
     setActiveJob(null)
     try {
-      const submitted = await api.submitJob(project.id, { kind: 'verify' }, controller.signal)
+      const submitted = await api.submitJob(project.id, { kind: 'verify', idempotency_key: crypto.randomUUID() }, controller.signal)
       const completed = await pollJob<VerifyReport>(submitted.job_id, { signal: controller.signal, timeoutMs: 15 * 60_000, onUpdate: setActiveJob })
       if (!completed.result) throw new Error('Verify job 已完成，但没有返回 Verify Report。')
       setVerifyReport(completed.result)

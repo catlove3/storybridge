@@ -6,7 +6,12 @@ from pydantic import BaseModel
 from app.graph import StoryGraph
 from app.schemas import StoryState, VerifyReport
 from app.storage import MarketProfile
-from app.workflow.engine import ApplyResult, StoryBridgeWorkflow
+from app.workflow.engine import (
+    ApplyResult,
+    DuplicateOperation,
+    StateVersionConflict,
+    StoryBridgeWorkflow,
+)
 
 router = APIRouter(prefix="/api")
 
@@ -20,6 +25,13 @@ def _project_or_404(workflow: StoryBridgeWorkflow, project_id: str):
     if meta is None:
         raise HTTPException(status_code=404, detail=f"unknown project: {project_id}")
     return meta
+
+
+def _submit(jobs, *args, **kwargs):
+    try:
+        return jobs.submit(*args, **kwargs)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
 class CreateProjectBody(BaseModel):
@@ -36,6 +48,8 @@ class ApplyBody(BaseModel):
     culture_mechanism_id: str
     option_label: str
     auto_verify_and_repair: bool = True
+    based_on_version: int | None = None
+    operation_id: str | None = None
 
 
 @router.post("/projects")
@@ -157,7 +171,11 @@ async def apply_adaptation(project_id: str, body: ApplyBody, request: Request):
             body.culture_mechanism_id,
             body.option_label,
             auto_verify_and_repair=body.auto_verify_and_repair,
+            based_on_version=body.based_on_version,
+            operation_id=body.operation_id,
         )
+    except (StateVersionConflict, DuplicateOperation) as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:
@@ -217,6 +235,8 @@ class JobSubmitBody(BaseModel):
     kind: str
     culture_mechanism_id: str | None = None
     option_label: str | None = None
+    based_on_version: int | None = None
+    idempotency_key: str | None = None
 
 
 @router.post("/projects/{project_id}/jobs")
@@ -226,28 +246,56 @@ async def submit_job(project_id: str, body: JobSubmitBody, request: Request):
     _project_or_404(workflow, project_id)
 
     if body.kind == "analyze":
-        job = jobs.submit(
-            "analyze", project_id, lambda: workflow.analyze(project_id)
+        job = _submit(
+            jobs,
+            "analyze",
+            project_id,
+            lambda: workflow.analyze(project_id),
+            idempotency_key=body.idempotency_key,
         )
     elif body.kind == "apply":
         if not body.culture_mechanism_id or not body.option_label:
             raise HTTPException(400, "apply job needs culture_mechanism_id + option_label")
-        job = jobs.submit(
+        if body.based_on_version is not None:
+            current_version = workflow.require_state(project_id).version
+            if body.based_on_version != current_version:
+                raise HTTPException(
+                    status_code=409,
+                    detail=(
+                        f"state version conflict: expected {body.based_on_version}, "
+                        f"current version is {current_version}"
+                    ),
+                )
+        job = _submit(
+            jobs,
             "apply",
             project_id,
             lambda: workflow.apply_adaptation(
-                project_id, body.culture_mechanism_id, body.option_label
+                project_id,
+                body.culture_mechanism_id,
+                body.option_label,
+                based_on_version=body.based_on_version,
+                operation_id=body.idempotency_key,
             ),
+            idempotency_key=body.idempotency_key,
         )
     elif body.kind == "verify":
-        job = jobs.submit("verify", project_id, lambda: workflow.verify(project_id))
+        job = _submit(
+            jobs,
+            "verify",
+            project_id,
+            lambda: workflow.verify(project_id),
+            idempotency_key=body.idempotency_key,
+        )
     elif body.kind == "plan":
         if not body.culture_mechanism_id:
             raise HTTPException(400, "plan job needs culture_mechanism_id")
-        job = jobs.submit(
+        job = _submit(
+            jobs,
             "plan",
             project_id,
             lambda: workflow.plan(project_id, body.culture_mechanism_id),
+            idempotency_key=body.idempotency_key,
         )
     else:
         raise HTTPException(400, f"unknown job kind: {body.kind}")
@@ -272,6 +320,7 @@ async def list_jobs(project_id: str, request: Request):
 
 def _state_summary(state: StoryState) -> dict:
     return {
+        "version": state.version,
         "characters": len(state.characters),
         "scenes": len(state.scenes),
         "events": len(state.events),

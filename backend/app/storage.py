@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import json
+import os
+import tempfile
+import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -52,7 +55,27 @@ class ProjectStore:
 
     @staticmethod
     def _write_json(path: Path, payload) -> None:
-        path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        descriptor, temporary_name = tempfile.mkstemp(
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+        )
+        temporary_path = Path(temporary_name)
+        try:
+            with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+                json.dump(payload, handle, ensure_ascii=False, indent=2)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temporary_path, path)
+            directory_fd = os.open(path.parent, os.O_RDONLY)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+        finally:
+            if temporary_path.exists():
+                temporary_path.unlink()
 
     def _read_json(self, path: Path):
         if not path.exists():
@@ -63,7 +86,7 @@ class ProjectStore:
             return None
 
     def create_project(self, name: str, script_text: str, market: MarketProfile) -> ProjectMeta:
-        project_id = datetime.now().strftime("%Y%m%d%H%M%S%f")
+        project_id = uuid.uuid4().hex
         meta = ProjectMeta(id=project_id, name=name, script_text=script_text, market=market)
         self._write_json(self._dir(project_id) / "project.json", meta.model_dump(mode="json"))
         return meta
@@ -90,11 +113,31 @@ class ProjectStore:
             return None
         if not state.scenes and not state.characters:
             return None
+        if state.version == 0:
+            raw_revisions = self._read_json(
+                self._peek_dir(project_id) / "revisions.json"
+            ) or []
+            state.version = max(
+                (
+                    int(revision.get("state_version") or revision.get("revision_id") or 0)
+                    for revision in raw_revisions
+                    if isinstance(revision, dict)
+                ),
+                default=0,
+            )
         return state
 
     def list_revisions(self, project_id: str) -> list[Revision]:
         raw = self._read_json(self._peek_dir(project_id) / "revisions.json")
-        return [Revision.model_validate(r) for r in (raw or [])]
+        revisions = [Revision.model_validate(r) for r in (raw or [])]
+        state = self.load_state(project_id)
+        if state is None:
+            return []
+        return [
+            revision
+            for revision in revisions
+            if (revision.state_version or revision.revision_id) <= state.version
+        ]
 
     def save_state(
         self,
@@ -104,24 +147,41 @@ class ProjectStore:
         description: str = "",
         changed_scene_ids: list[str] | None = None,
         applied_option: dict | None = None,
+        applied: AppliedAdaptation | None = None,
     ) -> Revision:
-        revision_id = len(self.list_revisions(project_id)) + 1
-        self._write_json(self._dir(project_id) / "state.json", state.model_dump(mode="json"))
-        self._write_json(
-            self._history_dir(project_id) / f"rev{revision_id:03d}.json",
-            state.model_dump(mode="json"),
-        )
+        current_state = self.load_state(project_id)
+        current_version = current_state.version if current_state is not None else 0
+        next_version = current_version + 1
+        state.version = next_version
+        revision_id = next_version
+        current_revisions = self.list_revisions(project_id)
         revision = Revision(
             revision_id=revision_id,
+            state_version=next_version,
             kind=kind,
             description=description,
             changed_scene_ids=changed_scene_ids or [],
             applied_option=applied_option,
         )
+
+        self._write_json(
+            self._history_dir(project_id) / f"rev{revision_id:03d}.json",
+            state.model_dump(mode="json"),
+        )
         self._write_json(
             self._dir(project_id) / "revisions.json",
-            [r.model_dump(mode="json") for r in [*self.list_revisions(project_id), revision]],
+            [r.model_dump(mode="json") for r in [*current_revisions, revision]],
         )
+        if applied is not None:
+            applied.state_version = next_version
+            existing = self.load_applied(project_id)
+            existing.append(applied)
+            self._write_json(
+                self._dir(project_id) / "adaptations.json",
+                [item.model_dump(mode="json") for item in existing],
+            )
+        # state.json is the commit marker and must be replaced last.
+        self._write_json(self._dir(project_id) / "state.json", state.model_dump(mode="json"))
         return revision
 
     def save_plan(self, project_id: str, plan: AdaptationPlan) -> None:
@@ -147,6 +207,9 @@ class ProjectStore:
         )
 
     def append_applied(self, project_id: str, applied: AppliedAdaptation) -> None:
+        state = self.load_state(project_id)
+        if state is not None and applied.state_version == 0:
+            applied.state_version = state.version
         existing = self.load_applied(project_id)
         existing.append(applied)
         self._write_json(
@@ -156,4 +219,12 @@ class ProjectStore:
 
     def load_applied(self, project_id: str) -> list[AppliedAdaptation]:
         raw = self._read_json(self._peek_dir(project_id) / "adaptations.json")
-        return [AppliedAdaptation.model_validate(a) for a in (raw or [])]
+        applied = [AppliedAdaptation.model_validate(a) for a in (raw or [])]
+        state = self.load_state(project_id)
+        if state is None:
+            return []
+        return [
+            item
+            for item in applied
+            if item.state_version == 0 or item.state_version <= state.version
+        ]
