@@ -7,10 +7,10 @@ from app.schemas import (
     AppliedAdaptation,
     CultureMechanism,
     PropagationResult,
-    RewrittenScene,
     Scene,
     StoryState,
 )
+from app.schemas import RewrittenScene as RewrittenScene
 from app.skills import REWRITE_SCENE, SkillSpec
 
 
@@ -65,6 +65,13 @@ class SceneRewriter:
             if nc.must_preserve or nc.id in related
         ]
 
+    @staticmethod
+    def _validate_rewrite(scene: Scene, rewritten: RewrittenScene) -> None:
+        if rewritten.id != scene.id:
+            raise ValueError(
+                f"rewritten scene id mismatch: expected {scene.id}, got {rewritten.id}"
+            )
+
     async def apply(
         self,
         state: StoryState,
@@ -86,6 +93,7 @@ class SceneRewriter:
                 continue
             rewritten = await self.skill.run(
                 self.client,
+                result_validator=lambda result: self._validate_rewrite(scene, result),
                 scene_json=scene.model_dump(),
                 adaptation_brief=brief,
                 must_preserve_commitments=commitments,
@@ -131,6 +139,7 @@ class SceneRewriter:
             )
             rewritten = await self.skill.run(
                 self.client,
+                result_validator=lambda result: self._validate_rewrite(scene, result),
                 scene_json=scene.model_dump(),
                 adaptation_brief=brief,
                 must_preserve_commitments=[

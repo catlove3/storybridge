@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-import json
-
 from app.baselines.metrics import (
     compute_scene_recall,
+    compute_target_scene_recall,
     count_stale_references,
     evaluate_output,
     format_metrics_table,
 )
-from app.schemas import StoryState
+from app.schemas import StoryState, TargetScript
+from tests.fixtures import sample_target_script_dict
 
 
 def test_count_stale_references(state_dict):
@@ -69,3 +69,43 @@ def test_evaluate_output_and_table(state_dict):
     table = format_metrics_table([metrics])
     assert "C StoryBridge" in table
     assert "2/3" in table
+
+
+def test_target_language_metrics_require_annotations(state_dict):
+    original = StoryState.model_validate(state_dict)
+    reference = TargetScript.model_validate(sample_target_script_dict("TRANSLATE"))
+    adapted_payload = sample_target_script_dict("TRANSLATE")
+    adapted_payload["scenes"][0]["text"] = "civil service tenure remains"
+    adapted = TargetScript.model_validate(adapted_payload)
+
+    recall, changed = compute_target_scene_recall(["S01", "S02"], adapted, reference)
+    assert recall == 0.5
+    assert changed == ["S01"]
+
+    without_annotations = evaluate_output(
+        original,
+        None,
+        adapted.text,
+        "target",
+        ["S01"],
+        output_language="English",
+        source_language="zh-CN",
+        target_output=adapted,
+        target_reference=reference,
+    )
+    assert without_annotations.stale_reference_count is None
+
+    annotated = evaluate_output(
+        original,
+        None,
+        adapted.text,
+        "target",
+        ["S01"],
+        output_language="English",
+        source_language="zh-CN",
+        forbidden_terms={"CM01": ["civil service tenure"]},
+        target_output=adapted,
+        target_reference=reference,
+    )
+    assert annotated.stale_reference_count == 1
+    assert "CM01" in annotated.stale_details[0]

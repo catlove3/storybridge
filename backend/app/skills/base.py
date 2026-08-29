@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
-from dataclasses import dataclass, field
+from collections.abc import Callable
+from dataclasses import dataclass
 from typing import TypeVar
 
 from pydantic import BaseModel
@@ -26,7 +26,13 @@ class SkillSpec:
     frequency_penalty: float | None = None
     postprocessors: tuple[Callable[..., object], ...] = ()
 
-    async def run(self, client: LLMClient, **prompt_kwargs) -> BaseModel:
+    async def run(
+        self,
+        client: LLMClient,
+        *,
+        result_validator: Callable[[BaseModel], None] | None = None,
+        **prompt_kwargs,
+    ) -> BaseModel:
         return await generate_structured(
             client,
             self.schema,
@@ -37,6 +43,7 @@ class SkillSpec:
             max_tokens=self.max_tokens,
             temperature=self.temperature,
             frequency_penalty=self.frequency_penalty,
+            result_validator=result_validator,
         )
 
     def sft_log_name(self) -> str:

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 
 import httpx
+import pytest
 from pydantic import BaseModel
 
 from app.config import ProfileConfig, api_key_for, get_config
@@ -117,6 +118,7 @@ async def test_streaming_request_uses_extra_body_and_retries_one_gateway_error()
         api_key_env="NO_KEY",
         model="glm-test",
         stream=True,
+        retry_base_delay=0,
         extra_body={"thinking": {"type": "disabled"}},
     )
     client = OpenAICompatClient(
@@ -140,7 +142,9 @@ async def test_streaming_request_uses_extra_body_and_retries_one_gateway_error()
     assert response.completion_tokens == 2
     assert len(payloads) == 2
     assert payloads[0]["stream"] is True
+    assert payloads[0]["stream_options"] == {"include_usage": True}
     assert payloads[0]["thinking"] == {"type": "disabled"}
+    assert response.http_attempts == 2
 
 
 async def test_unsupported_extra_body_is_removed_and_cached():
@@ -264,3 +268,76 @@ async def test_structured_output_falls_back_when_json_mode_is_rejected():
     assert "frequency_penalty" not in payloads[1]
     assert payloads[1]["response_format"] == {"type": "json_object"}
     assert "response_format" not in payloads[2]
+
+
+async def test_transient_connection_error_and_rate_limit_are_retried():
+    attempts = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise httpx.ConnectError("temporary disconnect", request=request)
+        if attempts == 2:
+            return httpx.Response(429, headers={"retry-after": "0"})
+        return httpx.Response(
+            200,
+            json={
+                "model": "compat-model",
+                "choices": [
+                    {"message": {"content": "ok"}, "finish_reason": "stop"}
+                ],
+            },
+        )
+
+    client = OpenAICompatClient(
+        ProfileConfig(
+            base_url="https://llm.example.test/v1",
+            api_key_env="NO_KEY",
+            model="compat-model",
+            retry_base_delay=0,
+        ),
+        "test",
+        transport=httpx.MockTransport(handler),
+    )
+
+    response = await client.complete(
+        LLMRequest(step="rewrite_scene", system_prompt="s", user_prompt="u")
+    )
+
+    assert response.text == "ok"
+    assert response.http_attempts == 3
+    assert response.finish_reason == "stop"
+
+
+async def test_generic_bad_request_is_not_masked_by_dropping_parameters():
+    payloads: list[dict] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        payloads.append(json.loads(request.content))
+        return httpx.Response(400, json={"error": {"message": "invalid story input"}})
+
+    client = OpenAICompatClient(
+        ProfileConfig(
+            base_url="https://llm.example.test/v1",
+            api_key_env="NO_KEY",
+            model="compat-model",
+            extra_body={"thinking": {"type": "disabled"}},
+        ),
+        "test",
+        transport=httpx.MockTransport(handler),
+    )
+
+    with pytest.raises(httpx.HTTPStatusError):
+        await client.complete(
+            LLMRequest(
+                step="parse_story",
+                system_prompt="s",
+                user_prompt="u",
+                json_mode=True,
+            )
+        )
+
+    assert len(payloads) == 1
+    assert "response_format" in payloads[0]
+    assert "thinking" in payloads[0]

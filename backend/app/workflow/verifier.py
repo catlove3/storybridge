@@ -56,13 +56,22 @@ class Verifier:
     def sanitize(state: StoryState, report: VerifyReport) -> VerifyReport:
         known_scene_ids = {s.id for s in state.scenes}
         known_commitment_ids = {nc.id for nc in state.commitments}
+        report.checked_scene_ids = list(
+            dict.fromkeys(
+                scene_id
+                for scene_id in report.checked_scene_ids
+                if scene_id in known_scene_ids
+            )
+        )
         report.issues = [
             i for i in report.issues if i.scene_id is None or i.scene_id in known_scene_ids
         ]
         report.issues = Verifier._cross_check_stale_refs(state, report.issues)
-        report.commitment_checks = [
-            c for c in report.commitment_checks if c.commitment_id in known_commitment_ids
-        ]
+        unique_checks: dict[str, CommitmentCheck] = {}
+        for check in report.commitment_checks:
+            if check.commitment_id in known_commitment_ids:
+                unique_checks.setdefault(check.commitment_id, check)
+        report.commitment_checks = list(unique_checks.values())
         checked = {c.commitment_id for c in report.commitment_checks}
         for nc in state.commitments:
             if nc.must_preserve and nc.id not in checked:
@@ -73,7 +82,16 @@ class Verifier:
                         explanation="LLM 未覆盖该承诺，保守标记",
                     )
                 )
-        report.recompute_score()
+        required_commitment_ids = {nc.id for nc in state.commitments if nc.must_preserve}
+        report.commitments_total = len(required_commitment_ids)
+        report.commitments_verified = sum(
+            1
+            for check in report.commitment_checks
+            if check.commitment_id in required_commitment_ids
+            and check.status in ("preserved", "violated")
+        )
+        report.scenes_total = len(state.scenes)
+        report.scenes_checked = len(report.checked_scene_ids)
         return report
 
     @staticmethod
@@ -96,7 +114,7 @@ class Verifier:
 
             probes: set[str] = set()
             for cm in state.culture_mechanisms:
-                if not cm.adapted_to:
+                if not cm.adapted_to or cm.adapted_strategy == "preserve":
                     continue
                 probe = cm.name.strip("的了着有没")
                 if len(probe) >= 2:
@@ -122,6 +140,19 @@ class Verifier:
             applied_adaptations_summary=applied_adaptations_summary,
         )
         report = self.sanitize(state, report)
-        report.issues = merge_reports(run_static_checks(state), report.issues)
+        static_issues = run_static_checks(state)
+        report.issues = merge_reports(static_issues, report.issues)
+        report.static_checks_total = 3
+        failed_static_kinds = {
+            issue.issue_type
+            for issue in static_issues
+            if issue.issue_type
+            in (
+                IssueType.STALE_REFERENCE,
+                IssueType.UNRESOLVED_PAYOFF,
+                IssueType.MOTIVATION_BREAK,
+            )
+        }
+        report.static_checks_passed = report.static_checks_total - len(failed_static_kinds)
         report.recompute_score()
         return report

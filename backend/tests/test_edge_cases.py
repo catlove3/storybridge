@@ -48,9 +48,6 @@ async def test_apply_twice_same_mechanism(tmp_path):
     first = await wf.apply_adaptation(meta.id, "CM01", "B")
     assert first.repair_rounds >= 0
 
-    state_before = wf.require_state(meta.id)
-    s01_before = state_before.scene_by_id("S01").text
-
     second = await wf.apply_adaptation(meta.id, "CM01", "B")
     assert second.applied.chosen_option.option_label == "B"
     assert wf.require_state(meta.id).scene_by_id("S01").text
@@ -67,19 +64,30 @@ async def test_apply_option_a_and_c(tmp_path):
 
 
 async def test_apply_multiple_mechanisms_sequentially(tmp_path):
-    wf, _ = _workflow(tmp_path)
+    import json
+
+    from tests.fixtures import BACKEND_ROOT
+
+    wf, client = _workflow(tmp_path)
     meta = await wf.create_project("multi", "script", MarketProfile())
     await wf.analyze(meta.id)
 
     await wf.apply_adaptation(meta.id, "CM01", "B")
-    result2 = await wf.apply_adaptation(meta.id, "CM02", "B")
+    cm02_plan = json.loads(
+        (BACKEND_ROOT / "tests" / "fixtures" / "plan_adaptation.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    cm02_plan["culture_mechanism_id"] = "CM02"
+    cm02_plan["original_name"] = "彩礼"
+    client.set_response("plan_adaptation", cm02_plan)
+    await wf.apply_adaptation(meta.id, "CM02", "B")
 
     state = wf.require_state(meta.id)
     cm01 = next(m for m in state.culture_mechanisms if m.id == "CM01")
     cm02 = next(m for m in state.culture_mechanisms if m.id == "CM02")
     assert cm01.adapted_to and cm02.adapted_to
 
-    static_issues = wf.verifier and result2.report
     applied_list = wf.store.load_applied(meta.id)
     assert len(applied_list) == 2
 
@@ -95,6 +103,12 @@ async def test_apply_unknown_mechanism(tmp_path):
 async def test_state_without_mechanisms_skips_friction(tmp_path):
     state_dict = sample_story_state_dict()
     state_dict["culture_mechanisms"] = []
+    state_dict["dependencies"] = [
+        dependency
+        for dependency in state_dict["dependencies"]
+        if not dependency["source_id"].startswith("CM")
+        and not dependency["target_id"].startswith("CM")
+    ]
     client = MockLLMClient()
     client.set_response("parse_story", state_dict)
     client.set_response("detect_frictions", {"mechanisms": []})

@@ -22,7 +22,7 @@ def check_stale_references(state: StoryState) -> list[VerificationIssue]:
     issues: list[VerificationIssue] = []
 
     for cm in state.culture_mechanisms:
-        if not cm.adapted_to:
+        if not cm.adapted_to or cm.adapted_strategy == "preserve":
             continue
         probe = cm.name.strip("的了着有没")
         if len(probe) < 2:
@@ -61,8 +61,44 @@ def check_uncovered_commitments(state: StoryState) -> list[VerificationIssue]:
     return issues
 
 
+def check_reconstructed_dependency_chains(state: StoryState) -> list[VerificationIssue]:
+    issues: list[VerificationIssue] = []
+    causal_relations = {"motivates", "causes", "depends_on", "sets_up", "pays_off"}
+    for mechanism in state.culture_mechanisms:
+        if mechanism.adapted_strategy != "plot_reconstruction":
+            continue
+        old_chain_edges = [
+            dependency
+            for dependency in state.dependencies
+            if mechanism.id in (dependency.source_id, dependency.target_id)
+            and dependency.relation.value in causal_relations
+        ]
+        if old_chain_edges:
+            evidence = ", ".join(
+                f"{edge.source_id}--{edge.relation.value}-->{edge.target_id}"
+                for edge in old_chain_edges[:5]
+            )
+            issues.append(
+                VerificationIssue(
+                    issue_type=IssueType.MOTIVATION_BREAK,
+                    severity=Severity.WARNING,
+                    scene_id=None,
+                    description=(
+                        f"重构策略仍保留 {mechanism.id} 的旧因果依赖边，"
+                        "需要人工确认因果链是否已同步重建"
+                    ),
+                    evidence=evidence,
+                )
+            )
+    return issues
+
+
 def run_static_checks(state: StoryState) -> list[VerificationIssue]:
-    return [*check_stale_references(state), *check_uncovered_commitments(state)]
+    return [
+        *check_stale_references(state),
+        *check_uncovered_commitments(state),
+        *check_reconstructed_dependency_chains(state),
+    ]
 
 
 def merge_reports(

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from .common import Level
 from .story_state import FunctionTags
@@ -19,3 +19,11 @@ class MechanismFriction(BaseModel):
 
 class FrictionDetectionResult(BaseModel):
     mechanisms: list[MechanismFriction] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _mechanism_ids_must_be_unique(self) -> FrictionDetectionResult:
+        ids = [mechanism.id for mechanism in self.mechanisms]
+        duplicates = sorted({mechanism_id for mechanism_id in ids if ids.count(mechanism_id) > 1})
+        if duplicates:
+            raise ValueError(f"duplicate mechanism ids: {', '.join(duplicates)}")
+        return self

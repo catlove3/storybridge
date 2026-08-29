@@ -32,6 +32,8 @@ node_modules/
 dist-*/
 .vite/
 *.tsbuildinfo
+frontend/playwright-report/
+frontend/test-results/
 
 # ===== IDE / 编辑器 =====
 .idea/
@@ -54,6 +56,8 @@ temp/
 # ===== StoryBridge 运行时数据 (可再生, 不入库) =====
 backend/data/projects/
 backend/data/sft_logs/
+backend/data/run_logs/
+backend/data/jobs.json
 backend/data/history/
 
 # ===== 大体积外部语料 (见 FINDINGS.md, 许可禁止再分发) =====

@@ -23,6 +23,9 @@ class LLMRequest:
     temperature: float | None = None
     max_tokens: int | None = None
     frequency_penalty: float | None = None
+    run_id: str = ""
+    attempt: int = 1
+    prompt_version: str = "v1"
 
     def to_messages(self) -> list[dict[str, str]]:
         messages = [{"role": "system", "content": self.system_prompt}]
@@ -40,6 +43,8 @@ class LLMResponse:
     prompt_tokens: int = 0
     completion_tokens: int = 0
     latency_ms: int = 0
+    finish_reason: str | None = None
+    http_attempts: int = 1
 
 
 class LLMClient(Protocol):

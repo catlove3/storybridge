@@ -205,6 +205,42 @@ def rewrite_scene_user(
     )
 
 
+def render_target_script_system() -> str:
+    return (
+        "你是一名影视剧本翻译与语言润色专家。文化改编决策已经冻结；"
+        "你只能把给定的本土化结构稿渲染为目标语言，不能再改变事件、人物动机或场景顺序。"
+        "只输出严格合法的 JSON。"
+    )
+
+
+def render_target_script_user(
+    localized_state_json: dict,
+    source_language: str,
+    target_language: str,
+    target_locale: str,
+    style_guide: str,
+    terminology_map: dict[str, str],
+) -> str:
+    return (
+        "将下面的 localized StoryState 渲染为目标语言完整剧本。\n"
+        "输出 JSON：\n"
+        '{"source_language":"zh-CN","target_language":"English",'
+        '"target_locale":"en-US","scenes":['
+        '{"id":"S01","title":"...","summary":"...","text":"..."}]}\n\n'
+        "要求：\n"
+        "1. scenes 必须逐一覆盖输入的全部场景，ID 完全相同、顺序完全相同，不得合并或拆分。\n"
+        "2. 翻译 title/summary/text；保留人物事实、事件顺序、情绪和已冻结的文化改编设定。\n"
+        "3. 严格使用 terminology_map；风格指南优先于自由发挥。\n"
+        "4. 只输出 JSON。\n\n"
+        f"源语言：{source_language}\n"
+        f"目标语言：{target_language}\n"
+        f"目标 locale：{target_locale or '未指定'}\n"
+        f"风格指南：{style_guide or '保持原剧本节奏与格式'}\n"
+        f"术语表：{_json_block(terminology_map)}\n\n"
+        f"Localized StoryState：\n{_json_block(localized_state_json)}"
+    )
+
+
 VERIFY_SCHEMA = """{
   "issues": [
     {
@@ -217,7 +253,8 @@ VERIFY_SCHEMA = """{
   ],
   "commitment_checks": [
     {"commitment_id": "NC01", "status": "preserved|violated|needs_review", "explanation": "..."}
-  ]
+  ],
+  "checked_scene_ids": ["S01", "S02"]
 }"""
 
 
@@ -233,7 +270,8 @@ def verify_consistency_user(
     return (
         "请对改编后的故事做一致性审查。审查范围：全故事，重点是刚被修改的场景。\n\n"
         "**检查范围规则（最重要）**：\n"
-        "- 只有 adapted_to 非空的机制才属于'已替换'，其旧表述出现在场景文本中才是 stale_reference。\n"
+        "- strategy=preserve 的机制允许保留旧词，不得把旧词本身报告为 stale_reference。\n"
+        "- 只有 adapted_to 非空且 strategy 不是 preserve 的机制才属于'已替换'，其旧表述出现在场景文本中才是 stale_reference。\n"
         "- 未改编的机制（adapted_to 为 null）出现在任何地方（场景/事件/摘要）都完全正常，绝不报告。\n"
         "- events/settings 是结构元数据，其中出现旧词不算场景残留，不要据此报告。\n"
         "- 改编后的新表述（如'婚礼基金''稳定职业'）是正确内容，不是残留。\n\n"
@@ -248,7 +286,8 @@ def verify_consistency_user(
         "- description 用一句话陈述事实（<60字），禁止推理过程、禁止'但…然而…因此'式分析。\n"
         "- issues 为空数组是完全正常的输出，不要为了凑数而报告。\n\n"
         f"输出 JSON schema：\n{VERIFY_SCHEMA}\n\n"
-        "注意：必须对每一条 commitment 给出检查结果。只输出 JSON。\n\n"
+        "注意：必须检查每一个场景，在 checked_scene_ids 列出实际检查过的全部场景 ID；"
+        "必须对每一条 commitment 给出检查结果。只输出 JSON。\n\n"
         f"刚修改过的场景：{changed_scene_ids}\n\n"
         f"已应用的改编决定：\n{applied_adaptations_summary or '（无）'}\n\n"
         f"故事状态（含全部场景文本）：\n{_json_block(state_digest_json)}"

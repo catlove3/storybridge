@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 
 import pytest
-from fastapi.testclient import TestClient
+from httpx import ASGITransport, AsyncClient
 
 from app.llm import MockLLMClient
 from app.main import app
@@ -13,127 +13,207 @@ from tests.fixtures import sample_story_state_dict
 
 
 @pytest.fixture
-def client(tmp_path):
+async def client(tmp_path):
     from app.cli import _load_default_mock_fixtures
     from app.jobs import JobManager
 
     mock = MockLLMClient()
     _load_default_mock_fixtures(mock)
     store = ProjectStore(tmp_path / "projects")
-    with TestClient(app, raise_server_exceptions=False) as c:
-        app.state.workflow = StoryBridgeWorkflow(store, mock)
-        app.state.jobs = JobManager()
-        yield c
+    app.state.workflow = StoryBridgeWorkflow(store, mock)
+    app.state.jobs = JobManager()
+    async with AsyncClient(
+        transport=ASGITransport(app=app, raise_app_exceptions=False),
+        base_url="http://testserver",
+    ) as api_client:
+        yield api_client
 
 
-def test_project_not_found_paths(client):
-    assert client.get("/api/projects/nope").status_code == 404
-    assert client.get("/api/projects/nope/state").status_code == 404
-    assert client.post("/api/projects/nope/analyze").status_code == 404
-    assert client.post("/api/projects/nope/verify").status_code == 404
-    assert client.get("/api/projects/nope/graph").status_code == 404
-    assert client.get("/api/projects/nope/propagate?mechanism=CM01").status_code == 404
-    assert client.get("/api/jobs/doesnotexist").status_code == 404
+async def test_project_not_found_paths(client):
+    assert (await client.get("/api/projects/nope")).status_code == 404
+    assert (await client.get("/api/projects/nope/state")).status_code == 404
+    assert (await client.post("/api/projects/nope/analyze")).status_code == 404
+    assert (await client.post("/api/projects/nope/verify")).status_code == 404
+    assert (await client.get("/api/projects/nope/graph")).status_code == 404
+    assert (await client.get("/api/projects/nope/propagate?mechanism=CM01")).status_code == 404
+    assert (await client.get("/api/jobs/doesnotexist")).status_code == 404
+    assert (await client.post("/api/jobs/doesnotexist/cancel")).status_code == 404
 
 
-def test_create_project_empty_script(client):
-    r = client.post("/api/projects", json={"script": ""})
-    assert r.status_code == 200
-    assert r.json()["id"]
+async def test_liveness_and_readiness_are_distinct(client):
+    health = await client.get("/healthz")
+    readiness = await client.get("/readyz")
+    assert health.status_code == 200
+    assert health.json() == {"status": "ok"}
+    assert readiness.status_code in {200, 503}
+    assert set(readiness.json()["checks"]) == {
+        "projects_storage",
+        "jobs_storage",
+        "run_log_storage",
+        "llm_profile",
+    }
 
 
-def test_create_project_missing_script(client):
-    r = client.post("/api/projects", json={"name": "x"})
-    assert r.status_code == 422
+async def test_create_project_empty_script(client):
+    response = await client.post("/api/projects", json={"script": ""})
+    assert response.status_code == 422
 
 
-def test_state_before_analyze_404s(client):
-    pid = client.post("/api/projects", json={"script": "abc"}).json()["id"]
-    assert client.get(f"/api/projects/{pid}/state").status_code == 404
-    assert client.get(f"/api/projects/{pid}/propagate?mechanism=CM01").status_code == 404
+async def test_create_project_missing_script(client):
+    response = await client.post("/api/projects", json={"name": "x"})
+    assert response.status_code == 422
 
 
-def test_graph_unknown_focus_404(client):
-    pid = client.post("/api/projects", json={"script": "abc"}).json()["id"]
+async def test_state_before_analyze_404s(client):
+    project_id = (await client.post("/api/projects", json={"script": "abc"})).json()["id"]
+    assert (await client.get(f"/api/projects/{project_id}/state")).status_code == 404
+    assert (
+        await client.get(f"/api/projects/{project_id}/propagate?mechanism=CM01")
+    ).status_code == 404
+
+
+async def test_graph_unknown_focus_404(client):
+    project_id = (await client.post("/api/projects", json={"script": "abc"})).json()["id"]
     mock_client = app.state.workflow.rewriter.client
     mock_client.set_response("parse_story", sample_story_state_dict())
-    client.post(f"/api/projects/{pid}/analyze")
-    assert client.get(f"/api/projects/{pid}/graph?focus=ZZZ").status_code == 404
-    ok = client.get(f"/api/projects/{pid}/graph?focus=CM01")
-    assert ok.status_code == 200
-    labels = {n["id"]: n["label"] for n in ok.json()["nodes"]}
+    await client.post(f"/api/projects/{project_id}/analyze")
+    assert (
+        await client.get(f"/api/projects/{project_id}/graph?focus=ZZZ")
+    ).status_code == 404
+    response = await client.get(f"/api/projects/{project_id}/graph?focus=CM01")
+    assert response.status_code == 200
+    labels = {node["id"]: node["label"] for node in response.json()["nodes"]}
     assert labels.get("CM01") == "编制"
 
 
-def test_job_flow_analyze_and_apply(client):
-    import time
+async def test_job_flow_analyze_and_apply(client):
+    project_id = (await client.post("/api/projects", json={"script": "abc"})).json()["id"]
 
-    pid = client.post("/api/projects", json={"script": "abc"}).json()["id"]
-
-    job = client.post(f"/api/projects/{pid}/jobs", json={"kind": "analyze"}).json()
-    assert job["status"] == "running"
-    payload = {"status": "running"}
+    job = (
+        await client.post(f"/api/projects/{project_id}/jobs", json={"kind": "analyze"})
+    ).json()
+    assert job["status"] in {"queued", "running"}
+    payload = {"status": "queued"}
     for _ in range(50):
-        payload = client.get(f"/api/jobs/{job['job_id']}").json()
-        if payload["status"] != "running":
+        payload = (await client.get(f"/api/jobs/{job['job_id']}")).json()
+        if payload["status"] not in {"queued", "running"}:
             break
-        time.sleep(0.02)
+        await asyncio.sleep(0.02)
     assert payload["status"] == "done"
     assert payload["result"]["scenes"] if isinstance(payload["result"], dict) else True
 
-    bad = client.post(f"/api/projects/{pid}/jobs", json={"kind": "apply", "option_label": "B"})
-    assert bad.status_code == 400
+    bad = await client.post(
+        f"/api/projects/{project_id}/jobs",
+        json={"kind": "apply", "option_label": "B"},
+    )
+    assert bad.status_code == 422
 
-    apply_job = client.post(
-        f"/api/projects/{pid}/jobs",
-        json={"kind": "apply", "culture_mechanism_id": "CM01", "option_label": "B"},
+    apply_job = (
+        await client.post(
+            f"/api/projects/{project_id}/jobs",
+            json={
+                "kind": "apply",
+                "culture_mechanism_id": "CM01",
+                "option_label": "B",
+            },
+        )
     ).json()
-    payload = {"status": "running"}
+    payload = {"status": "queued"}
     for _ in range(100):
-        payload = client.get(f"/api/jobs/{apply_job['job_id']}").json()
-        if payload["status"] != "running":
+        payload = (await client.get(f"/api/jobs/{apply_job['job_id']}")).json()
+        if payload["status"] not in {"queued", "running"}:
             break
-        time.sleep(0.02)
+        await asyncio.sleep(0.02)
     assert payload["status"] == "done"
     assert payload["result"]["applied"]["rewritten_scene_ids"]
 
-    listing = client.get(f"/api/projects/{pid}/jobs").json()
+    listing = (await client.get(f"/api/projects/{project_id}/jobs")).json()
     assert len(listing) == 2
 
 
-def test_job_unknown_kind(client):
-    pid = client.post("/api/projects", json={"script": "abc"}).json()["id"]
-    r = client.post(f"/api/projects/{pid}/jobs", json={"kind": "explode"})
-    assert r.status_code == 400
+async def test_job_unknown_kind(client):
+    project_id = (await client.post("/api/projects", json={"script": "abc"})).json()["id"]
+    response = await client.post(
+        f"/api/projects/{project_id}/jobs", json={"kind": "explode"}
+    )
+    assert response.status_code == 422
 
 
-def test_diff_and_bible_endpoints(client):
-    pid = client.post("/api/projects", json={"script": "abc"}).json()["id"]
+async def test_diff_and_bible_endpoints(client):
+    project_id = (await client.post("/api/projects", json={"script": "abc"})).json()["id"]
     mock_client = app.state.workflow.rewriter.client
     mock_client.set_response("parse_story", sample_story_state_dict())
-    client.post(f"/api/projects/{pid}/analyze")
-    client.post(f"/api/projects/{pid}/adaptations/plan", json={"culture_mechanism_id": "CM01"})
-    client.post(
-        f"/api/projects/{pid}/adaptations/apply",
+    await client.post(f"/api/projects/{project_id}/analyze")
+    await client.post(
+        f"/api/projects/{project_id}/adaptations/plan",
+        json={"culture_mechanism_id": "CM01"},
+    )
+    await client.post(
+        f"/api/projects/{project_id}/adaptations/apply",
         json={"culture_mechanism_id": "CM01", "option_label": "B"},
     )
-    diff = client.get(f"/api/projects/{pid}/diff").json()
+    diff = (await client.get(f"/api/projects/{project_id}/diff")).json()
     assert len(diff) == 5
-    bible = client.get(f"/api/projects/{pid}/bible")
+    bible = await client.get(f"/api/projects/{project_id}/bible")
     assert bible.status_code == 200
-    assert "Adaptation Bible" in bible.json()["saved"] or bible.json()["saved"]
+    assert "Adaptation Bible" in bible.json()["content"]
 
-    revisions = client.get(f"/api/projects/{pid}/revisions").json()
-    assert [r["kind"] for r in revisions][0] == "initial_parse"
+    revisions = (await client.get(f"/api/projects/{project_id}/revisions")).json()
+    assert [revision["kind"] for revision in revisions][0] == "initial_parse"
 
 
-def test_apply_invalid_option_404(client):
-    pid = client.post("/api/projects", json={"script": "abc"}).json()["id"]
+async def test_apply_invalid_option_rejected_by_contract(client):
+    project_id = (await client.post("/api/projects", json={"script": "abc"})).json()["id"]
     mock_client = app.state.workflow.rewriter.client
     mock_client.set_response("parse_story", sample_story_state_dict())
-    client.post(f"/api/projects/{pid}/analyze")
-    r = client.post(
-        f"/api/projects/{pid}/adaptations/apply",
+    await client.post(f"/api/projects/{project_id}/analyze")
+    response = await client.post(
+        f"/api/projects/{project_id}/adaptations/apply",
         json={"culture_mechanism_id": "CM01", "option_label": "Z"},
     )
-    assert r.status_code == 404
+    assert response.status_code == 422
+
+
+async def test_direct_apply_operation_id_cannot_commit_twice(client):
+    project_id = (await client.post("/api/projects", json={"script": "abc"})).json()["id"]
+    mock_client = app.state.workflow.rewriter.client
+    mock_client.set_response("parse_story", sample_story_state_dict())
+    await client.post(f"/api/projects/{project_id}/analyze")
+    plan = (
+        await client.post(
+            f"/api/projects/{project_id}/adaptations/plan",
+            json={"culture_mechanism_id": "CM01"},
+        )
+    ).json()
+    body = {
+        "culture_mechanism_id": "CM01",
+        "option_label": "B",
+        "based_on_version": plan["based_on_version"],
+        "operation_id": "apply-once",
+    }
+
+    first = await client.post(f"/api/projects/{project_id}/adaptations/apply", json=body)
+    duplicate = await client.post(
+        f"/api/projects/{project_id}/adaptations/apply", json=body
+    )
+
+    assert first.status_code == 200
+    assert duplicate.status_code == 409
+    revisions = (await client.get(f"/api/projects/{project_id}/revisions")).json()
+    assert [revision["state_version"] for revision in revisions] == [1, 2]
+
+
+async def test_target_script_render_and_get(client):
+    project_id = (await client.post("/api/projects", json={"script": "abc"})).json()["id"]
+    mock_client = app.state.workflow.rewriter.client
+    mock_client.set_response("parse_story", sample_story_state_dict())
+    await client.post(f"/api/projects/{project_id}/analyze")
+
+    assert (await client.get(f"/api/projects/{project_id}/target-script")).status_code == 404
+    rendered = await client.post(f"/api/projects/{project_id}/target-script")
+    loaded = await client.get(f"/api/projects/{project_id}/target-script")
+
+    assert rendered.status_code == loaded.status_code == 200
+    assert rendered.json() == loaded.json()
+    assert rendered.json()["target_language"] == "English"
+    assert len(rendered.json()["scenes"]) == 8

@@ -68,9 +68,23 @@ class AdaptationPlanner:
         }
         context = self._related_context(state, mechanism)
 
-        return await self.skill.run(
+        def validate_result(plan: AdaptationPlan) -> None:
+            if plan.culture_mechanism_id != mechanism.id:
+                raise ValueError(
+                    "adaptation plan mechanism id mismatch: "
+                    f"expected {mechanism.id}, got {plan.culture_mechanism_id}"
+                )
+            if plan.original_name != mechanism.name:
+                raise ValueError(
+                    "adaptation plan mechanism name mismatch: "
+                    f"expected {mechanism.name!r}, got {plan.original_name!r}"
+                )
+
+        plan = await self.skill.run(
             self.client,
+            result_validator=validate_result,
             mechanism_json=mechanism.model_dump(),
             related_context_json=context,
             target_market_profile=profile,
         )
+        return plan

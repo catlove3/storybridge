@@ -135,6 +135,19 @@ export function StoryGraphView({ graph, focusId, affectedIds }: StoryGraphViewPr
           </g>
         </svg>
       </div>
+      <details className="graph-relations">
+        <summary>查看 {graph.edges.length} 条关系的文字说明</summary>
+        <ul>
+          {graph.edges.map((edge) => (
+            <li key={edge.id}>
+              <code>{edge.source}</code>
+              <strong>{edge.relation}</strong>
+              <code>{edge.target}</code>
+              <span>{edge.evidence || '后端未提供证据'} · confidence {edge.confidence.toFixed(2)}</span>
+            </li>
+          ))}
+        </ul>
+      </details>
     </div>
   )
 }

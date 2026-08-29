@@ -1,42 +1,66 @@
 # StoryBridge Frontend
 
-第一阶段前端 Demo：输入剧本后创建项目，通过 `analyze` job 轮询等待分析完成，读取真实 `StoryState`，并展示 `CultureMechanism` 的文化摩擦等级与 Narrative Functions。
+React 工作台已覆盖完整流程：创建与分析项目、文化摩擦选择、A/B/C 方案、传播与图关系、应用与取消任务、Diff、验证、修订历史，以及目标语言剧本生成。
+
+当前项目 ID 写入 URL 与 `localStorage`，活动 job ID 写入 `localStorage`。刷新后会恢复项目、Story State、修订、Diff、缓存方案、最新应用结果、目标语言产物，并继续轮询仍在运行的任务。用户取消或轮询中断时，前端会请求服务端取消任务。
 
 ## 启动
 
-先启动真实后端（需要配置真实 LLM key）：
-
-```bash
-cd backend
-source .venv/bin/activate
-uvicorn app.main:app --reload --port 8000
-```
-
-或启动仓库 fixtures 驱动的离线 mock 后端：
-
-```bash
-cd backend
-source .venv/bin/activate
-uvicorn app.mock_main:app --reload --port 8000
-```
-
-再启动前端：
+使用仓库声明的 Node 版本：
 
 ```bash
 cd frontend
-npm install
+nvm use
+npm ci
+```
+
+先启动后端。真实模型模式：
+
+```bash
+cd backend
+uv sync --frozen --extra dev
+uv run uvicorn app.main:app --reload --port 8000
+```
+
+离线 fixtures 模式：
+
+```bash
+cd backend
+uv run uvicorn app.mock_main:app --reload --port 8000
+```
+
+然后启动前端：
+
+```bash
+cd frontend
 npm run dev
 ```
 
-Vite 会把浏览器发往 `/api` 的请求代理到 `http://localhost:8000`，因此这一阶段不需要改 FastAPI CORS。
+Vite 默认把 `/api` 代理到 `http://localhost:8000`。可通过 `VITE_API_TARGET` 覆盖目标；启用后端 API key 模式时，通过 `VITE_STORYBRIDGE_API_KEY` 为本地构建注入 token。不要把生产密钥提交进仓库或公开前端包。
 
 ## Mock 边界
 
-`app.mock_main` 复用仓库 `tests/fixtures` 和 `MockLLMClient`。在该模式下，LLM 的 `parse_story` 与 `detect_frictions` 结果是固定 fixtures，不能用于判断模型质量；但项目创建、FastAPI 路由、job 提交与轮询、JSON 持久化、`GET /state` 和前端渲染均走真实路径。前端本身不包含硬编码分析结果。
+`app.mock_main` 只替换 LLM 响应，项目创建、HTTP 路由、持久化 job、Story State、Graph、Propagation、Diff、revision 和目标产物仍走真实代码。固定 fixtures 只能验证产品链路，不能证明模型质量。
 
 ## 校验
 
 ```bash
 npm run typecheck
+npm run lint
 npm run build
+npm run e2e
 ```
+
+Playwright 的浏览器用例会启动隔离的 mock API 和 Vite，使用临时项目目录，验证完整改编流程以及页面刷新恢复。CI 也执行同一用例。
+
+## 代码边界
+
+- `App.tsx`：页面状态机与流程编排。
+- `components/AdaptationPanels.tsx`：方案与传播结果。
+- `components/FinalArtifacts.tsx`：Diff、验证、修订与最终产物。
+- `components/ProjectSwitcher.tsx`：项目恢复入口。
+- `components/StoryGraphView.tsx`：图形和键盘/触屏可读的关系列表。
+- `state/recovery.ts`：URL 与本地恢复标识。
+- `api/`：HTTP client 与可取消 job 轮询。
+
+大图缩放、关系筛选和自动生成 OpenAPI client 仍属于后续增强项。

@@ -9,7 +9,7 @@ from app.graph import PropagationEngine, StoryGraph
 from app.llm import MockLLMClient
 from app.llm.router import LLMRouter
 from app.llm.structured import _unwrap_array
-from app.schemas import Dependency, EdgeRelation, StoryState
+from app.schemas import StoryState
 from app.storage import MarketProfile, ProjectStore
 from app.workflow.engine import StoryBridgeWorkflow
 from tests.fixtures import sample_story_state_dict
@@ -62,6 +62,39 @@ def test_router_default_profile_fallback():
     assert client.profile.model == "m"
 
 
+def test_config_paths_are_resolved_against_backend_root():
+    from app.config import BACKEND_ROOT, get_config
+
+    get_config.cache_clear()
+    config = get_config()
+    try:
+        assert config.storage.projects_dir == (BACKEND_ROOT / "data/projects").resolve()
+        assert config.storage.jobs_file == (BACKEND_ROOT / "data/jobs.json").resolve()
+        assert config.logging.sft_log_dir == (BACKEND_ROOT / "data/sft_logs").resolve()
+        assert config.logging.run_log_dir == (BACKEND_ROOT / "data/run_logs").resolve()
+        assert config.logging.sft_log_enabled is False
+    finally:
+        get_config.cache_clear()
+
+
+def test_config_storage_paths_support_environment_overrides(tmp_path, monkeypatch):
+    from app.config import get_config
+
+    monkeypatch.setenv("STORYBRIDGE_PROJECTS_DIR", str(tmp_path / "projects"))
+    monkeypatch.setenv("STORYBRIDGE_JOBS_FILE", str(tmp_path / "jobs.json"))
+    monkeypatch.setenv("STORYBRIDGE_SFT_LOG_DIR", str(tmp_path / "sft"))
+    monkeypatch.setenv("STORYBRIDGE_RUN_LOG_DIR", str(tmp_path / "runs"))
+    get_config.cache_clear()
+    try:
+        config = get_config()
+        assert config.storage.projects_dir == (tmp_path / "projects").resolve()
+        assert config.storage.jobs_file == (tmp_path / "jobs.json").resolve()
+        assert config.logging.sft_log_dir == (tmp_path / "sft").resolve()
+        assert config.logging.run_log_dir == (tmp_path / "runs").resolve()
+    finally:
+        get_config.cache_clear()
+
+
 def test_unwrap_array_empty_list():
     assert _unwrap_array([], StoryState) == []
 
@@ -98,7 +131,7 @@ async def test_failed_job_error_surfaced(tmp_path):
     await asyncio.sleep(0.2)
     done = manager.get(job.id)
     assert done.status == "failed"
-    assert "llm down" in done.error
+    assert done.error == "job_execution_failed"
     payload = done.serialize()
     assert payload["status"] == "failed"
 
@@ -133,18 +166,23 @@ async def test_apply_with_scene_ids_unpadded(tmp_path):
     for scene in state_dict["scenes"]:
         num = int(scene["id"][1:])
         scene["id"] = f"S{num}"
-    remap = {"S1": "S1"}
     for dep in state_dict["dependencies"]:
         for field in ("source_id", "target_id"):
             if dep[field].startswith("S") and dep[field][1:].isdigit():
                 dep[field] = f"S{int(dep[field][1:])}"
     for cm in state_dict["culture_mechanisms"]:
         cm["scene_ids"] = [f"S{int(s[1:])}" for s in cm["scene_ids"]]
+    for event in state_dict["events"]:
+        event["scene_ids"] = [f"S{int(s[1:])}" for s in event["scene_ids"]]
+    for commitment in state_dict["commitments"]:
+        for field in ("established_at_scene_id", "payoff_scene_id"):
+            scene_id = commitment[field]
+            if scene_id is not None:
+                commitment[field] = f"S{int(scene_id[1:])}"
 
     client = MockLLMClient()
     _load_default_mock_fixtures(client)
     client.set_response("parse_story", state_dict)
-    client.set_response("detect_frictions", {"mechanisms": []})
     wf = StoryBridgeWorkflow(ProjectStore(tmp_path / "p"), client)
     meta = await wf.create_project("unpad", "s", MarketProfile())
     await wf.analyze(meta.id)

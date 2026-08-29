@@ -18,6 +18,7 @@ from .common import (
     SocialFunction,
 )
 from .friction import FrictionDetectionResult, MechanismFriction
+from .privacy import DataPolicy
 from .story_state import (
     Character,
     Commitment,
@@ -30,6 +31,7 @@ from .story_state import (
     Setting,
     StoryState,
 )
+from .target import TargetScene, TargetScript
 from .verification import (
     CommitmentCheck,
     IssueType,
@@ -50,6 +52,7 @@ __all__ = [
     "CommitmentCheck",
     "CultureMechanism",
     "Dependency",
+    "DataPolicy",
     "EdgeRelation",
     "EmotionalFunction",
     "Event",
@@ -69,6 +72,8 @@ __all__ = [
     "Severity",
     "SocialFunction",
     "StoryState",
+    "TargetScene",
+    "TargetScript",
     "VerificationIssue",
     "VerifyReport",
 ]

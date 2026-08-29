@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import pytest
+from pydantic import ValidationError
 
 from app.graph import PropagationEngine, StoryGraph
 from app.schemas import Dependency, EdgeRelation, StoryState
-from tests.fixtures import sample_story_state_dict
 
 
 def _state_with_dependencies(state_dict, deps: list[Dependency]) -> StoryState:
@@ -30,27 +30,25 @@ def test_cyclic_dependencies(state_dict):
     assert {a.scene_id for a in result.affected_scenes} == {"S03"}
 
 
-def test_dependency_to_unknown_node_ignored(state_dict):
+def test_dependency_to_unknown_node_rejected(state_dict):
     deps = [
         Dependency(source_id="CM01", target_id="GHOST01", relation=EdgeRelation.CAUSES),
         Dependency(source_id="GHOST02", target_id="S01", relation=EdgeRelation.REFERENCES),
     ]
-    state = _state_with_dependencies(state_dict, deps)
-    graph = StoryGraph(state)
-    assert "GHOST01" not in graph.graph
-    assert "GHOST02" not in graph.graph
+    with pytest.raises(ValidationError, match="dangling references"):
+        _state_with_dependencies(state_dict, deps)
 
 
 def test_min_confidence_prunes_weak_paths(state_dict):
     deps = [
         Dependency(source_id="CM01", target_id="E01", relation=EdgeRelation.CAUSES, confidence=0.1),
-        Dependency(source_id="E01", target_id="S09X", relation=EdgeRelation.APPEARS_IN),
+        Dependency(source_id="E01", target_id="S04", relation=EdgeRelation.APPEARS_IN),
     ]
     state = _state_with_dependencies(state_dict, deps)
     engine = PropagationEngine(StoryGraph(state), min_confidence=0.5)
     result = engine.find_affected_scenes("CM01")
     scene_ids = {a.scene_id for a in result.affected_scenes}
-    assert "S09X" not in scene_ids
+    assert "S04" not in scene_ids
 
 
 def test_zero_confidence_path_kept_by_default(state_dict):

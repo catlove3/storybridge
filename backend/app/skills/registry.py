@@ -7,6 +7,8 @@ from app.prompts import (
     parse_story_user,
     plan_adaptation_system,
     plan_adaptation_user,
+    render_target_script_system,
+    render_target_script_user,
     rewrite_scene_system,
     rewrite_scene_user,
     verify_consistency_system,
@@ -17,6 +19,7 @@ from app.schemas import (
     FrictionDetectionResult,
     RewrittenScene,
     StoryState,
+    TargetScript,
     VerifyReport,
 )
 from app.skills.base import SkillSpec
@@ -52,6 +55,15 @@ REWRITE_SCENE = SkillSpec(
     user_prompt=rewrite_scene_user,
 )
 
+RENDER_TARGET_SCRIPT = SkillSpec(
+    name="render_target_script",
+    schema=TargetScript,
+    system_prompt=render_target_script_system(),
+    user_prompt=render_target_script_user,
+    max_tokens=8192,
+    temperature=0.0,
+)
+
 VERIFY_CONSISTENCY = SkillSpec(
     name="verify_consistency",
     schema=VerifyReport,
@@ -64,7 +76,14 @@ VERIFY_CONSISTENCY = SkillSpec(
 
 _REGISTRY: dict[str, SkillSpec] = {
     s.name: s
-    for s in (PARSE_STORY, DETECT_FRICTIONS, PLAN_ADAPTATION, REWRITE_SCENE, VERIFY_CONSISTENCY)
+    for s in (
+        PARSE_STORY,
+        DETECT_FRICTIONS,
+        PLAN_ADAPTATION,
+        REWRITE_SCENE,
+        RENDER_TARGET_SCRIPT,
+        VERIFY_CONSISTENCY,
+    )
 }
 
 

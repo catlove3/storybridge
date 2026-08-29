@@ -32,7 +32,7 @@
   color: var(--paper-strong);
   background: var(--indigo);
   border-radius: 50% 50% 50% 12px;
-  font-family: 'DM Mono', monospace;
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
   font-size: 12px;
   letter-spacing: 0.08em;
 }
@@ -43,7 +43,7 @@
 }
 
 .brand strong {
-  font-family: 'Noto Serif SC', serif;
+  font-family: 'Songti SC', 'SimSun', serif;
   font-size: 18px;
   letter-spacing: 0.01em;
 }
@@ -107,6 +107,91 @@ main {
   border-top: 2px solid var(--ink);
   font-size: 15px;
   line-height: 1.9;
+}
+
+.project-switcher {
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto 24px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.project-switcher > span {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.project-switcher > div {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.project-switcher button {
+  display: grid;
+  min-width: 150px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.project-switcher button.is-active {
+  border-color: var(--indigo);
+  box-shadow: inset 0 0 0 1px var(--indigo);
+}
+
+.graph-relations {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.graph-relations summary {
+  color: var(--indigo);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.graph-relations ul {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.graph-relations li {
+  display: grid;
+  grid-template-columns: auto auto auto minmax(180px, 1fr);
+  gap: 10px;
+  align-items: baseline;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(38, 62, 101, 0.05);
+}
+
+.graph-relations li strong {
+  color: var(--vermilion);
+}
+
+.graph-relations li span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.project-switcher button small {
+  color: var(--muted);
 }
 
 .workspace {
@@ -1648,6 +1733,23 @@ footer {
   margin: 0;
   color: var(--muted);
   font-size: 10px;
+}
+
+.verification-coverage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 12px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.verification-coverage span {
+  white-space: nowrap;
+}
+
+.verification-coverage strong {
+  color: var(--ink);
 }
 
 .score-card .secondary-action {

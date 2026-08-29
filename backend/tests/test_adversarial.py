@@ -55,7 +55,6 @@ async def test_mechanism_name_with_regex_and_markup_chars(tmp_path):
     client = MockLLMClient()
     _load_default_mock_fixtures(client)
     client.set_response("parse_story", state_dict)
-    client.set_response("detect_frictions", {"mechanisms": []})
     wf = StoryBridgeWorkflow(ProjectStore(tmp_path / "p"), client)
     meta = await wf.create_project("regex", "script", MarketProfile())
     state = await wf.analyze(meta.id)

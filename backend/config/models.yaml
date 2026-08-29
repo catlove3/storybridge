@@ -10,6 +10,9 @@ llm:
       model: replace-with-your-model-name
       temperature: 0.3
       max_tokens: 8192
+      # Set real prices for cost estimates in metadata-only run logs.
+      input_cost_per_million_usd: 0
+      output_cost_per_million_usd: 0
       json_mode: true
       # Long structured responses can exceed an upstream gateway's non-streaming
       # response deadline. SSE keeps the connection active while preserving the
@@ -36,10 +39,31 @@ llm:
     plan_adaptation: general
     rewrite_scene: general
     verify_consistency: general
+    render_target_script: general
+    baseline_translate: general
+    baseline_strong_prompt: general
 
 logging:
   sft_log_dir: data/sft_logs
-  sft_log_enabled: true
+  run_log_dir: data/run_logs
+  # Full prompts/completions are never collected unless both this deployment
+  # flag and the project's explicit data_policy.sft_opt_in are enabled.
+  sft_log_enabled: false
+  sft_redact_pii: true
+  sft_retention_days: 30
 
 storage:
   projects_dir: data/projects
+  jobs_file: data/jobs.json
+
+security:
+  # Set STORYBRIDGE_API_KEYS to a JSON token->owner mapping for networked use.
+  # Empty means explicit single-user local-demo mode.
+  api_keys_env: STORYBRIDGE_API_KEYS
+  default_owner: local
+  max_script_chars: 500000
+  max_active_jobs_per_owner: 4
+  max_job_submissions_per_minute: 30
+  # Set to 0 to disable. Enforcement uses actual usage when providers return it,
+  # otherwise a conservative character-based token estimate.
+  max_project_llm_tokens: 1000000

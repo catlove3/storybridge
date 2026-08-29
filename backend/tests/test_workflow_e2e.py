@@ -1,132 +1,9 @@
 from __future__ import annotations
 
-import json
-import re
-
 import pytest
 
-from app.llm import MockLLMClient
 from app.storage import MarketProfile, ProjectStore
 from app.workflow.engine import StoryBridgeWorkflow
-from tests.fixtures import sample_story_state_dict
-
-
-def rewrite_handler(request) -> str:
-    match = re.search(r'"id": "(S\d+)"', request.user_prompt)
-    scene_id = match.group(1)
-    return json.dumps(
-        {
-            "id": scene_id,
-            "title": f"{scene_id} adapted",
-            "summary": f"[REWRITTEN-SUMMARY {scene_id}]",
-            "text": f"[REWRITTEN {scene_id}] career-stability conflict resolved",
-        },
-        ensure_ascii=False,
-    )
-
-
-@pytest.fixture
-def mock_client() -> MockLLMClient:
-    client = MockLLMClient(handler=rewrite_handler)
-    client.set_response("parse_story", sample_story_state_dict())
-
-    client.set_response(
-        "detect_frictions",
-        {
-            "mechanisms": [
-                {
-                    "id": "CM01",
-                    "friction_level": "high",
-                    "narrative_importance": "high",
-                    "functions": {
-                        "plot": ["conflict", "foreshadowing"],
-                        "social": ["status", "economic_security"],
-                        "emotional": ["humiliation"],
-                    },
-                },
-                {
-                    "id": "CM02",
-                    "friction_level": "high",
-                    "narrative_importance": "high",
-                    "functions": {"plot": ["conflict"], "social": ["obligation"]},
-                },
-                {
-                    "id": "CM03",
-                    "friction_level": "medium",
-                    "narrative_importance": "medium",
-                    "functions": {"social": ["status"]},
-                },
-            ]
-        },
-    )
-
-    client.set_response(
-        "plan_adaptation",
-        {
-            "culture_mechanism_id": "CM01",
-            "original_name": "编制",
-            "friction_level": "high",
-            "options": [
-                {
-                    "option_label": "A",
-                    "strategy": "preserve",
-                    "title": "保留并加注",
-                    "replacement_definition": "保留'体制内职位'概念并加脚注",
-                    "rationale": "最小改动",
-                    "preserved_functions": ["status"],
-                    "lost_functions": [],
-                    "risks": ["观众理解成本高"],
-                },
-                {
-                    "option_label": "B",
-                    "strategy": "functional_replacement",
-                    "replacement_definition": "男主在一家没有前景的传统公司做底层职员，女方家庭要求他在有养老金和晋升通道的大机构工作",
-                    "title": "职业稳定性机制等效替换",
-                    "rationale": "保留社会地位与经济安全功能",
-                    "preserved_functions": ["status", "economic_security", "humiliation"],
-                    "lost_functions": [],
-                    "risks": ["需同步修改多处台词"],
-                },
-                {
-                    "option_label": "C",
-                    "strategy": "plot_reconstruction",
-                    "replacement_definition": "重构为男主背负家庭债务被女方家庭否定",
-                    "title": "冲突机制重构",
-                    "rationale": "彻底本土化但改动大",
-                    "preserved_functions": ["conflict"],
-                    "lost_functions": ["institutional_access"],
-                    "risks": ["后续剧情需要连锁调整"],
-                },
-            ],
-        },
-    )
-
-    verify_first_pass = {
-        "issues": [
-            {
-                "issue_type": "fact_conflict",
-                "severity": "error",
-                "scene_id": "S05",
-                "description": "S05 仍引用旧设定'编制'，与改编决定冲突",
-                "evidence": "没有编制、没有存款的人，给不了安全感。",
-            }
-        ],
-        "commitment_checks": [
-            {"commitment_id": "NC01", "status": "preserved", "explanation": ""},
-            {"commitment_id": "NC02", "status": "preserved", "explanation": ""},
-            {"commitment_id": "NC03", "status": "needs_review", "explanation": "彩礼线未动"},
-        ],
-    }
-    verify_clean = {
-        "issues": [],
-        "commitment_checks": [
-            {"commitment_id": "NC01", "status": "preserved", "explanation": ""},
-            {"commitment_id": "NC02", "status": "preserved", "explanation": ""},
-            {"commitment_id": "NC03", "status": "preserved", "explanation": ""},
-        ],
-    }
-    client.set_response("verify_consistency", [verify_first_pass, verify_clean])
-    return client
 
 
 async def test_full_pipeline(tmp_path, mock_client):
@@ -159,6 +36,10 @@ async def test_full_pipeline(tmp_path, mock_client):
     assert "S05" in result.repaired_scene_ids
     assert not result.report.blocking_issues
     assert result.report.consistency_score == 1.0
+    assert result.report.overall_status == "pass"
+    assert result.report.static_checks_passed == result.report.static_checks_total == 3
+    assert result.report.commitments_verified == result.report.commitments_total == 3
+    assert result.report.scenes_checked == result.report.scenes_total == 8
 
     final_state = store.load_state(meta.id)
     s05 = final_state.scene_by_id("S05")
@@ -168,10 +49,13 @@ async def test_full_pipeline(tmp_path, mock_client):
     assert cm01_final.adapted_strategy == "functional_replacement"
 
     revisions = store.list_revisions(meta.id)
-    assert [r.kind for r in revisions] == ["initial_parse", "adaptation_applied", "repair"]
+    assert [r.kind for r in revisions] == ["initial_parse", "adaptation_applied"]
+    assert [r.state_version for r in revisions] == [1, 2]
+    assert final_state.version == 2
 
     applied_list = store.load_applied(meta.id)
     assert len(applied_list) == 1
+    assert applied_list[0].state_version == 2
     assert applied_list[0].chosen_option.strategy.value == "functional_replacement"
 
 
@@ -191,6 +75,34 @@ async def test_propagate_endpoint_logic(tmp_path, mock_client):
         pass
 
 
+async def test_target_script_is_version_bound_and_regenerated_after_apply(
+    tmp_path, mock_client
+):
+    store = ProjectStore(tmp_path / "projects")
+    workflow = StoryBridgeWorkflow(store, mock_client)
+    meta = await workflow.create_project(
+        "target",
+        "script",
+        MarketProfile(target_language="English", target_locale="en-US"),
+    )
+    state = await workflow.analyze(meta.id)
+
+    first = await workflow.render_target_script(meta.id)
+    cached = await workflow.render_target_script(meta.id)
+
+    assert first.model_dump() == cached.model_dump()
+    assert first.source_state_version == state.version == 1
+    assert [scene.id for scene in first.scenes] == [scene.id for scene in state.scenes]
+    assert len(mock_client.calls["render_target_script"]) == 1
+
+    await workflow.apply_adaptation(meta.id, "CM01", "B")
+    assert store.load_target_script(meta.id) is None
+    second = await workflow.render_target_script(meta.id)
+
+    assert second.source_state_version == 2
+    assert len(mock_client.calls["render_target_script"]) == 2
+
+
 async def test_apply_requires_valid_option(tmp_path, mock_client):
     store = ProjectStore(tmp_path / "projects")
     workflow = StoryBridgeWorkflow(store, mock_client)
@@ -199,6 +111,35 @@ async def test_apply_requires_valid_option(tmp_path, mock_client):
 
     with pytest.raises(KeyError):
         await workflow.apply_adaptation(meta.id, "CM01", "Z")
+
+
+async def test_plan_is_bound_to_state_version_and_stale_apply_is_rejected(
+    tmp_path, mock_client
+):
+    from app.workflow.engine import StateVersionConflict
+
+    store = ProjectStore(tmp_path / "projects")
+    workflow = StoryBridgeWorkflow(store, mock_client)
+    meta = await workflow.create_project("versioned", "script", MarketProfile())
+    first_state = await workflow.analyze(meta.id)
+    old_plan = await workflow.plan(meta.id, "CM01")
+
+    assert first_state.version == old_plan.based_on_version == 1
+
+    second_state = await workflow.analyze(meta.id)
+    assert second_state.version == 2
+    with pytest.raises(StateVersionConflict):
+        await workflow.apply_adaptation(
+            meta.id,
+            "CM01",
+            "B",
+            based_on_version=old_plan.based_on_version,
+        )
+
+    assert workflow.require_state(meta.id).version == 2
+    assert len(store.list_revisions(meta.id)) == 2
+    refreshed_plan = await workflow.plan(meta.id, "CM01")
+    assert refreshed_plan.based_on_version == 2
 
 
 async def test_verify_standalone(tmp_path, mock_client):
@@ -212,6 +153,7 @@ async def test_verify_standalone(tmp_path, mock_client):
     assert report.blocking_issues[0].scene_id == "S05"
     assert {c.commitment_id for c in report.commitment_checks} == {"NC01", "NC02", "NC03"}
     assert report.consistency_score < 1.0
+    assert report.overall_status == "fail"
 
 
 async def test_hallucination_guard_drops_fabricated_stale_refs(tmp_path, mock_client):

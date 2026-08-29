@@ -3,7 +3,6 @@ from __future__ import annotations
 from app.export import changed_scenes_diff, export_bible
 from app.storage import MarketProfile, ProjectStore
 from app.workflow.engine import StoryBridgeWorkflow
-from tests.test_workflow_e2e import mock_client
 
 
 async def test_export_bible_after_apply(tmp_path, mock_client):

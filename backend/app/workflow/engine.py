@@ -1,21 +1,27 @@
 from __future__ import annotations
 
+import asyncio
+from collections import defaultdict
+
 from pydantic import BaseModel
 
-from app.config import StorageConfig, get_config
+from app.config import get_config
 from app.llm import LLMClient
+from app.privacy import project_data_context
 from app.schemas import (
     AdaptationPlan,
     AppliedAdaptation,
+    DataPolicy,
     PropagationResult,
     StoryState,
-    VerificationIssue,
+    TargetScript,
     VerifyReport,
 )
 from app.storage import MarketProfile, ProjectMeta, ProjectStore
 from app.workflow.friction import FrictionDetector
 from app.workflow.parser import StoryParser
 from app.workflow.planner import AdaptationPlanner
+from app.workflow.renderer import TargetScriptRenderer
 from app.workflow.rewriter import SceneRewriter
 from app.workflow.verifier import Verifier
 
@@ -27,6 +33,17 @@ class ApplyResult(BaseModel):
     repaired_scene_ids: list[str]
 
 
+class StateVersionConflict(RuntimeError):
+    def __init__(self, expected: int, actual: int) -> None:
+        self.expected = expected
+        self.actual = actual
+        super().__init__(f"state version conflict: expected {expected}, current version is {actual}")
+
+
+class DuplicateOperation(RuntimeError):
+    pass
+
+
 class StoryBridgeWorkflow:
     def __init__(self, store: ProjectStore, client: LLMClient, max_repair_rounds: int = 2) -> None:
         self.store = store
@@ -35,7 +52,9 @@ class StoryBridgeWorkflow:
         self.detector = FrictionDetector(client)
         self.planner = AdaptationPlanner(client)
         self.rewriter = SceneRewriter(client)
+        self.renderer = TargetScriptRenderer(client)
         self.verifier = Verifier(client)
+        self._project_locks: defaultdict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
 
     def require_state(self, project_id: str) -> StoryState:
         state = self.store.load_state(project_id)
@@ -48,10 +67,27 @@ class StoryBridgeWorkflow:
         name: str,
         script_text: str,
         market: MarketProfile | None = None,
+        *,
+        owner_id: str = "local",
+        data_policy: DataPolicy | None = None,
     ) -> ProjectMeta:
-        return self.store.create_project(name, script_text, market or MarketProfile())
+        return self.store.create_project(
+            name,
+            script_text,
+            market or MarketProfile(),
+            owner_id=owner_id,
+            data_policy=data_policy,
+        )
 
     async def analyze(self, project_id: str) -> StoryState:
+        async with self._project_locks[project_id]:
+            meta = self.store.load_meta(project_id)
+            if meta is None:
+                raise KeyError(f"unknown project: {project_id}")
+            with project_data_context(project_id, meta.data_policy):
+                return await self._analyze_locked(project_id)
+
+    async def _analyze_locked(self, project_id: str) -> StoryState:
         meta = self.store.load_meta(project_id)
         if meta is None:
             raise KeyError(f"unknown project: {project_id}")
@@ -61,6 +97,11 @@ class StoryBridgeWorkflow:
         state.audience = meta.market.audience
         state.format = meta.market.format
         state.genre = meta.market.genre
+        state.source_language = meta.market.source_language
+        state.target_language = meta.market.target_language
+        state.target_locale = meta.market.target_locale
+        state.style_guide = meta.market.style_guide
+        state.terminology_map = meta.market.terminology_map
 
         state = await self.detector.apply(state, target_market=meta.market.market)
         self.store.save_state(
@@ -72,13 +113,27 @@ class StoryBridgeWorkflow:
         return state
 
     async def plan(self, project_id: str, mechanism_id: str) -> AdaptationPlan:
-        state = self.require_state(project_id)
+        async with self._project_locks[project_id]:
+            state = self.require_state(project_id)
+            meta = self.store.load_meta(project_id)
+            if meta is None:
+                raise KeyError(f"unknown project: {project_id}")
+            with project_data_context(project_id, meta.data_policy):
+                return await self._plan_locked(project_id, state, mechanism_id)
+
+    async def _plan_locked(
+        self,
+        project_id: str,
+        state: StoryState,
+        mechanism_id: str,
+    ) -> AdaptationPlan:
         cached = self.store.load_plan(project_id, mechanism_id)
-        if cached is not None:
+        if cached is not None and cached.based_on_version == state.version:
             return cached
         meta = self.store.load_meta(project_id)
         profile = meta.market.model_dump() if meta else {}
         plan = await self.planner.plan(state, mechanism_id, target_market_profile=profile)
+        plan.based_on_version = state.version
         self.store.save_plan(project_id, plan)
         return plan
 
@@ -92,9 +147,44 @@ class StoryBridgeWorkflow:
         mechanism_id: str,
         option_label: str,
         auto_verify_and_repair: bool = True,
+        based_on_version: int | None = None,
+        operation_id: str | None = None,
     ) -> ApplyResult:
-        state = self.require_state(project_id)
-        plan = await self.plan(project_id, mechanism_id)
+        async with self._project_locks[project_id]:
+            meta = self.store.load_meta(project_id)
+            if meta is None:
+                raise KeyError(f"unknown project: {project_id}")
+            with project_data_context(project_id, meta.data_policy):
+                return await self._apply_locked(
+                    project_id,
+                    mechanism_id,
+                    option_label,
+                    auto_verify_and_repair,
+                    based_on_version,
+                    operation_id,
+                )
+
+    async def _apply_locked(
+        self,
+        project_id: str,
+        mechanism_id: str,
+        option_label: str,
+        auto_verify_and_repair: bool,
+        based_on_version: int | None,
+        operation_id: str | None,
+    ) -> ApplyResult:
+        current_state = self.require_state(project_id)
+        if operation_id and any(
+            applied.operation_id == operation_id
+            for applied in self.store.load_applied(project_id)
+        ):
+            raise DuplicateOperation(f"operation {operation_id!r} has already been committed")
+        if based_on_version is not None and based_on_version != current_state.version:
+            raise StateVersionConflict(based_on_version, current_state.version)
+
+        plan = await self._plan_locked(project_id, current_state, mechanism_id)
+        if plan.based_on_version != current_state.version:
+            raise StateVersionConflict(plan.based_on_version, current_state.version)
         option = plan.option_by_label(option_label)
         if option is None:
             raise KeyError(
@@ -102,21 +192,10 @@ class StoryBridgeWorkflow:
                 f"available: {[o.option_label for o in plan.options]}"
             )
 
-        propagation = SceneRewriter.build_propagation(state, mechanism_id)
-        applied = await self.rewriter.apply(state, mechanism_id, option, propagation)
-
-        self.store.save_state(
-            project_id,
-            state,
-            kind="adaptation_applied",
-            description=(
-                f"applied option {option.option_label} ({option.strategy.value}) "
-                f"for {mechanism_id}: {option.title}"
-            ),
-            changed_scene_ids=applied.rewritten_scene_ids,
-            applied_option=option.model_dump(mode="json"),
-        )
-        self.store.append_applied(project_id, applied)
+        candidate = current_state.model_copy(deep=True)
+        propagation = SceneRewriter.build_propagation(candidate, mechanism_id)
+        applied = await self.rewriter.apply(candidate, mechanism_id, option, propagation)
+        applied.operation_id = operation_id
 
         report = VerifyReport()
         repaired_scene_ids: list[str] = []
@@ -125,7 +204,7 @@ class StoryBridgeWorkflow:
         if auto_verify_and_repair:
             summary = f"{plan.original_name} -> {option.replacement_definition}"
             report = await self.verifier.verify(
-                state,
+                candidate,
                 changed_scene_ids=applied.rewritten_scene_ids,
                 applied_adaptations_summary=summary,
             )
@@ -138,19 +217,28 @@ class StoryBridgeWorkflow:
                     break
                 rounds += 1
                 brief = f"{plan.original_name} -> {option.replacement_definition}"
-                repaired_scene_ids.extend(await self.rewriter.repair(state, issues, brief))
-                self.store.save_state(
-                    project_id,
-                    state,
-                    kind="repair",
-                    description=f"repair round {rounds}: {len(repaired_scene_ids)} scene(s)",
-                    changed_scene_ids=repaired_scene_ids,
-                )
+                repaired_scene_ids.extend(await self.rewriter.repair(candidate, issues, brief))
                 report = await self.verifier.verify(
-                    state,
+                    candidate,
                     changed_scene_ids=repaired_scene_ids,
                     applied_adaptations_summary=summary,
                 )
+
+        changed_scene_ids = list(
+            dict.fromkeys([*applied.rewritten_scene_ids, *repaired_scene_ids])
+        )
+        self.store.save_state(
+            project_id,
+            candidate,
+            kind="adaptation_applied",
+            description=(
+                f"applied option {option.option_label} ({option.strategy.value}) "
+                f"for {mechanism_id}: {option.title}; repair rounds={rounds}"
+            ),
+            changed_scene_ids=changed_scene_ids,
+            applied_option=option.model_dump(mode="json"),
+            applied=applied,
+        )
 
         return ApplyResult(
             applied=applied,
@@ -160,13 +248,34 @@ class StoryBridgeWorkflow:
         )
 
     async def verify(self, project_id: str) -> VerifyReport:
-        state = self.require_state(project_id)
-        applied = self.store.load_applied(project_id)
-        summary = "; ".join(
-            f"{a.plan_culture_mechanism_id} -> {a.chosen_option.replacement_definition}"
-            for a in applied
-        )
-        return await self.verifier.verify(state, applied_adaptations_summary=summary)
+        async with self._project_locks[project_id]:
+            state = self.require_state(project_id)
+            meta = self.store.load_meta(project_id)
+            if meta is None:
+                raise KeyError(f"unknown project: {project_id}")
+            applied = self.store.load_applied(project_id)
+            summary = "; ".join(
+                f"{a.plan_culture_mechanism_id} -> {a.chosen_option.replacement_definition}"
+                for a in applied
+            )
+            with project_data_context(project_id, meta.data_policy):
+                return await self.verifier.verify(
+                    state, applied_adaptations_summary=summary
+                )
+
+    async def render_target_script(self, project_id: str) -> TargetScript:
+        async with self._project_locks[project_id]:
+            state = self.require_state(project_id)
+            cached = self.store.load_target_script(project_id)
+            if cached is not None:
+                return cached
+            meta = self.store.load_meta(project_id)
+            if meta is None:
+                raise KeyError(f"unknown project: {project_id}")
+            with project_data_context(project_id, meta.data_policy):
+                target_script = await self.renderer.render(state)
+            self.store.save_target_script(project_id, target_script)
+            return target_script
 
 
 def build_default_workflow(client: LLMClient) -> StoryBridgeWorkflow:

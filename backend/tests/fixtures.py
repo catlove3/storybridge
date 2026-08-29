@@ -132,5 +132,22 @@ def sample_state_json() -> str:
     return json.dumps(sample_story_state_dict(), ensure_ascii=False)
 
 
+def sample_target_script_dict(prefix: str = "TARGET") -> dict:
+    return {
+        "source_language": "zh-CN",
+        "target_language": "English",
+        "target_locale": "en-US",
+        "scenes": [
+            {
+                "id": f"S0{index}",
+                "title": f"Scene {index}",
+                "summary": f"{prefix} summary {index}",
+                "text": f"[{prefix} S0{index}] target-language scene",
+            }
+            for index in range(1, 9)
+        ],
+    }
+
+
 def demo_script_text() -> str:
     return (BACKEND_ROOT / "data" / "scripts" / "demo_v0.md").read_text(encoding="utf-8")

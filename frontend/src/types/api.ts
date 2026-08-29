@@ -110,10 +110,16 @@ export interface Dependency {
 }
 
 export interface StoryState {
+  version: number
   target_market: string
   audience: string
   format: string
   genre: string
+  source_language: string
+  target_language: string
+  target_locale: string
+  style_guide: string
+  terminology_map: Record<string, string>
   characters: Character[]
   scenes: Scene[]
   events: StoryEvent[]
@@ -123,8 +129,24 @@ export interface StoryState {
   dependencies: Dependency[]
 }
 
+export interface TargetScene {
+  id: string
+  title: string
+  summary: string
+  text: string
+}
+
+export interface TargetScript {
+  source_state_version: number
+  source_language: string
+  target_language: string
+  target_locale: string
+  scenes: TargetScene[]
+}
+
 export interface Revision {
   revision_id: number
+  state_version: number
   created_at: string
   kind: 'initial_parse' | 'friction_detection' | 'adaptation_applied' | 'repair'
   description: string
@@ -161,6 +183,7 @@ export interface AffectedScene {
   impact_kinds: ImpactKind[]
   reason_path: string[]
   evidence: string
+  path_confidence: number
 }
 
 export interface PropagationResult {
@@ -184,12 +207,15 @@ export interface AdaptationOption {
 export interface AdaptationPlan {
   culture_mechanism_id: string
   original_name: string
+  based_on_version: number
   friction_level: Level
   options: AdaptationOption[]
 }
 
 export interface AppliedAdaptation {
   plan_culture_mechanism_id: string
+  state_version: number
+  operation_id: string | null
   chosen_option: AdaptationOption
   propagation: PropagationResult
   rewritten_scene_ids: string[]
@@ -229,6 +255,14 @@ export interface CommitmentCheck {
 export interface VerifyReport {
   issues: VerificationIssue[]
   commitment_checks: CommitmentCheck[]
+  checked_scene_ids: string[]
+  static_checks_passed: number
+  static_checks_total: number
+  commitments_verified: number
+  commitments_total: number
+  scenes_checked: number
+  scenes_total: number
+  overall_status: 'not_run' | 'pass' | 'needs_review' | 'fail'
   consistency_score: number
 }
 
@@ -237,12 +271,37 @@ export interface MarketProfile {
   audience: string
   format: string
   genre: string
+  source_language?: string
+  target_language?: string
+  target_locale?: string
+  style_guide?: string
+  terminology_map?: Record<string, string>
+}
+
+export interface DataPolicy {
+  sft_opt_in: boolean
+  content_source: string
+  license: string
+  consent_note: string
+  retention_days: number
 }
 
 export interface CreateProjectRequest {
   name: string
   script: string
   market: MarketProfile
+  data_policy?: DataPolicy
+}
+
+export interface RuntimePolicy {
+  authentication_required: boolean
+  provider_endpoint: string
+  model: string
+  sft_collection_enabled: boolean
+  sft_redaction_enabled: boolean
+  sft_retention_days: number
+  max_script_chars: number
+  max_project_llm_tokens: number
 }
 
 export interface CreateProjectResponse {
@@ -250,13 +309,27 @@ export interface CreateProjectResponse {
   name: string
 }
 
-export type JobKind = 'analyze' | 'plan' | 'apply' | 'verify'
-export type JobStatus = 'running' | 'done' | 'failed'
+export interface ProjectSummary {
+  id: string
+  name: string
+  created_at: string
+}
+
+export interface ProjectDetail extends CreateProjectResponse {
+  market: MarketProfile
+  analyzed: boolean
+  data_policy: DataPolicy
+}
+
+export type JobKind = 'analyze' | 'plan' | 'apply' | 'verify' | 'render'
+export type JobStatus = 'queued' | 'running' | 'done' | 'failed' | 'cancelled'
 
 export interface SubmitJobRequest {
   kind: JobKind
   culture_mechanism_id?: string
   option_label?: string
+  based_on_version?: number
+  idempotency_key?: string
 }
 
 export interface SubmitJobResponse {
@@ -273,6 +346,9 @@ export interface Job<TResult = unknown> {
   finished_at: number | null
   result: TResult | null
   error: string | null
+  idempotency_key: string | null
+  progress: number
+  cancel_requested: boolean
 }
 
 export interface GraphNode {
@@ -282,10 +358,12 @@ export interface GraphNode {
 }
 
 export interface GraphEdge {
+  id: string
   source: string
   target: string
   relation: EdgeRelation
   evidence: string
+  confidence: number
 }
 
 export interface StoryGraphResponse {
