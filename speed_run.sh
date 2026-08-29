@@ -65,22 +65,48 @@ require_command() {
   fi
 }
 
+node_is_supported() {
+  local node_version
+  command -v node >/dev/null 2>&1 || return 1
+  node_version="$(node --version)"
+  [[ "$node_version" =~ ^v([0-9]+)\.([0-9]+)\. ]] || return 1
+  ((BASH_REMATCH[1] == 20 && BASH_REMATCH[2] >= 19 || BASH_REMATCH[1] == 22 && BASH_REMATCH[2] >= 12 || BASH_REMATCH[1] > 22))
+}
+
 activate_project_node() {
-  if [[ -n "${NVM_DIR:-}" && -s "${NVM_DIR}/nvm.sh" ]]; then
-    set +u
-    # shellcheck source=/dev/null
-    source "${NVM_DIR}/nvm.sh"
-    set -u
-    nvm use --silent "$(<"$STORYBRIDGE_ROOT/frontend/.nvmrc")" >/dev/null
+  local requested_version nvm_script node_executable
+  requested_version="$(<"$STORYBRIDGE_ROOT/frontend/.nvmrc")"
+
+  for nvm_script in "${NVM_DIR:-}/nvm.sh" "${HOME:-}/.nvm/nvm.sh"; do
+    if [[ -s "$nvm_script" ]]; then
+      set +u
+      # shellcheck source=/dev/null
+      source "$nvm_script"
+      set -u
+      nvm use --silent "$requested_version" >/dev/null 2>&1 || true
+      break
+    fi
+  done
+
+  if ! node_is_supported; then
+    require_command npm
+    require_command npx
+    echo "Preparing project Node $requested_version (system $(node --version 2>/dev/null || echo unavailable))..."
+    if ! node_executable="$(npx --yes --package="node@$requested_version" -- node -p process.execPath)"; then
+      echo "Could not prepare Node $requested_version through npm." >&2
+      exit 1
+    fi
+    if [[ ! -x "$node_executable" ]]; then
+      echo "npm returned an invalid Node executable: $node_executable" >&2
+      exit 1
+    fi
+    export PATH="$(dirname -- "$node_executable"):$PATH"
   fi
 
   require_command node
   require_command npm
-  local node_version node_major node_minor
-  node_version="$(node --version)"
-  IFS=. read -r node_major node_minor _ <<<"${node_version#v}"
-  if ! ((node_major == 22 && node_minor >= 12 || node_major == 20 && node_minor >= 19)); then
-    echo "Node $node_version is unsupported; use Node 22.12+ (frontend/.nvmrc)." >&2
+  if ! node_is_supported; then
+    echo "Node $(node --version) is unsupported; use Node 22.12+ (frontend/.nvmrc)." >&2
     exit 1
   fi
 }
