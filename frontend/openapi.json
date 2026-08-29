@@ -1,0 +1,3246 @@
+{
+  "components": {
+    "schemas": {
+      "AdaptationOption": {
+        "properties": {
+          "lost_functions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Lost Functions",
+            "type": "array"
+          },
+          "option_label": {
+            "description": "A / B / C",
+            "title": "Option Label",
+            "type": "string"
+          },
+          "preserved_functions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Preserved Functions",
+            "type": "array"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "replacement_definition": {
+            "description": "what the culture mechanism becomes in the target culture",
+            "title": "Replacement Definition",
+            "type": "string"
+          },
+          "risks": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Risks",
+            "type": "array"
+          },
+          "strategy": {
+            "$ref": "#/components/schemas/AdaptationStrategy"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "option_label",
+          "strategy",
+          "title",
+          "replacement_definition",
+          "rationale"
+        ],
+        "title": "AdaptationOption",
+        "type": "object"
+      },
+      "AdaptationPlan": {
+        "properties": {
+          "based_on_version": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Based On Version",
+            "type": "integer"
+          },
+          "culture_mechanism_id": {
+            "title": "Culture Mechanism Id",
+            "type": "string"
+          },
+          "friction_level": {
+            "$ref": "#/components/schemas/Level",
+            "default": "medium"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/AdaptationOption"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "original_name": {
+            "title": "Original Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "culture_mechanism_id",
+          "original_name",
+          "options"
+        ],
+        "title": "AdaptationPlan",
+        "type": "object"
+      },
+      "AdaptationSelection": {
+        "properties": {
+          "culture_mechanism_id": {
+            "pattern": "^CM\\d+$",
+            "title": "Culture Mechanism Id",
+            "type": "string"
+          },
+          "option_label": {
+            "enum": [
+              "A",
+              "B",
+              "C"
+            ],
+            "title": "Option Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "culture_mechanism_id",
+          "option_label"
+        ],
+        "title": "AdaptationSelection",
+        "type": "object"
+      },
+      "AdaptationStrategy": {
+        "enum": [
+          "preserve",
+          "functional_replacement",
+          "plot_reconstruction"
+        ],
+        "title": "AdaptationStrategy",
+        "type": "string"
+      },
+      "AffectedScene": {
+        "properties": {
+          "evidence": {
+            "default": "",
+            "title": "Evidence",
+            "type": "string"
+          },
+          "impact_kinds": {
+            "items": {
+              "$ref": "#/components/schemas/ImpactKind"
+            },
+            "title": "Impact Kinds",
+            "type": "array"
+          },
+          "path_confidence": {
+            "default": 1.0,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Path Confidence",
+            "type": "number"
+          },
+          "reason_path": {
+            "description": "node ids traversed from the changed node to this scene",
+            "items": {
+              "type": "string"
+            },
+            "title": "Reason Path",
+            "type": "array"
+          },
+          "scene_id": {
+            "title": "Scene Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "scene_id",
+          "impact_kinds"
+        ],
+        "title": "AffectedScene",
+        "type": "object"
+      },
+      "AppliedAdaptation": {
+        "properties": {
+          "chosen_option": {
+            "$ref": "#/components/schemas/AdaptationOption"
+          },
+          "notes": {
+            "default": "",
+            "title": "Notes",
+            "type": "string"
+          },
+          "operation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation Id"
+          },
+          "plan_culture_mechanism_id": {
+            "title": "Plan Culture Mechanism Id",
+            "type": "string"
+          },
+          "propagation": {
+            "$ref": "#/components/schemas/PropagationResult"
+          },
+          "rewritten_scene_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Rewritten Scene Ids",
+            "type": "array"
+          },
+          "state_version": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "State Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "plan_culture_mechanism_id",
+          "chosen_option",
+          "propagation",
+          "rewritten_scene_ids"
+        ],
+        "title": "AppliedAdaptation",
+        "type": "object"
+      },
+      "ApplyBody": {
+        "properties": {
+          "auto_verify_and_repair": {
+            "default": true,
+            "title": "Auto Verify And Repair",
+            "type": "boolean"
+          },
+          "based_on_version": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Based On Version"
+          },
+          "culture_mechanism_id": {
+            "pattern": "^CM\\d+$",
+            "title": "Culture Mechanism Id",
+            "type": "string"
+          },
+          "operation_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation Id"
+          },
+          "option_label": {
+            "enum": [
+              "A",
+              "B",
+              "C"
+            ],
+            "title": "Option Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "culture_mechanism_id",
+          "option_label"
+        ],
+        "title": "ApplyBody",
+        "type": "object"
+      },
+      "ApplyResult": {
+        "properties": {
+          "applied": {
+            "$ref": "#/components/schemas/AppliedAdaptation"
+          },
+          "repair_rounds": {
+            "title": "Repair Rounds",
+            "type": "integer"
+          },
+          "repaired_scene_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Repaired Scene Ids",
+            "type": "array"
+          },
+          "report": {
+            "$ref": "#/components/schemas/VerifyReport"
+          }
+        },
+        "required": [
+          "applied",
+          "report",
+          "repair_rounds",
+          "repaired_scene_ids"
+        ],
+        "title": "ApplyResult",
+        "type": "object"
+      },
+      "BatchApplyBody": {
+        "properties": {
+          "adaptations": {
+            "items": {
+              "$ref": "#/components/schemas/AdaptationSelection"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Adaptations",
+            "type": "array"
+          },
+          "auto_verify_and_repair": {
+            "default": true,
+            "title": "Auto Verify And Repair",
+            "type": "boolean"
+          },
+          "based_on_version": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Based On Version"
+          },
+          "operation_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation Id"
+          }
+        },
+        "required": [
+          "adaptations"
+        ],
+        "title": "BatchApplyBody",
+        "type": "object"
+      },
+      "BatchApplyResult": {
+        "properties": {
+          "applied": {
+            "items": {
+              "$ref": "#/components/schemas/AppliedAdaptation"
+            },
+            "title": "Applied",
+            "type": "array"
+          },
+          "from_version": {
+            "title": "From Version",
+            "type": "integer"
+          },
+          "repair_rounds": {
+            "title": "Repair Rounds",
+            "type": "integer"
+          },
+          "repaired_scene_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Repaired Scene Ids",
+            "type": "array"
+          },
+          "report": {
+            "$ref": "#/components/schemas/VerifyReport"
+          },
+          "to_version": {
+            "title": "To Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "applied",
+          "report",
+          "repair_rounds",
+          "repaired_scene_ids",
+          "from_version",
+          "to_version"
+        ],
+        "title": "BatchApplyResult",
+        "type": "object"
+      },
+      "BatchPlanBody": {
+        "properties": {
+          "culture_mechanism_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Culture Mechanism Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "culture_mechanism_ids"
+        ],
+        "title": "BatchPlanBody",
+        "type": "object"
+      },
+      "BibleResponse": {
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          }
+        },
+        "required": [
+          "content"
+        ],
+        "title": "BibleResponse",
+        "type": "object"
+      },
+      "Character": {
+        "properties": {
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "goals": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Goals",
+            "type": "array"
+          },
+          "id": {
+            "description": "id must start with the node kind prefix, e.g. C01/S01/E01/SET01/CM01/NC01",
+            "pattern": "^C\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "role": {
+            "default": "supporting",
+            "enum": [
+              "protagonist",
+              "antagonist",
+              "supporting",
+              "minor"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "Character",
+        "type": "object"
+      },
+      "Commitment": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "established_at_scene_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Established At Scene Id"
+          },
+          "id": {
+            "description": "id must start with the node kind prefix, e.g. C01/S01/E01/SET01/CM01/NC01",
+            "pattern": "^NC\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "must_preserve": {
+            "default": true,
+            "title": "Must Preserve",
+            "type": "boolean"
+          },
+          "payoff_scene_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payoff Scene Id"
+          }
+        },
+        "required": [
+          "id",
+          "description"
+        ],
+        "title": "Commitment",
+        "type": "object"
+      },
+      "CommitmentCheck": {
+        "properties": {
+          "commitment_id": {
+            "title": "Commitment Id",
+            "type": "string"
+          },
+          "explanation": {
+            "default": "",
+            "title": "Explanation",
+            "type": "string"
+          },
+          "status": {
+            "default": "preserved",
+            "enum": [
+              "preserved",
+              "violated",
+              "needs_review"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "commitment_id"
+        ],
+        "title": "CommitmentCheck",
+        "type": "object"
+      },
+      "CreateProjectBody": {
+        "properties": {
+          "data_policy": {
+            "$ref": "#/components/schemas/DataPolicy"
+          },
+          "market": {
+            "$ref": "#/components/schemas/MarketProfile"
+          },
+          "name": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Name",
+            "type": "string"
+          },
+          "script": {
+            "maxLength": 500000,
+            "minLength": 1,
+            "title": "Script",
+            "type": "string"
+          }
+        },
+        "required": [
+          "script"
+        ],
+        "title": "CreateProjectBody",
+        "type": "object"
+      },
+      "CultureMechanism": {
+        "properties": {
+          "adapted_strategy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adapted Strategy"
+          },
+          "adapted_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "replacement definition after an adaptation has been applied",
+            "title": "Adapted To"
+          },
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "friction_level": {
+            "$ref": "#/components/schemas/Level",
+            "default": "medium"
+          },
+          "functions": {
+            "$ref": "#/components/schemas/FunctionTags"
+          },
+          "id": {
+            "description": "id must start with the node kind prefix, e.g. C01/S01/E01/SET01/CM01/NC01",
+            "pattern": "^CM\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "narrative_importance": {
+            "$ref": "#/components/schemas/Level",
+            "default": "medium"
+          },
+          "scene_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Scene Ids",
+            "type": "array"
+          },
+          "surface_text": {
+            "description": "verbatim phrases from the script that reference this mechanism",
+            "items": {
+              "type": "string"
+            },
+            "title": "Surface Text",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "CultureMechanism",
+        "type": "object"
+      },
+      "DataExportResponse": {
+        "properties": {
+          "adaptations": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Adaptations",
+            "type": "array"
+          },
+          "llm_runs": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Llm Runs",
+            "type": "array"
+          },
+          "plans": {
+            "items": {
+              "$ref": "#/components/schemas/AdaptationPlan"
+            },
+            "title": "Plans",
+            "type": "array"
+          },
+          "project": {
+            "$ref": "#/components/schemas/ProjectDetail"
+          },
+          "revisions": {
+            "items": {
+              "$ref": "#/components/schemas/Revision"
+            },
+            "title": "Revisions",
+            "type": "array"
+          },
+          "script": {
+            "title": "Script",
+            "type": "string"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StoryState"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "target_script": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TargetScript"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "project",
+          "script",
+          "state",
+          "plans",
+          "revisions",
+          "adaptations",
+          "target_script",
+          "llm_runs"
+        ],
+        "title": "DataExportResponse",
+        "type": "object"
+      },
+      "DataPolicy": {
+        "properties": {
+          "consent_note": {
+            "default": "",
+            "maxLength": 500,
+            "title": "Consent Note",
+            "type": "string"
+          },
+          "content_source": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Content Source",
+            "type": "string"
+          },
+          "license": {
+            "default": "",
+            "maxLength": 200,
+            "title": "License",
+            "type": "string"
+          },
+          "retention_days": {
+            "default": 30,
+            "maximum": 365.0,
+            "minimum": 1.0,
+            "title": "Retention Days",
+            "type": "integer"
+          },
+          "sft_opt_in": {
+            "default": false,
+            "title": "Sft Opt In",
+            "type": "boolean"
+          }
+        },
+        "title": "DataPolicy",
+        "type": "object"
+      },
+      "DeleteProjectResponse": {
+        "properties": {
+          "deleted": {
+            "title": "Deleted",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "run_records_deleted": {
+            "title": "Run Records Deleted",
+            "type": "integer"
+          },
+          "sft_samples_deleted": {
+            "title": "Sft Samples Deleted",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "deleted",
+          "project_id",
+          "sft_samples_deleted",
+          "run_records_deleted"
+        ],
+        "title": "DeleteProjectResponse",
+        "type": "object"
+      },
+      "Dependency": {
+        "properties": {
+          "confidence": {
+            "default": 1.0,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "type": "number"
+          },
+          "evidence": {
+            "default": "",
+            "title": "Evidence",
+            "type": "string"
+          },
+          "relation": {
+            "$ref": "#/components/schemas/EdgeRelation"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "target_id": {
+            "title": "Target Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id",
+          "target_id",
+          "relation"
+        ],
+        "title": "Dependency",
+        "type": "object"
+      },
+      "EdgeRelation": {
+        "enum": [
+          "appears_in",
+          "motivates",
+          "causes",
+          "depends_on",
+          "references",
+          "reveals",
+          "conflicts_with",
+          "sets_up",
+          "pays_off"
+        ],
+        "title": "EdgeRelation",
+        "type": "string"
+      },
+      "EmotionalFunction": {
+        "enum": [
+          "humiliation",
+          "aspiration",
+          "fear",
+          "sympathy",
+          "suspense",
+          "satisfaction"
+        ],
+        "title": "EmotionalFunction",
+        "type": "string"
+      },
+      "Event": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "description": "id must start with the node kind prefix, e.g. C01/S01/E01/SET01/CM01/NC01",
+            "pattern": "^E\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "scene_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Scene Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "description"
+        ],
+        "title": "Event",
+        "type": "object"
+      },
+      "FunctionTags": {
+        "properties": {
+          "emotional": {
+            "items": {
+              "$ref": "#/components/schemas/EmotionalFunction"
+            },
+            "title": "Emotional",
+            "type": "array"
+          },
+          "plot": {
+            "items": {
+              "$ref": "#/components/schemas/PlotFunction"
+            },
+            "title": "Plot",
+            "type": "array"
+          },
+          "social": {
+            "items": {
+              "$ref": "#/components/schemas/SocialFunction"
+            },
+            "title": "Social",
+            "type": "array"
+          }
+        },
+        "title": "FunctionTags",
+        "type": "object"
+      },
+      "GraphEdge": {
+        "properties": {
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "evidence": {
+            "title": "Evidence",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "relation": {
+            "$ref": "#/components/schemas/EdgeRelation"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "source",
+          "target",
+          "relation",
+          "evidence",
+          "confidence"
+        ],
+        "title": "GraphEdge",
+        "type": "object"
+      },
+      "GraphNode": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/NodeKind"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "label"
+        ],
+        "title": "GraphNode",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "ImpactKind": {
+        "enum": [
+          "direct_reference",
+          "motivation",
+          "causal",
+          "payoff",
+          "structural"
+        ],
+        "title": "ImpactKind",
+        "type": "string"
+      },
+      "IssueType": {
+        "enum": [
+          "stale_reference",
+          "fact_conflict",
+          "motivation_break",
+          "commitment_violation",
+          "unresolved_payoff"
+        ],
+        "title": "IssueType",
+        "type": "string"
+      },
+      "JobKind": {
+        "enum": [
+          "analyze",
+          "plan",
+          "apply",
+          "plan_batch",
+          "apply_batch",
+          "verify",
+          "render"
+        ],
+        "title": "JobKind",
+        "type": "string"
+      },
+      "JobResponse": {
+        "properties": {
+          "cancel_requested": {
+            "title": "Cancel Requested",
+            "type": "boolean"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/JobKind"
+          },
+          "progress": {
+            "title": "Progress",
+            "type": "number"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "title": "Result"
+          },
+          "status": {
+            "$ref": "#/components/schemas/JobStatus"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "project_id",
+          "status",
+          "created_at",
+          "finished_at",
+          "error",
+          "idempotency_key",
+          "progress",
+          "cancel_requested"
+        ],
+        "title": "JobResponse",
+        "type": "object"
+      },
+      "JobStatus": {
+        "enum": [
+          "queued",
+          "running",
+          "done",
+          "failed",
+          "cancelled"
+        ],
+        "title": "JobStatus",
+        "type": "string"
+      },
+      "JobSubmitBody": {
+        "properties": {
+          "adaptations": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/AdaptationSelection"
+                },
+                "maxItems": 20,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adaptations"
+          },
+          "based_on_version": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Based On Version"
+          },
+          "culture_mechanism_id": {
+            "anyOf": [
+              {
+                "pattern": "^CM\\d+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Culture Mechanism Id"
+          },
+          "culture_mechanism_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 20,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Culture Mechanism Ids"
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/JobKind"
+          },
+          "option_label": {
+            "anyOf": [
+              {
+                "enum": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Option Label"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "JobSubmitBody",
+        "type": "object"
+      },
+      "JobSubmitted": {
+        "properties": {
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/JobStatus"
+          }
+        },
+        "required": [
+          "job_id",
+          "status"
+        ],
+        "title": "JobSubmitted",
+        "type": "object"
+      },
+      "Level": {
+        "enum": [
+          "high",
+          "medium",
+          "low"
+        ],
+        "title": "Level",
+        "type": "string"
+      },
+      "MarketProfile": {
+        "properties": {
+          "audience": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Audience",
+            "type": "string"
+          },
+          "format": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Format",
+            "type": "string"
+          },
+          "genre": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Genre",
+            "type": "string"
+          },
+          "market": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Market",
+            "type": "string"
+          },
+          "source_language": {
+            "default": "zh-CN",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Source Language",
+            "type": "string"
+          },
+          "style_guide": {
+            "default": "",
+            "maxLength": 10000,
+            "title": "Style Guide",
+            "type": "string"
+          },
+          "target_language": {
+            "default": "English",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Target Language",
+            "type": "string"
+          },
+          "target_locale": {
+            "default": "en-US",
+            "maxLength": 100,
+            "title": "Target Locale",
+            "type": "string"
+          },
+          "terminology_map": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Terminology Map",
+            "type": "object"
+          }
+        },
+        "title": "MarketProfile",
+        "type": "object"
+      },
+      "NodeKind": {
+        "enum": [
+          "character",
+          "scene",
+          "event",
+          "setting",
+          "culture_mechanism",
+          "commitment"
+        ],
+        "title": "NodeKind",
+        "type": "string"
+      },
+      "PlanBody": {
+        "properties": {
+          "culture_mechanism_id": {
+            "pattern": "^CM\\d+$",
+            "title": "Culture Mechanism Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "culture_mechanism_id"
+        ],
+        "title": "PlanBody",
+        "type": "object"
+      },
+      "PlotFunction": {
+        "enum": [
+          "motivation",
+          "constraint",
+          "conflict",
+          "revelation",
+          "foreshadowing",
+          "payoff",
+          "reversal"
+        ],
+        "title": "PlotFunction",
+        "type": "string"
+      },
+      "ProjectCreated": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "ProjectCreated",
+        "type": "object"
+      },
+      "ProjectDetail": {
+        "properties": {
+          "analyzed": {
+            "title": "Analyzed",
+            "type": "boolean"
+          },
+          "data_policy": {
+            "$ref": "#/components/schemas/DataPolicy"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "market": {
+            "$ref": "#/components/schemas/MarketProfile"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "market",
+          "analyzed",
+          "data_policy"
+        ],
+        "title": "ProjectDetail",
+        "type": "object"
+      },
+      "ProjectSummary": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "created_at"
+        ],
+        "title": "ProjectSummary",
+        "type": "object"
+      },
+      "PropagationResult": {
+        "properties": {
+          "affected_scenes": {
+            "items": {
+              "$ref": "#/components/schemas/AffectedScene"
+            },
+            "title": "Affected Scenes",
+            "type": "array"
+          },
+          "changed_node_id": {
+            "title": "Changed Node Id",
+            "type": "string"
+          },
+          "related_commitment_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Related Commitment Ids",
+            "type": "array"
+          },
+          "summary": {
+            "default": "",
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "changed_node_id",
+          "affected_scenes"
+        ],
+        "title": "PropagationResult",
+        "type": "object"
+      },
+      "Revision": {
+        "properties": {
+          "applied_option": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Applied Option"
+          },
+          "changed_scene_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Changed Scene Ids",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "initial_parse",
+              "friction_detection",
+              "adaptation_applied",
+              "repair"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "revision_id": {
+            "title": "Revision Id",
+            "type": "integer"
+          },
+          "state_version": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "State Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision_id",
+          "kind"
+        ],
+        "title": "Revision",
+        "type": "object"
+      },
+      "RuntimePolicyResponse": {
+        "properties": {
+          "authentication_required": {
+            "title": "Authentication Required",
+            "type": "boolean"
+          },
+          "max_project_llm_tokens": {
+            "title": "Max Project Llm Tokens",
+            "type": "integer"
+          },
+          "max_script_chars": {
+            "title": "Max Script Chars",
+            "type": "integer"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "provider_endpoint": {
+            "title": "Provider Endpoint",
+            "type": "string"
+          },
+          "sft_collection_enabled": {
+            "title": "Sft Collection Enabled",
+            "type": "boolean"
+          },
+          "sft_redaction_enabled": {
+            "title": "Sft Redaction Enabled",
+            "type": "boolean"
+          },
+          "sft_retention_days": {
+            "title": "Sft Retention Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "authentication_required",
+          "provider_endpoint",
+          "model",
+          "sft_collection_enabled",
+          "sft_redaction_enabled",
+          "sft_retention_days",
+          "max_script_chars",
+          "max_project_llm_tokens"
+        ],
+        "title": "RuntimePolicyResponse",
+        "type": "object"
+      },
+      "Scene": {
+        "properties": {
+          "character_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Character Ids",
+            "type": "array"
+          },
+          "event_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Event Ids",
+            "type": "array"
+          },
+          "id": {
+            "description": "id must start with the node kind prefix, e.g. C01/S01/E01/SET01/CM01/NC01",
+            "pattern": "^S\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "default": "",
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "summary",
+          "text"
+        ],
+        "title": "Scene",
+        "type": "object"
+      },
+      "SceneDiffResponse": {
+        "properties": {
+          "after": {
+            "title": "After",
+            "type": "string"
+          },
+          "before": {
+            "title": "Before",
+            "type": "string"
+          },
+          "diff": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Diff",
+            "type": "array"
+          },
+          "scene_id": {
+            "title": "Scene Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "scene_id",
+          "before",
+          "after",
+          "diff"
+        ],
+        "title": "SceneDiffResponse",
+        "type": "object"
+      },
+      "Setting": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "description": "id must start with the node kind prefix, e.g. C01/S01/E01/SET01/CM01/NC01",
+            "pattern": "^SET\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description"
+        ],
+        "title": "Setting",
+        "type": "object"
+      },
+      "Severity": {
+        "enum": [
+          "error",
+          "warning",
+          "info"
+        ],
+        "title": "Severity",
+        "type": "string"
+      },
+      "SocialFunction": {
+        "enum": [
+          "status",
+          "power",
+          "obligation",
+          "kinship",
+          "reputation",
+          "institutional_access",
+          "economic_security"
+        ],
+        "title": "SocialFunction",
+        "type": "string"
+      },
+      "StateSummaryResponse": {
+        "properties": {
+          "characters": {
+            "title": "Characters",
+            "type": "integer"
+          },
+          "commitments": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Commitments",
+            "type": "array"
+          },
+          "culture_mechanisms": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Culture Mechanisms",
+            "type": "array"
+          },
+          "dependencies": {
+            "title": "Dependencies",
+            "type": "integer"
+          },
+          "events": {
+            "title": "Events",
+            "type": "integer"
+          },
+          "high_friction_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "High Friction Ids",
+            "type": "array"
+          },
+          "scenes": {
+            "title": "Scenes",
+            "type": "integer"
+          },
+          "settings": {
+            "title": "Settings",
+            "type": "integer"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "characters",
+          "scenes",
+          "events",
+          "settings",
+          "culture_mechanisms",
+          "commitments",
+          "dependencies",
+          "high_friction_ids"
+        ],
+        "title": "StateSummaryResponse",
+        "type": "object"
+      },
+      "StoryGraphResponse": {
+        "properties": {
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/GraphEdge"
+            },
+            "title": "Edges",
+            "type": "array"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/GraphNode"
+            },
+            "title": "Nodes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "nodes",
+          "edges"
+        ],
+        "title": "StoryGraphResponse",
+        "type": "object"
+      },
+      "StoryState": {
+        "properties": {
+          "audience": {
+            "default": "",
+            "title": "Audience",
+            "type": "string"
+          },
+          "characters": {
+            "items": {
+              "$ref": "#/components/schemas/Character"
+            },
+            "title": "Characters",
+            "type": "array"
+          },
+          "commitments": {
+            "items": {
+              "$ref": "#/components/schemas/Commitment"
+            },
+            "title": "Commitments",
+            "type": "array"
+          },
+          "culture_mechanisms": {
+            "items": {
+              "$ref": "#/components/schemas/CultureMechanism"
+            },
+            "title": "Culture Mechanisms",
+            "type": "array"
+          },
+          "dependencies": {
+            "items": {
+              "$ref": "#/components/schemas/Dependency"
+            },
+            "title": "Dependencies",
+            "type": "array"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "format": {
+            "default": "",
+            "title": "Format",
+            "type": "string"
+          },
+          "genre": {
+            "default": "",
+            "title": "Genre",
+            "type": "string"
+          },
+          "scenes": {
+            "items": {
+              "$ref": "#/components/schemas/Scene"
+            },
+            "title": "Scenes",
+            "type": "array"
+          },
+          "settings": {
+            "items": {
+              "$ref": "#/components/schemas/Setting"
+            },
+            "title": "Settings",
+            "type": "array"
+          },
+          "source_language": {
+            "default": "zh-CN",
+            "title": "Source Language",
+            "type": "string"
+          },
+          "style_guide": {
+            "default": "",
+            "title": "Style Guide",
+            "type": "string"
+          },
+          "target_language": {
+            "default": "English",
+            "title": "Target Language",
+            "type": "string"
+          },
+          "target_locale": {
+            "default": "en-US",
+            "title": "Target Locale",
+            "type": "string"
+          },
+          "target_market": {
+            "default": "",
+            "title": "Target Market",
+            "type": "string"
+          },
+          "terminology_map": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Terminology Map",
+            "type": "object"
+          },
+          "version": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "title": "StoryState",
+        "type": "object"
+      },
+      "TargetScene": {
+        "properties": {
+          "id": {
+            "pattern": "^S\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "summary": {
+            "default": "",
+            "title": "Summary",
+            "type": "string"
+          },
+          "text": {
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "default": "",
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "text"
+        ],
+        "title": "TargetScene",
+        "type": "object"
+      },
+      "TargetScript": {
+        "properties": {
+          "scenes": {
+            "items": {
+              "$ref": "#/components/schemas/TargetScene"
+            },
+            "minItems": 1,
+            "title": "Scenes",
+            "type": "array"
+          },
+          "source_language": {
+            "default": "zh-CN",
+            "title": "Source Language",
+            "type": "string"
+          },
+          "source_state_version": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Source State Version",
+            "type": "integer"
+          },
+          "target_language": {
+            "minLength": 1,
+            "title": "Target Language",
+            "type": "string"
+          },
+          "target_locale": {
+            "default": "",
+            "title": "Target Locale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_language",
+          "scenes"
+        ],
+        "title": "TargetScript",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "VerificationIssue": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "evidence": {
+            "default": "",
+            "title": "Evidence",
+            "type": "string"
+          },
+          "issue_type": {
+            "$ref": "#/components/schemas/IssueType"
+          },
+          "scene_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scene Id"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity"
+          }
+        },
+        "required": [
+          "issue_type",
+          "severity",
+          "description"
+        ],
+        "title": "VerificationIssue",
+        "type": "object"
+      },
+      "VerifyReport": {
+        "properties": {
+          "checked_scene_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Checked Scene Ids",
+            "type": "array"
+          },
+          "commitment_checks": {
+            "items": {
+              "$ref": "#/components/schemas/CommitmentCheck"
+            },
+            "title": "Commitment Checks",
+            "type": "array"
+          },
+          "commitments_total": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Commitments Total",
+            "type": "integer"
+          },
+          "commitments_verified": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Commitments Verified",
+            "type": "integer"
+          },
+          "consistency_score": {
+            "default": 1.0,
+            "description": "1.0 means no unresolved blocking issues",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Consistency Score",
+            "type": "number"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/VerificationIssue"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "overall_status": {
+            "default": "not_run",
+            "enum": [
+              "not_run",
+              "pass",
+              "needs_review",
+              "fail"
+            ],
+            "title": "Overall Status",
+            "type": "string"
+          },
+          "scenes_checked": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Scenes Checked",
+            "type": "integer"
+          },
+          "scenes_total": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Scenes Total",
+            "type": "integer"
+          },
+          "static_checks_passed": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Static Checks Passed",
+            "type": "integer"
+          },
+          "static_checks_total": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Static Checks Total",
+            "type": "integer"
+          }
+        },
+        "title": "VerifyReport",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "APIKeyHeader": {
+        "in": "header",
+        "name": "X-API-Key",
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "title": "StoryBridge",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/jobs/{job_id}": {
+      "get": {
+        "operationId": "get_job_api_jobs__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Get Job"
+      }
+    },
+    "/api/jobs/{job_id}/cancel": {
+      "post": {
+        "operationId": "cancel_job_api_jobs__job_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Cancel Job"
+      }
+    },
+    "/api/projects": {
+      "get": {
+        "operationId": "list_projects_api_projects_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectSummary"
+                  },
+                  "title": "Response List Projects Api Projects Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "List Projects"
+      },
+      "post": {
+        "operationId": "create_project_api_projects_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProjectBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectCreated"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Create Project"
+      }
+    },
+    "/api/projects/{project_id}": {
+      "delete": {
+        "operationId": "delete_project_api_projects__project_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteProjectResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Delete Project"
+      },
+      "get": {
+        "operationId": "get_project_api_projects__project_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Get Project"
+      }
+    },
+    "/api/projects/{project_id}/adaptations/apply": {
+      "post": {
+        "operationId": "apply_adaptation_api_projects__project_id__adaptations_apply_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplyResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Apply Adaptation"
+      }
+    },
+    "/api/projects/{project_id}/adaptations/apply-batch": {
+      "post": {
+        "operationId": "apply_adaptation_batch_api_projects__project_id__adaptations_apply_batch_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchApplyBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchApplyResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Apply Adaptation Batch"
+      }
+    },
+    "/api/projects/{project_id}/adaptations/plan": {
+      "post": {
+        "operationId": "create_plan_api_projects__project_id__adaptations_plan_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdaptationPlan"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Create Plan"
+      }
+    },
+    "/api/projects/{project_id}/adaptations/plan-batch": {
+      "post": {
+        "operationId": "create_batch_plan_api_projects__project_id__adaptations_plan_batch_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchPlanBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdaptationPlan"
+                  },
+                  "title": "Response Create Batch Plan Api Projects  Project Id  Adaptations Plan Batch Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Create Batch Plan"
+      }
+    },
+    "/api/projects/{project_id}/analyze": {
+      "post": {
+        "operationId": "analyze_api_projects__project_id__analyze_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StateSummaryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Analyze"
+      }
+    },
+    "/api/projects/{project_id}/bible": {
+      "get": {
+        "operationId": "bible_api_projects__project_id__bible_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BibleResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Bible"
+      }
+    },
+    "/api/projects/{project_id}/data-export": {
+      "get": {
+        "operationId": "export_project_data_api_projects__project_id__data_export_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataExportResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Export Project Data"
+      }
+    },
+    "/api/projects/{project_id}/diff": {
+      "get": {
+        "operationId": "diff_api_projects__project_id__diff_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SceneDiffResponse"
+                  },
+                  "title": "Response Diff Api Projects  Project Id  Diff Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Diff"
+      }
+    },
+    "/api/projects/{project_id}/graph": {
+      "get": {
+        "operationId": "get_graph_api_projects__project_id__graph_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "focus",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Focus"
+            }
+          },
+          {
+            "in": "query",
+            "name": "depth",
+            "required": false,
+            "schema": {
+              "default": 2,
+              "maximum": 6,
+              "minimum": 0,
+              "title": "Depth",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoryGraphResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Get Graph"
+      }
+    },
+    "/api/projects/{project_id}/jobs": {
+      "get": {
+        "operationId": "list_jobs_api_projects__project_id__jobs_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/JobResponse"
+                  },
+                  "title": "Response List Jobs Api Projects  Project Id  Jobs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "List Jobs"
+      },
+      "post": {
+        "operationId": "submit_job_api_projects__project_id__jobs_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobSubmitBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobSubmitted"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Submit Job"
+      }
+    },
+    "/api/projects/{project_id}/propagate": {
+      "get": {
+        "operationId": "propagate_api_projects__project_id__propagate_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mechanism",
+            "required": true,
+            "schema": {
+              "title": "Mechanism",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PropagationResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Propagate"
+      }
+    },
+    "/api/projects/{project_id}/revisions": {
+      "get": {
+        "operationId": "revisions_api_projects__project_id__revisions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Revision"
+                  },
+                  "title": "Response Revisions Api Projects  Project Id  Revisions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Revisions"
+      }
+    },
+    "/api/projects/{project_id}/state": {
+      "get": {
+        "operationId": "get_state_api_projects__project_id__state_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoryState"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Get State"
+      }
+    },
+    "/api/projects/{project_id}/target-script": {
+      "get": {
+        "operationId": "get_target_script_api_projects__project_id__target_script_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TargetScript"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Get Target Script"
+      },
+      "post": {
+        "operationId": "render_target_script_api_projects__project_id__target_script_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TargetScript"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Render Target Script"
+      }
+    },
+    "/api/projects/{project_id}/verify": {
+      "post": {
+        "operationId": "verify_api_projects__project_id__verify_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Verify"
+      }
+    },
+    "/api/runtime-policy": {
+      "get": {
+        "operationId": "runtime_policy_api_runtime_policy_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimePolicyResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Runtime Policy"
+      }
+    },
+    "/healthz": {
+      "get": {
+        "operationId": "healthz_healthz_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Healthz Healthz Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Healthz"
+      }
+    },
+    "/readyz": {
+      "get": {
+        "operationId": "readyz_readyz_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Readyz Readyz Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Readyz"
+      }
+    }
+  }
+}

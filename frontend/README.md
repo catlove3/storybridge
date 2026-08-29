@@ -45,6 +45,7 @@ Vite 默认把 `/api` 代理到 `http://localhost:8000`。可通过 `VITE_API_TA
 ## 校验
 
 ```bash
+npm run openapi:check
 npm run typecheck
 npm run lint
 npm run build
@@ -52,6 +53,16 @@ npm run e2e
 ```
 
 Playwright 的浏览器用例会启动隔离的 mock API 和 Vite，使用临时项目目录，验证双文化点选择、不同方案、批量原子改编、最终目标语言剧本以及页面刷新恢复。CI 也执行同一用例。
+
+## OpenAPI 客户端
+
+`src/api/generated/schema.ts` 和 `openapi.json` 由 FastAPI 应用生成，业务代码通过 `openapi-fetch` 获得编译期校验。后端路由或响应模型变更后运行：
+
+```bash
+npm run openapi:generate
+```
+
+不要手工编辑生成文件。`npm run openapi:check` 会重新生成并检查 Git diff，CI 用它阻止前后端契约漂移。
 
 ## 代码边界
 
@@ -61,6 +72,6 @@ Playwright 的浏览器用例会启动隔离的 mock API 和 Vite，使用临时
 - `components/ProjectSwitcher.tsx`：项目恢复入口。
 - `components/StoryGraphView.tsx`：图形和键盘/触屏可读的关系列表。
 - `state/recovery.ts`：URL 与本地恢复标识。
-- `api/`：HTTP client 与可取消 job 轮询。
+- `api/`：OpenAPI 类型安全 HTTP client、生成 schema 与可取消 job 轮询。
 
-大图缩放、关系筛选和自动生成 OpenAPI client 仍属于后续增强项。
+大图缩放和关系筛选仍属于后续增强项。

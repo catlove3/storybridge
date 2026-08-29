@@ -1,409 +1,110 @@
-export type Level = 'high' | 'medium' | 'low'
+import type { components } from '../api/generated/schema'
 
-export type NodeKind =
-  | 'character'
-  | 'scene'
-  | 'event'
-  | 'setting'
-  | 'culture_mechanism'
-  | 'commitment'
+type Schema<Name extends keyof components['schemas']> = components['schemas'][Name]
+type WithDefaults<T, Keys extends keyof T> = Omit<T, Keys> & Required<Pick<T, Keys>>
 
-export type EdgeRelation =
-  | 'appears_in'
-  | 'motivates'
-  | 'causes'
-  | 'depends_on'
-  | 'references'
-  | 'reveals'
-  | 'conflicts_with'
-  | 'sets_up'
-  | 'pays_off'
+export type Level = Schema<'Level'>
+export type NodeKind = Schema<'NodeKind'>
+export type EdgeRelation = Schema<'EdgeRelation'>
+export type PlotFunction = Schema<'PlotFunction'>
+export type SocialFunction = Schema<'SocialFunction'>
+export type EmotionalFunction = Schema<'EmotionalFunction'>
+export type AdaptationStrategy = Schema<'AdaptationStrategy'>
+export type ImpactKind = Schema<'ImpactKind'>
+export type IssueType = Schema<'IssueType'>
+export type Severity = Schema<'Severity'>
+export type JobKind = Schema<'JobKind'>
+export type JobStatus = Schema<'JobStatus'>
 
-export type PlotFunction =
-  | 'motivation'
-  | 'constraint'
-  | 'conflict'
-  | 'revelation'
-  | 'foreshadowing'
-  | 'payoff'
-  | 'reversal'
+export type FunctionTags = WithDefaults<
+  Schema<'FunctionTags'>,
+  'plot' | 'social' | 'emotional'
+>
+export type Character = WithDefaults<Schema<'Character'>, 'goals'>
+export type Scene = WithDefaults<Schema<'Scene'>, 'character_ids' | 'event_ids'>
+export type StoryEvent = WithDefaults<Schema<'Event'>, 'scene_ids'>
+export type Setting = Schema<'Setting'>
+export type CultureMechanism = Omit<
+  WithDefaults<Schema<'CultureMechanism'>, 'surface_text' | 'scene_ids' | 'functions'>,
+  'functions'
+> & { functions: FunctionTags }
+export type Commitment = Schema<'Commitment'>
+export type Dependency = Schema<'Dependency'>
 
-export type SocialFunction =
-  | 'status'
-  | 'power'
-  | 'obligation'
-  | 'kinship'
-  | 'reputation'
-  | 'institutional_access'
-  | 'economic_security'
-
-export type EmotionalFunction =
-  | 'humiliation'
-  | 'aspiration'
-  | 'fear'
-  | 'sympathy'
-  | 'suspense'
-  | 'satisfaction'
-
-export interface FunctionTags {
-  plot: PlotFunction[]
-  social: SocialFunction[]
-  emotional: EmotionalFunction[]
-}
-
-export interface Character {
-  id: string
-  name: string
-  role: 'protagonist' | 'antagonist' | 'supporting' | 'minor'
-  description: string
-  goals: string[]
-}
-
-export interface Scene {
-  id: string
-  title: string
-  summary: string
-  text: string
-  character_ids: string[]
-  event_ids: string[]
-}
-
-export interface StoryEvent {
-  id: string
-  description: string
-  scene_ids: string[]
-}
-
-export interface Setting {
-  id: string
-  name: string
-  description: string
-}
-
-export interface CultureMechanism {
-  id: string
-  name: string
-  description: string
-  surface_text: string[]
-  scene_ids: string[]
-  friction_level: Level
-  narrative_importance: Level
-  functions: FunctionTags
-  adapted_to: string | null
-  adapted_strategy: string | null
-}
-
-export interface Commitment {
-  id: string
-  description: string
-  established_at_scene_id: string | null
-  payoff_scene_id: string | null
-  must_preserve: boolean
-}
-
-export interface Dependency {
-  source_id: string
-  target_id: string
-  relation: EdgeRelation
-  evidence: string
-  confidence: number
-}
-
-export interface StoryState {
-  version: number
-  target_market: string
-  audience: string
-  format: string
-  genre: string
-  source_language: string
-  target_language: string
-  target_locale: string
-  style_guide: string
-  terminology_map: Record<string, string>
+export type StoryState = Omit<
+  WithDefaults<
+    Schema<'StoryState'>,
+    | 'terminology_map'
+    | 'characters'
+    | 'scenes'
+    | 'events'
+    | 'settings'
+    | 'culture_mechanisms'
+    | 'commitments'
+    | 'dependencies'
+  >,
+  'characters' | 'scenes' | 'events' | 'culture_mechanisms'
+> & {
   characters: Character[]
   scenes: Scene[]
   events: StoryEvent[]
-  settings: Setting[]
   culture_mechanisms: CultureMechanism[]
-  commitments: Commitment[]
-  dependencies: Dependency[]
 }
 
-export interface TargetScene {
-  id: string
-  title: string
-  summary: string
-  text: string
-}
-
-export interface TargetScript {
-  source_state_version: number
-  source_language: string
-  target_language: string
-  target_locale: string
-  scenes: TargetScene[]
-}
-
-export interface Revision {
-  revision_id: number
-  state_version: number
-  created_at: string
-  kind: 'initial_parse' | 'friction_detection' | 'adaptation_applied' | 'repair'
-  description: string
-  changed_scene_ids: string[]
-  applied_option: Record<string, unknown> | null
-}
-
-export interface MechanismFriction {
-  id: string
-  friction_level: Level
-  narrative_importance: Level
-  functions: FunctionTags
-  drop: boolean
-}
-
-export interface FrictionDetectionResult {
-  mechanisms: MechanismFriction[]
-}
-
-export type AdaptationStrategy =
-  | 'preserve'
-  | 'functional_replacement'
-  | 'plot_reconstruction'
-
-export type ImpactKind =
-  | 'direct_reference'
-  | 'motivation'
-  | 'causal'
-  | 'payoff'
-  | 'structural'
-
-export interface AffectedScene {
-  scene_id: string
-  impact_kinds: ImpactKind[]
-  reason_path: string[]
-  evidence: string
-  path_confidence: number
-}
-
-export interface PropagationResult {
-  changed_node_id: string
-  affected_scenes: AffectedScene[]
-  related_commitment_ids: string[]
-  summary: string
-}
-
-export interface AdaptationOption {
-  option_label: string
-  strategy: AdaptationStrategy
-  title: string
-  replacement_definition: string
-  rationale: string
-  preserved_functions: string[]
-  lost_functions: string[]
-  risks: string[]
-}
-
-export interface AdaptationPlan {
-  culture_mechanism_id: string
-  original_name: string
-  based_on_version: number
-  friction_level: Level
+export type TargetScene = Schema<'TargetScene'>
+export type TargetScript = Schema<'TargetScript'>
+export type Revision = WithDefaults<
+  Schema<'Revision'>,
+  'created_at' | 'changed_scene_ids' | 'applied_option'
+>
+export type AffectedScene = WithDefaults<Schema<'AffectedScene'>, 'reason_path'>
+export type PropagationResult = Omit<
+  WithDefaults<Schema<'PropagationResult'>, 'related_commitment_ids'>,
+  'affected_scenes'
+> & { affected_scenes: AffectedScene[] }
+export type AdaptationOption = WithDefaults<
+  Schema<'AdaptationOption'>,
+  'preserved_functions' | 'lost_functions' | 'risks'
+>
+export type AdaptationPlan = Omit<Schema<'AdaptationPlan'>, 'options'> & {
   options: AdaptationOption[]
 }
-
-export interface AppliedAdaptation {
-  plan_culture_mechanism_id: string
-  state_version: number
-  operation_id: string | null
+export type AppliedAdaptation = Omit<Schema<'AppliedAdaptation'>, 'chosen_option' | 'propagation'> & {
   chosen_option: AdaptationOption
   propagation: PropagationResult
-  rewritten_scene_ids: string[]
-  notes: string
 }
+export type RewrittenScene = Scene
+export type VerificationIssue = Schema<'VerificationIssue'>
+export type CommitmentCheck = Schema<'CommitmentCheck'>
+export type VerifyReport = WithDefaults<
+  Schema<'VerifyReport'>,
+  'issues' | 'commitment_checks' | 'checked_scene_ids'
+>
 
-export interface RewrittenScene {
-  id: string
-  title: string
-  summary: string
-  text: string
-}
+export type MarketProfile = Schema<'MarketProfile'>
+export type DataPolicy = Schema<'DataPolicy'>
+export type CreateProjectRequest = Schema<'CreateProjectBody'>
+export type RuntimePolicy = Schema<'RuntimePolicyResponse'>
+export type CreateProjectResponse = Schema<'ProjectCreated'>
+export type ProjectSummary = Schema<'ProjectSummary'>
+export type ProjectDetail = Schema<'ProjectDetail'>
+export type AdaptationSelection = Schema<'AdaptationSelection'>
+export type SubmitJobRequest = Schema<'JobSubmitBody'>
+export type SubmitJobResponse = Schema<'JobSubmitted'>
 
-export type IssueType =
-  | 'stale_reference'
-  | 'fact_conflict'
-  | 'motivation_break'
-  | 'commitment_violation'
-  | 'unresolved_payoff'
-
-export type Severity = 'error' | 'warning' | 'info'
-
-export interface VerificationIssue {
-  issue_type: IssueType
-  severity: Severity
-  scene_id: string | null
-  description: string
-  evidence: string
-}
-
-export interface CommitmentCheck {
-  commitment_id: string
-  status: 'preserved' | 'violated' | 'needs_review'
-  explanation: string
-}
-
-export interface VerifyReport {
-  issues: VerificationIssue[]
-  commitment_checks: CommitmentCheck[]
-  checked_scene_ids: string[]
-  static_checks_passed: number
-  static_checks_total: number
-  commitments_verified: number
-  commitments_total: number
-  scenes_checked: number
-  scenes_total: number
-  overall_status: 'not_run' | 'pass' | 'needs_review' | 'fail'
-  consistency_score: number
-}
-
-export interface MarketProfile {
-  market: string
-  audience: string
-  format: string
-  genre: string
-  source_language?: string
-  target_language?: string
-  target_locale?: string
-  style_guide?: string
-  terminology_map?: Record<string, string>
-}
-
-export interface DataPolicy {
-  sft_opt_in: boolean
-  content_source: string
-  license: string
-  consent_note: string
-  retention_days: number
-}
-
-export interface CreateProjectRequest {
-  name: string
-  script: string
-  market: MarketProfile
-  data_policy?: DataPolicy
-}
-
-export interface RuntimePolicy {
-  authentication_required: boolean
-  provider_endpoint: string
-  model: string
-  sft_collection_enabled: boolean
-  sft_redaction_enabled: boolean
-  sft_retention_days: number
-  max_script_chars: number
-  max_project_llm_tokens: number
-}
-
-export interface CreateProjectResponse {
-  id: string
-  name: string
-}
-
-export interface ProjectSummary {
-  id: string
-  name: string
-  created_at: string
-}
-
-export interface ProjectDetail extends CreateProjectResponse {
-  market: MarketProfile
-  analyzed: boolean
-  data_policy: DataPolicy
-}
-
-export type JobKind =
-  | 'analyze'
-  | 'plan'
-  | 'apply'
-  | 'plan_batch'
-  | 'apply_batch'
-  | 'verify'
-  | 'render'
-export type JobStatus = 'queued' | 'running' | 'done' | 'failed' | 'cancelled'
-
-export interface AdaptationSelection {
-  culture_mechanism_id: string
-  option_label: 'A' | 'B' | 'C'
-}
-
-export interface SubmitJobRequest {
-  kind: JobKind
-  culture_mechanism_id?: string
-  option_label?: string
-  culture_mechanism_ids?: string[]
-  adaptations?: AdaptationSelection[]
-  based_on_version?: number
-  idempotency_key?: string
-}
-
-export interface SubmitJobResponse {
-  job_id: string
-  status: JobStatus
-}
-
-export interface Job<TResult = unknown> {
-  id: string
-  kind: JobKind
-  project_id: string
-  status: JobStatus
-  created_at: number
-  finished_at: number | null
+export type Job<TResult = unknown> = Omit<Schema<'JobResponse'>, 'result'> & {
   result: TResult | null
-  error: string | null
-  idempotency_key: string | null
-  progress: number
-  cancel_requested: boolean
 }
 
-export interface GraphNode {
-  id: string
-  kind: NodeKind
-  label: string
-}
-
-export interface GraphEdge {
-  id: string
-  source: string
-  target: string
-  relation: EdgeRelation
-  evidence: string
-  confidence: number
-}
-
-export interface StoryGraphResponse {
-  nodes: GraphNode[]
-  edges: GraphEdge[]
-}
-
-export interface SceneDiff {
-  scene_id: string
-  before: string
-  after: string
-  diff: string[]
-}
-
-export interface ApplyResult {
+export type GraphNode = Schema<'GraphNode'>
+export type GraphEdge = Schema<'GraphEdge'>
+export type StoryGraphResponse = Schema<'StoryGraphResponse'>
+export type SceneDiff = Schema<'SceneDiffResponse'>
+export type ApplyResult = Omit<Schema<'ApplyResult'>, 'applied' | 'report'> & {
   applied: AppliedAdaptation
   report: VerifyReport
-  repair_rounds: number
-  repaired_scene_ids: string[]
 }
-
-export interface BatchApplyResult {
+export type BatchApplyResult = Omit<Schema<'BatchApplyResult'>, 'applied' | 'report'> & {
   applied: AppliedAdaptation[]
   report: VerifyReport
-  repair_rounds: number
-  repaired_scene_ids: string[]
-  from_version: number
-  to_version: number
 }

@@ -459,6 +459,7 @@ function App() {
         market: {
           market: market.trim(), audience: audience.trim(), format: format.trim(), genre: genre.trim(),
           source_language: 'zh-CN', target_language: targetLanguage.trim(), target_locale: targetLocale.trim(),
+          style_guide: '',
         },
         data_policy: {
           sft_opt_in: sftOptIn,
