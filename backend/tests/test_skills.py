@@ -55,3 +55,13 @@ def test_skill_step_routes_covered_by_config():
     routes = get_config().llm.step_routes
     for skill in all_skills():
         assert skill.name in routes or get_config().llm.default_profile
+
+
+def test_plan_prompt_requires_chinese_decision_copy():
+    prompt = get_skill("plan_adaptation").user_prompt(
+        mechanism_json="{}",
+        related_context_json="{}",
+        target_market_profile={"target_language": "English"},
+    )
+    assert "必须使用简体中文" in prompt
+    assert "不要因为目标语言是 English" in prompt
