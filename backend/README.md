@@ -56,18 +56,23 @@ StoryParser
 
 ## 持久化与任务
 
-`ProjectStore` 采用同目录临时文件、flush/fsync 和原子替换。history、revision、adaptation 先写，`state.json` 最后作为提交标记；读取只暴露不高于已提交 state version 的记录。
+生产运行路径使用一个 SQLite 数据库保存 project、Story State、历史快照、revision、plan、adaptation、target script 和 job。启动时按 `schema_migrations` 自动顺序升级；每个 migration 和每次版本提交分别处于 `BEGIN IMMEDIATE` 事务中，失败会回滚。数据库启用 foreign key、WAL、`synchronous=FULL`、busy timeout，并保留单调 state version。
 
-`JobManager` 持久化 queued/running/done/failed/cancelled、progress、取消标志和幂等映射。服务重启会把中断任务收敛为失败状态，已完成结果仍可查询；TTL 清理和项目级串行已启用。当前部署仍限定单进程/单 worker。
+旧版 `projects/` 和 `jobs.json` 会在启动时一次性导入；`legacy_imports` 使导入幂等，源文件不会被修改或删除。`ProjectStore` 暂时保留为迁移兼容层和隔离单元测试后端。
+
+`JobManager` 在 SQLite 中持久化 queued/running/done/failed/cancelled、progress、取消标志和幂等映射。服务重启会把中断任务收敛为失败状态，已完成结果仍可查询；TTL 清理和项目级串行已启用。当前部署仍限定单机单 worker；多机 claim/lease 需要外部 worker 基础设施。
 
 路径默认相对 `backend/` 解析，可用以下变量隔离运行数据：
 
 ```text
+STORYBRIDGE_DATABASE_FILE
 STORYBRIDGE_PROJECTS_DIR
 STORYBRIDGE_JOBS_FILE
 STORYBRIDGE_SFT_LOG_DIR
 STORYBRIDGE_RUN_LOG_DIR
 ```
+
+升级前应备份 `.sqlite3` 及其 `-wal`/`-shm` 文件，或在服务停止后使用 SQLite 的 backup 命令。应用不提供破坏性 down migration；需要回退旧版本时，应停止写入并恢复升级前备份。旧 JSON 导入源本身也始终保留，可用于核对。
 
 ## API
 
@@ -133,8 +138,7 @@ CI 还运行前端 typecheck/lint/build 与 Playwright mock E2E。测试数量�
 
 ## 已知边界
 
-- JSON storage 和任务文件适合单机单进程；多 worker/多机需要数据库和外部 worker 协调。
-- 尚未实现 SQLite migration，因此 schema 发生破坏性变化时需要显式迁移工具。
+- SQLite 存储已满足单机生产运行；多 worker/多机 job claim、lease 与故障转移仍需要外部基础设施。
 - 尚未实现超长文本分块、跨块 entity merge 和 checkpoint；API 字符上限不是质量承诺。
 - Naturalness、文化准确性和刻板印象风险必须由盲评补齐，当前自动指标不能替代目标文化评审者。
-- OpenAPI 契约严格，但前端 client/types 仍未自动生成。
+- OpenAPI 契约会生成前端 client/types，并由 CI 检查漂移。

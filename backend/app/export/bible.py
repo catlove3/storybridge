@@ -3,7 +3,6 @@ from __future__ import annotations
 import difflib
 from pathlib import Path
 
-from app.schemas import StoryState
 from app.storage import ProjectStore
 from app.workflow.engine import StoryBridgeWorkflow
 
@@ -27,16 +26,9 @@ def changed_scenes_diff(store: ProjectStore, project_id: str) -> list[dict]:
     baseline_rev = next(
         (r for r in revisions if r.kind == "initial_parse"), revisions[0]
     )
-    baseline_path = (
-        store._dir(project_id) / "history" / f"rev{baseline_rev.revision_id:03d}.json"
-    )
-    import json
-
-    if not baseline_path.exists():
+    baseline_state = store.load_history_state(project_id, baseline_rev.state_version)
+    if baseline_state is None:
         return []
-    baseline_state = StoryState.model_validate(
-        json.loads(baseline_path.read_text(encoding="utf-8"))
-    )
 
     diffs: list[dict] = []
     for scene in state.scenes:

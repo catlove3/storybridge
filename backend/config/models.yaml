@@ -53,6 +53,9 @@ logging:
   sft_retention_days: 30
 
 storage:
+  database_file: data/storybridge.sqlite3
+  # Read-only migration sources and generated artifact location. Existing JSON
+  # projects/jobs are imported once into SQLite and left untouched.
   projects_dir: data/projects
   jobs_file: data/jobs.json
 

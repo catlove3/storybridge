@@ -155,6 +155,7 @@ E2E 会自行启动隔离的 mock API 与 Vite，等待真实 HTTP 健康检查�
 运行数据可通过以下环境变量放到独立持久卷：
 
 ```text
+STORYBRIDGE_DATABASE_FILE
 STORYBRIDGE_PROJECTS_DIR
 STORYBRIDGE_JOBS_FILE
 STORYBRIDGE_SFT_LOG_DIR
@@ -180,7 +181,7 @@ OPTIMIZATION_PLAN.md      严格评审、实施记录与后续边界
 
 ## 当前边界
 
-- 存储和任务系统面向单机单进程，不是多 worker 分布式队列。
-- 尚未完成 SQLite migration 和超长文本跨块实体合并。
+- SQLite 项目/job 存储面向单机单 worker，不是多机分布式队列；旧 JSON 会幂等导入且原文件保留。
+- 尚未完成超长文本跨块实体合并。
 - baseline 已支持统一目标语言、外部 annotations 和 run manifest，但正式结论仍需要冻结 gold set、多位评审盲评和重复真实模型实验。
 - 前端 API 路径、请求和响应类型由 FastAPI OpenAPI schema 自动生成，CI 会阻止生成产物漂移。
