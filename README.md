@@ -128,6 +128,7 @@ uv run pytest tests -q --cov=app --cov-report=term-missing --cov-fail-under=85
 cd frontend
 nvm use
 npm ci
+npm run openapi:check
 npm run typecheck
 npm run lint
 npm run build
@@ -182,4 +183,4 @@ OPTIMIZATION_PLAN.md      严格评审、实施记录与后续边界
 - 存储和任务系统面向单机单进程，不是多 worker 分布式队列。
 - 尚未完成 SQLite migration 和超长文本跨块实体合并。
 - baseline 已支持统一目标语言、外部 annotations 和 run manifest，但正式结论仍需要冻结 gold set、多位评审盲评和重复真实模型实验。
-- OpenAPI response model 已严格化，前端 client/types 尚未自动生成。
+- 前端 API 路径、请求和响应类型由 FastAPI OpenAPI schema 自动生成，CI 会阻止生成产物漂移。
