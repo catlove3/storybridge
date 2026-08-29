@@ -382,6 +382,116 @@ class SQLiteProjectStore(ProjectStore):
         except ValidationError:
             return None
 
+    def load_completed_analysis(
+        self, project_id: str, analysis_key: str
+    ) -> StoryState | None:
+        with self.database.connect() as connection:
+            row = connection.execute(
+                """
+                SELECT merged_state_json FROM analysis_runs
+                WHERE project_id = ? AND analysis_key = ? AND status = 'complete'
+                """,
+                (project_id, analysis_key),
+            ).fetchone()
+        return self._validated_state(row[0] if row is not None else None)
+
+    def load_analysis_chunk(
+        self,
+        project_id: str,
+        analysis_key: str,
+        chunk_index: int,
+        chunk_fingerprint: str,
+    ) -> StoryState | None:
+        with self.database.connect() as connection:
+            row = connection.execute(
+                """
+                SELECT state_json FROM analysis_chunks
+                WHERE project_id = ? AND analysis_key = ? AND chunk_index = ?
+                  AND chunk_fingerprint = ?
+                """,
+                (project_id, analysis_key, chunk_index, chunk_fingerprint),
+            ).fetchone()
+        if row is None:
+            return None
+        try:
+            return StoryState.model_validate_json(row[0])
+        except ValidationError:
+            return None
+
+    def save_analysis_chunk(
+        self,
+        project_id: str,
+        analysis_key: str,
+        chunk_index: int,
+        chunk_fingerprint: str,
+        total_chunks: int,
+        state: StoryState,
+    ) -> None:
+        with self.database.transaction(immediate=True) as connection:
+            connection.execute(
+                """
+                INSERT INTO analysis_runs(
+                    project_id, analysis_key, status, total_chunks,
+                    completed_chunks, merged_state_json, updated_at
+                ) VALUES (?, ?, 'running', ?, 0, NULL, ?)
+                ON CONFLICT(project_id, analysis_key) DO UPDATE SET
+                    status = 'running',
+                    total_chunks = excluded.total_chunks,
+                    updated_at = excluded.updated_at
+                """,
+                (project_id, analysis_key, total_chunks, _now_text()),
+            )
+            connection.execute(
+                """
+                INSERT INTO analysis_chunks(
+                    project_id, analysis_key, chunk_index, chunk_fingerprint,
+                    state_json, completed_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(project_id, analysis_key, chunk_index) DO UPDATE SET
+                    chunk_fingerprint = excluded.chunk_fingerprint,
+                    state_json = excluded.state_json,
+                    completed_at = excluded.completed_at
+                """,
+                (
+                    project_id,
+                    analysis_key,
+                    chunk_index,
+                    chunk_fingerprint,
+                    state.model_dump_json(),
+                    _now_text(),
+                ),
+            )
+            connection.execute(
+                """
+                UPDATE analysis_runs SET
+                    completed_chunks = (
+                        SELECT COUNT(*) FROM analysis_chunks
+                        WHERE project_id = ? AND analysis_key = ?
+                    ),
+                    updated_at = ?
+                WHERE project_id = ? AND analysis_key = ?
+                """,
+                (project_id, analysis_key, _now_text(), project_id, analysis_key),
+            )
+
+    def complete_analysis(
+        self, project_id: str, analysis_key: str, state: StoryState
+    ) -> None:
+        with self.database.transaction(immediate=True) as connection:
+            cursor = connection.execute(
+                """
+                UPDATE analysis_runs SET
+                    status = 'complete',
+                    completed_chunks = total_chunks,
+                    merged_state_json = ?,
+                    updated_at = ?
+                WHERE project_id = ? AND analysis_key = ?
+                """,
+                (state.model_dump_json(), _now_text(), project_id, analysis_key),
+            )
+            if cursor.rowcount != 1:
+                raise KeyError(f"analysis checkpoint is missing: {project_id}")
+
     def import_legacy_projects(self, source_dir: Path) -> dict[str, int]:
         if not source_dir.exists():
             return {"imported": 0, "skipped": 0}

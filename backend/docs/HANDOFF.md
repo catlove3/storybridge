@@ -70,17 +70,16 @@ mock 只替换 LLM 输出，HTTP、job、storage、Graph、Propagation、Diff、
 ## 数据与部署
 
 - 联网部署设置 `STORYBRIDGE_API_KEYS`，并确保只使用一个 Uvicorn worker。
-- 用四个 `STORYBRIDGE_*_DIR/FILE` 变量把 project、job、SFT、run metadata 放到持久卷。
+- 用 `STORYBRIDGE_DATABASE_FILE` 与各 `STORYBRIDGE_*_DIR/FILE` 变量把数据库、生成产物、旧迁移源、SFT 和 run metadata 放到持久卷。
 - 模型价格在 profile 的 `input_cost_per_million_usd` / `output_cost_per_million_usd` 中配置；未配置时成本显示为 0，但 token 仍统计。
 - `max_project_llm_tokens: 0` 表示关闭额度；默认启用硬停止，达到上限后的新 LLM 操作返回 429。
-- 删除项目会删除项目目录、任务、SFT 样本和 run metadata。导出先于删除由调用方负责。
+- 删除项目会事务删除 SQLite 项目数据与任务，并清理生成产物、SFT 样本和 run metadata。导出先于删除由调用方负责。
 
 ## 仍需后续处理
 
 1. 多进程/多机 job claim、lease 与故障恢复（单机 SQLite schema/migration 已完成）。
-2. 场景分块解析、跨块实体归一、承诺二次链接和 checkpoint。
-3. 由 OpenAPI 自动生成前端 client/types。
-4. 冻结人工 gold set、多人盲评、重复运行和统计报告。
-5. 大图缩放/筛选以及更细粒度的前端 reducer/page 拆分。
+2. 用冻结长篇样本人工复核跨块同名人物消歧、隐式伏笔链接和目标语言自然度。
+3. 冻结人工 gold set、多人盲评、重复运行和统计报告。
+4. 大图缩放/筛选以及更细粒度的前端 reducer/page 拆分。
 
 这些不是当前代码已经完成的能力，答辩和部署说明不要超范围承诺。

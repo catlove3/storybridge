@@ -63,10 +63,17 @@ class StorageConfig(BaseModel):
     jobs_file: Path = BACKEND_ROOT / "data" / "jobs.json"
 
 
+class LongTextConfig(BaseModel):
+    chunk_threshold_chars: int = Field(default=24_000, ge=1_000, le=500_000)
+    chunk_chars: int = Field(default=16_000, ge=500, le=100_000)
+    friction_batch_size: int = Field(default=20, ge=1, le=100)
+
+
 class AppConfig(BaseModel):
     llm: LLMConfig = Field(default_factory=LLMConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
     storage: StorageConfig = Field(default_factory=StorageConfig)
+    long_text: LongTextConfig = Field(default_factory=LongTextConfig)
     security: SecurityConfig = Field(default_factory=SecurityConfig)
 
 

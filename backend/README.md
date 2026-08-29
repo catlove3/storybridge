@@ -62,6 +62,14 @@ StoryParser
 
 `JobManager` 在 SQLite 中持久化 queued/running/done/failed/cancelled、progress、取消标志和幂等映射。服务重启会把中断任务收敛为失败状态，已完成结果仍可查询；TTL 清理和项目级串行已启用。当前部署仍限定单机单 worker；多机 claim/lease 需要外部 worker 基础设施。
 
+## 超长文本
+
+超过 `long_text.chunk_threshold_chars` 的剧本会优先按集/章/幕/场、Markdown 标题、内外景标记和仓库剧本的 `【S01 ...】` 标题稳定切分；单个超大场景再按段落或行边界拆分。切分结果无重叠，并强制逐字符拼回原文。
+
+每块独立结构化抽取后，程序统一重编号场景/事件，按规范化名称归并人物与设定，按名称和原文别名归并文化机制，并用描述相似度与场景先后关系链接跨块 commitment 的建立和回收。摩擦检测按机制批次运行，避免合并后再次形成超大 prompt。每块结果和最终合并状态写入 SQLite checkpoint；上游调用中断后，相同 BLAKE2b 输入指纹只重跑未完成分块。
+
+阈值在 `config/models.yaml` 的 `long_text` 段配置。跨块归并是确定性工程保护，不替代真实模型质量评测；语义含混、同名不同人或隐式伏笔仍应进入人工复核。
+
 路径默认相对 `backend/` 解析，可用以下变量隔离运行数据：
 
 ```text
@@ -139,6 +147,6 @@ CI 还运行前端 typecheck/lint/build 与 Playwright mock E2E。测试数量�
 ## 已知边界
 
 - SQLite 存储已满足单机生产运行；多 worker/多机 job claim、lease 与故障转移仍需要外部基础设施。
-- 尚未实现超长文本分块、跨块 entity merge 和 checkpoint；API 字符上限不是质量承诺。
+- 超长文本已有分块、归并和 checkpoint，但真实模型下的隐式伏笔、同名人物消歧和自然度阈值仍需人工样本验证。
 - Naturalness、文化准确性和刻板印象风险必须由盲评补齐，当前自动指标不能替代目标文化评审者。
 - OpenAPI 契约会生成前端 client/types，并由 CI 检查漂移。

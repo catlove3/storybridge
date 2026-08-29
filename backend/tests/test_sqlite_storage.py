@@ -22,7 +22,7 @@ def test_schema_upgrade_and_wal_mode(tmp_path):
     assert first_version.schema_version() == 1
 
     upgraded = SQLiteDatabase(path)
-    assert upgraded.schema_version() == 2
+    assert upgraded.schema_version() == 3
     assert upgraded.journal_mode() == "wal"
     assert upgraded.quick_check() is True
     with upgraded.connect() as connection:
@@ -32,7 +32,15 @@ def test_schema_upgrade_and_wal_mode(tmp_path):
                 "SELECT name FROM sqlite_master WHERE type = 'table'"
             )
         }
-    assert {"projects", "states", "state_history", "jobs", "legacy_imports"} <= tables
+    assert {
+        "projects",
+        "states",
+        "state_history",
+        "jobs",
+        "legacy_imports",
+        "analysis_runs",
+        "analysis_chunks",
+    } <= tables
 
 
 def test_failed_migration_rolls_back_only_that_version(tmp_path):
