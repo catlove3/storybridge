@@ -38,7 +38,11 @@ def parse_story_system() -> str:
     return SYSTEM_STORY_EXPERT + "\n输出会很长，请务必完整输出所有场景与依赖，不要省略。"
 
 
-def parse_story_user(script_text: str, target_market: str = "") -> str:
+def parse_story_user(
+    script_text: str,
+    target_market: str = "",
+    chunk_context: str = "",
+) -> str:
     return (
         "分析以下中文短剧剧本，抽取故事结构。输出 JSON，schema 如下：\n\n"
         f"{PARSE_STORY_SCHEMA}\n\n"
@@ -59,6 +63,7 @@ def parse_story_user(script_text: str, target_market: str = "") -> str:
         "   - 前置 --sets_up--> 后续回收，承诺 --depends_on--> 其依赖的机制。\n"
         "   一个机制影响多个场景时，每条依赖单独一条记录。\n"
         "6. 只输出 JSON。\n\n"
+        f"{chunk_context}\n\n"
         f"目标市场（可空）：{target_market or '未指定'}\n\n"
         "剧本全文：\n---\n"
         f"{script_text}\n---"

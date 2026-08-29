@@ -75,8 +75,16 @@ class StoryBridgeWorkflow:
     def __init__(self, store: ProjectStore, client: LLMClient, max_repair_rounds: int = 2) -> None:
         self.store = store
         self.max_repair_rounds = max_repair_rounds
-        self.parser = StoryParser(client)
-        self.detector = FrictionDetector(client)
+        long_text = get_config().long_text
+        self.parser = StoryParser(
+            client,
+            chunk_threshold_chars=long_text.chunk_threshold_chars,
+            chunk_chars=long_text.chunk_chars,
+        )
+        self.detector = FrictionDetector(
+            client,
+            batch_size=long_text.friction_batch_size,
+        )
         self.planner = AdaptationPlanner(client)
         self.rewriter = SceneRewriter(client)
         self.renderer = TargetScriptRenderer(client)
@@ -119,7 +127,12 @@ class StoryBridgeWorkflow:
         if meta is None:
             raise KeyError(f"unknown project: {project_id}")
 
-        state = await self.parser.parse(meta.script_text, target_market=meta.market.market)
+        state = await self.parser.parse(
+            meta.script_text,
+            target_market=meta.market.market,
+            project_id=project_id,
+            checkpoint_store=self.store,
+        )
         state.target_market = meta.market.market
         state.audience = meta.market.audience
         state.format = meta.market.format

@@ -115,6 +115,38 @@ MIGRATIONS: tuple[Migration, ...] = (
             """,
         ),
     ),
+    (
+        3,
+        "long text analysis checkpoints",
+        (
+            """
+            CREATE TABLE analysis_runs (
+                project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+                analysis_key TEXT NOT NULL,
+                status TEXT NOT NULL,
+                total_chunks INTEGER NOT NULL,
+                completed_chunks INTEGER NOT NULL,
+                merged_state_json TEXT,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (project_id, analysis_key)
+            )
+            """,
+            """
+            CREATE TABLE analysis_chunks (
+                project_id TEXT NOT NULL,
+                analysis_key TEXT NOT NULL,
+                chunk_index INTEGER NOT NULL,
+                chunk_fingerprint TEXT NOT NULL,
+                state_json TEXT NOT NULL,
+                completed_at TEXT NOT NULL,
+                PRIMARY KEY (project_id, analysis_key, chunk_index),
+                FOREIGN KEY (project_id, analysis_key)
+                    REFERENCES analysis_runs(project_id, analysis_key)
+                    ON DELETE CASCADE
+            )
+            """,
+        ),
+    ),
 )
 
 

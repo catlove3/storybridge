@@ -59,6 +59,11 @@ storage:
   projects_dir: data/projects
   jobs_file: data/jobs.json
 
+long_text:
+  chunk_threshold_chars: 24000
+  chunk_chars: 16000
+  friction_batch_size: 20
+
 security:
   # Set STORYBRIDGE_API_KEYS to a JSON token->owner mapping for networked use.
   # Empty means explicit single-user local-demo mode.

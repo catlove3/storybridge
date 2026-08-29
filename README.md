@@ -182,6 +182,6 @@ OPTIMIZATION_PLAN.md      严格评审、实施记录与后续边界
 ## 当前边界
 
 - SQLite 项目/job 存储面向单机单 worker，不是多机分布式队列；旧 JSON 会幂等导入且原文件保留。
-- 尚未完成超长文本跨块实体合并。
+- 超长文本已有稳定分块、跨块实体/承诺归并和 SQLite resume；真实模型质量阈值仍需冻结样本与人工评审。
 - baseline 已支持统一目标语言、外部 annotations 和 run manifest，但正式结论仍需要冻结 gold set、多位评审盲评和重复真实模型实验。
 - 前端 API 路径、请求和响应类型由 FastAPI OpenAPI schema 自动生成，CI 会阻止生成产物漂移。
