@@ -13,6 +13,7 @@ import {
 import { StoryGraphView } from './components/StoryGraphView'
 import { ProjectSwitcher } from './components/ProjectSwitcher'
 import {
+  clearProjectRecovery,
   persistJob,
   persistProject,
   recoveryJobId,
@@ -223,6 +224,7 @@ function App() {
   const [diffs, setDiffs] = useState<SceneDiff[]>([])
   const [revisions, setRevisions] = useState<Revision[]>([])
   const [targetScript, setTargetScript] = useState<TargetScript | null>(null)
+  const [projectSidebarOpen, setProjectSidebarOpen] = useState(false)
   const controllerRef = useRef<AbortController | null>(null)
 
   const sortedMechanisms = useMemo(() => sortMechanisms(storyState?.culture_mechanisms ?? []), [storyState])
@@ -316,6 +318,39 @@ function App() {
     setDiffs([])
     setRevisions([])
     setTargetScript(null)
+  }
+
+  function startNewProject() {
+    if (analyzeBusy || actionBusy) return
+    controllerRef.current?.abort()
+    controllerRef.current = null
+    setName('跨文化分析 Demo')
+    setScript('')
+    setMarket('United States')
+    setAudience('18–30')
+    setFormat('Short drama')
+    setGenre('Urban drama')
+    setTargetLanguage('English')
+    setTargetLocale('en-US')
+    setSftOptIn(false)
+    setContentSource('')
+    setContentLicense('')
+    setConsentNote('')
+    setProject(null)
+    setAnalyzeJob(null)
+    setStoryState(null)
+    setError('')
+    setPhase('idle')
+    resetAdaptation()
+    persistJob(null)
+    clearProjectRecovery()
+    setProjectSidebarOpen(false)
+    window.requestAnimationFrame(() => document.getElementById('analyze')?.scrollIntoView())
+  }
+
+  function openHistoricalProject(projectId: string) {
+    setProjectSidebarOpen(false)
+    void restoreProject(projectId)
   }
 
   async function restoreProject(projectId: string, providedController?: AbortController) {
@@ -703,16 +738,19 @@ function App() {
       <header className="topbar">
         <a className="brand" href="#top" aria-label="StoryBridge 首页"><span className="brand__mark">SB</span><span><strong>StoryBridge</strong><small>跨文化故事改编智能体</small></span></a>
         <nav className="topbar__nav" aria-label="页面导航"><a href="#analyze">故事分析</a><a href="#adapt">改编工作台</a><a href="#final-script">完整剧本</a></nav>
-        <div className="connection-note"><span className="connection-note__dot" />数据来自当前后端 /api</div>
+        <div className="topbar__actions">
+          <div className="connection-note"><span className="connection-note__dot" />数据来自当前后端 /api</div>
+          <button aria-controls="project-sidebar" aria-expanded={projectSidebarOpen} className="project-sidebar-trigger" onClick={() => setProjectSidebarOpen(true)} type="button"><span aria-hidden="true">☰</span>项目{projects.length > 0 && <small>{projects.length}</small>}</button>
+        </div>
       </header>
+
+      <ProjectSwitcher activeProjectId={project?.id ?? null} busy={analyzeBusy || actionBusy} onClose={() => setProjectSidebarOpen(false)} onNew={startNewProject} onOpen={openHistoricalProject} open={projectSidebarOpen} projects={projects} />
 
       <main id="top">
         <section className="hero-copy">
           <div><p className="eyebrow">STORY → STATE → ADAPTATION → VERIFICATION</p><h1>保住故事的作用，<br />再跨越文化的边界。</h1></div>
           <p className="hero-copy__intro">从真实 Story State 出发，沿 Dependency Graph 找到受影响场景，选择改编策略，自动改写并验证叙事承诺，最后得到可直接查看的完整改编剧本。</p>
         </section>
-
-        <ProjectSwitcher activeProjectId={project?.id ?? null} busy={analyzeBusy || actionBusy} onOpen={(projectId) => void restoreProject(projectId)} projects={projects} />
 
         <section className="workspace" id="analyze" aria-label="剧本分析工作区">
           <form className="script-form" onSubmit={handleSubmit}>
