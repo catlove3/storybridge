@@ -7,6 +7,7 @@ from httpx import ASGITransport, AsyncClient
 
 from app.llm import MockLLMClient
 from app.main import app
+from app.schemas import AdaptationPlan
 from app.storage import ProjectStore
 from app.workflow.engine import StoryBridgeWorkflow
 from tests.fixtures import sample_story_state_dict
@@ -129,6 +130,100 @@ async def test_job_flow_analyze_and_apply(client):
 
     listing = (await client.get(f"/api/projects/{project_id}/jobs")).json()
     assert len(listing) == 2
+
+
+async def test_batch_plan_and_apply_job_commit_all_selections_once(client):
+    project_id = (await client.post("/api/projects", json={"script": "abc"})).json()["id"]
+    await client.post(f"/api/projects/{project_id}/analyze")
+
+    cm01_payload = (
+        await client.post(
+            f"/api/projects/{project_id}/adaptations/plan",
+            json={"culture_mechanism_id": "CM01"},
+        )
+    ).json()
+    cm01_plan = AdaptationPlan.model_validate(cm01_payload)
+    app.state.workflow.store.save_plan(
+        project_id,
+        cm01_plan.model_copy(
+            deep=True,
+            update={"culture_mechanism_id": "CM02", "original_name": "彩礼"},
+        ),
+    )
+
+    plan_job = (
+        await client.post(
+            f"/api/projects/{project_id}/jobs",
+            json={
+                "kind": "plan_batch",
+                "culture_mechanism_ids": ["CM01", "CM02"],
+            },
+        )
+    ).json()
+    plan_payload = {"status": "queued"}
+    for _ in range(50):
+        plan_payload = (await client.get(f"/api/jobs/{plan_job['job_id']}")).json()
+        if plan_payload["status"] not in {"queued", "running"}:
+            break
+        await asyncio.sleep(0.02)
+    assert plan_payload["status"] == "done"
+    assert [item["culture_mechanism_id"] for item in plan_payload["result"]] == [
+        "CM01",
+        "CM02",
+    ]
+
+    apply_job = (
+        await client.post(
+            f"/api/projects/{project_id}/jobs",
+            json={
+                "kind": "apply_batch",
+                "adaptations": [
+                    {"culture_mechanism_id": "CM01", "option_label": "B"},
+                    {"culture_mechanism_id": "CM02", "option_label": "C"},
+                ],
+                "based_on_version": 1,
+                "idempotency_key": "apply-two-points",
+            },
+        )
+    ).json()
+    apply_payload = {"status": "queued"}
+    for _ in range(100):
+        apply_payload = (await client.get(f"/api/jobs/{apply_job['job_id']}")).json()
+        if apply_payload["status"] not in {"queued", "running"}:
+            break
+        await asyncio.sleep(0.02)
+
+    assert apply_payload["status"] == "done"
+    assert len(apply_payload["result"]["applied"]) == 2
+    assert apply_payload["result"]["from_version"] == 1
+    assert apply_payload["result"]["to_version"] == 2
+    state = (await client.get(f"/api/projects/{project_id}/state")).json()
+    assert state["version"] == 2
+    revisions = (await client.get(f"/api/projects/{project_id}/revisions")).json()
+    assert [item["state_version"] for item in revisions] == [1, 2]
+
+
+async def test_batch_jobs_reject_duplicate_mechanisms(client):
+    project_id = (await client.post("/api/projects", json={"script": "abc"})).json()["id"]
+    duplicate_plan = await client.post(
+        f"/api/projects/{project_id}/jobs",
+        json={
+            "kind": "plan_batch",
+            "culture_mechanism_ids": ["CM01", "CM01"],
+        },
+    )
+    duplicate_apply = await client.post(
+        f"/api/projects/{project_id}/jobs",
+        json={
+            "kind": "apply_batch",
+            "adaptations": [
+                {"culture_mechanism_id": "CM01", "option_label": "A"},
+                {"culture_mechanism_id": "CM01", "option_label": "B"},
+            ],
+        },
+    )
+    assert duplicate_plan.status_code == 422
+    assert duplicate_apply.status_code == 422
 
 
 async def test_job_unknown_kind(client):
