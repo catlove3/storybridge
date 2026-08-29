@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import asyncio
 from collections import defaultdict
+from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, model_validator
 
 from app.config import get_config
 from app.llm import LLMClient
@@ -31,6 +32,31 @@ class ApplyResult(BaseModel):
     report: VerifyReport
     repair_rounds: int
     repaired_scene_ids: list[str]
+
+
+class AdaptationSelection(BaseModel):
+    culture_mechanism_id: str = Field(pattern=r"^CM\d+$")
+    option_label: Literal["A", "B", "C"]
+
+
+class BatchApplyResult(BaseModel):
+    applied: list[AppliedAdaptation]
+    report: VerifyReport
+    repair_rounds: int
+    repaired_scene_ids: list[str]
+    from_version: int
+    to_version: int
+
+
+class AdaptationBatch(BaseModel):
+    adaptations: list[AdaptationSelection] = Field(min_length=1, max_length=20)
+
+    @model_validator(mode="after")
+    def _unique_mechanisms(self) -> AdaptationBatch:
+        ids = [item.culture_mechanism_id for item in self.adaptations]
+        if len(ids) != len(set(ids)):
+            raise ValueError("each culture mechanism can only appear once in a batch")
+        return self
 
 
 class StateVersionConflict(RuntimeError):
@@ -121,6 +147,28 @@ class StoryBridgeWorkflow:
             with project_data_context(project_id, meta.data_policy):
                 return await self._plan_locked(project_id, state, mechanism_id)
 
+    async def plan_many(
+        self, project_id: str, mechanism_ids: list[str]
+    ) -> list[AdaptationPlan]:
+        unique_ids = list(dict.fromkeys(mechanism_ids))
+        if not unique_ids:
+            raise ValueError("at least one culture mechanism is required")
+        if len(unique_ids) != len(mechanism_ids):
+            raise ValueError("culture mechanism ids must be unique")
+        if len(unique_ids) > 20:
+            raise ValueError("at most 20 culture mechanisms can be planned together")
+
+        async with self._project_locks[project_id]:
+            state = self.require_state(project_id)
+            meta = self.store.load_meta(project_id)
+            if meta is None:
+                raise KeyError(f"unknown project: {project_id}")
+            with project_data_context(project_id, meta.data_policy):
+                return [
+                    await self._plan_locked(project_id, state, mechanism_id)
+                    for mechanism_id in unique_ids
+                ]
+
     async def _plan_locked(
         self,
         project_id: str,
@@ -164,6 +212,28 @@ class StoryBridgeWorkflow:
                     operation_id,
                 )
 
+    async def apply_adaptations(
+        self,
+        project_id: str,
+        adaptations: list[AdaptationSelection],
+        auto_verify_and_repair: bool = True,
+        based_on_version: int | None = None,
+        operation_id: str | None = None,
+    ) -> BatchApplyResult:
+        batch = AdaptationBatch(adaptations=adaptations)
+        async with self._project_locks[project_id]:
+            meta = self.store.load_meta(project_id)
+            if meta is None:
+                raise KeyError(f"unknown project: {project_id}")
+            with project_data_context(project_id, meta.data_policy):
+                return await self._apply_many_locked(
+                    project_id,
+                    batch.adaptations,
+                    auto_verify_and_repair,
+                    based_on_version,
+                    operation_id,
+                )
+
     async def _apply_locked(
         self,
         project_id: str,
@@ -173,6 +243,33 @@ class StoryBridgeWorkflow:
         based_on_version: int | None,
         operation_id: str | None,
     ) -> ApplyResult:
+        batch_result = await self._apply_many_locked(
+            project_id,
+            [
+                AdaptationSelection.model_construct(
+                    culture_mechanism_id=mechanism_id,
+                    option_label=option_label,
+                )
+            ],
+            auto_verify_and_repair,
+            based_on_version,
+            operation_id,
+        )
+        return ApplyResult(
+            applied=batch_result.applied[0],
+            report=batch_result.report,
+            repair_rounds=batch_result.repair_rounds,
+            repaired_scene_ids=batch_result.repaired_scene_ids,
+        )
+
+    async def _apply_many_locked(
+        self,
+        project_id: str,
+        adaptations: list[AdaptationSelection],
+        auto_verify_and_repair: bool,
+        based_on_version: int | None,
+        operation_id: str | None,
+    ) -> BatchApplyResult:
         current_state = self.require_state(project_id)
         if operation_id and any(
             applied.operation_id == operation_id
@@ -182,30 +279,56 @@ class StoryBridgeWorkflow:
         if based_on_version is not None and based_on_version != current_state.version:
             raise StateVersionConflict(based_on_version, current_state.version)
 
-        plan = await self._plan_locked(project_id, current_state, mechanism_id)
-        if plan.based_on_version != current_state.version:
-            raise StateVersionConflict(plan.based_on_version, current_state.version)
-        option = plan.option_by_label(option_label)
-        if option is None:
-            raise KeyError(
-                f"option '{option_label}' not found for {mechanism_id}; "
-                f"available: {[o.option_label for o in plan.options]}"
+        plans_and_options = []
+        for selection in adaptations:
+            plan = await self._plan_locked(
+                project_id, current_state, selection.culture_mechanism_id
             )
+            if plan.based_on_version != current_state.version:
+                raise StateVersionConflict(plan.based_on_version, current_state.version)
+            option = plan.option_by_label(selection.option_label)
+            if option is None:
+                raise KeyError(
+                    f"option '{selection.option_label}' not found for "
+                    f"{selection.culture_mechanism_id}; "
+                    f"available: {[o.option_label for o in plan.options]}"
+                )
+            plans_and_options.append((selection, plan, option))
 
         candidate = current_state.model_copy(deep=True)
-        propagation = SceneRewriter.build_propagation(candidate, mechanism_id)
-        applied = await self.rewriter.apply(candidate, mechanism_id, option, propagation)
-        applied.operation_id = operation_id
+        applied_items: list[AppliedAdaptation] = []
+        for selection, _plan, option in plans_and_options:
+            propagation = SceneRewriter.build_propagation(
+                candidate, selection.culture_mechanism_id
+            )
+            applied = await self.rewriter.apply(
+                candidate,
+                selection.culture_mechanism_id,
+                option,
+                propagation,
+            )
+            applied.operation_id = operation_id
+            applied_items.append(applied)
 
         report = VerifyReport()
         repaired_scene_ids: list[str] = []
         rounds = 0
 
         if auto_verify_and_repair:
-            summary = f"{plan.original_name} -> {option.replacement_definition}"
+            summary = "; ".join(
+                f"{plan.original_name} -> {option.replacement_definition}"
+                for _selection, plan, option in plans_and_options
+            )
+            rewritten_scene_ids = list(
+                dict.fromkeys(
+                    scene_id
+                    for applied in applied_items
+                    for scene_id in applied.rewritten_scene_ids
+                )
+            )
             report = await self.verifier.verify(
                 candidate,
-                changed_scene_ids=applied.rewritten_scene_ids,
+                changed_scene_ids=rewritten_scene_ids,
                 applied_adaptations_summary=summary,
             )
 
@@ -216,35 +339,61 @@ class StoryBridgeWorkflow:
                 if not issues:
                     break
                 rounds += 1
-                brief = f"{plan.original_name} -> {option.replacement_definition}"
-                repaired_scene_ids.extend(await self.rewriter.repair(candidate, issues, brief))
+                repaired_scene_ids.extend(
+                    await self.rewriter.repair(candidate, issues, summary)
+                )
                 report = await self.verifier.verify(
                     candidate,
-                    changed_scene_ids=repaired_scene_ids,
+                    changed_scene_ids=list(
+                        dict.fromkeys([*rewritten_scene_ids, *repaired_scene_ids])
+                    ),
                     applied_adaptations_summary=summary,
                 )
 
         changed_scene_ids = list(
-            dict.fromkeys([*applied.rewritten_scene_ids, *repaired_scene_ids])
+            dict.fromkeys(
+                [
+                    *(
+                        scene_id
+                        for applied in applied_items
+                        for scene_id in applied.rewritten_scene_ids
+                    ),
+                    *repaired_scene_ids,
+                ]
+            )
         )
         self.store.save_state(
             project_id,
             candidate,
             kind="adaptation_applied",
             description=(
-                f"applied option {option.option_label} ({option.strategy.value}) "
-                f"for {mechanism_id}: {option.title}; repair rounds={rounds}"
+                f"applied {len(applied_items)} adaptation(s): "
+                + ", ".join(
+                    f"{selection.culture_mechanism_id}/{option.option_label}"
+                    for selection, _plan, option in plans_and_options
+                )
+                + f"; repair rounds={rounds}"
             ),
             changed_scene_ids=changed_scene_ids,
-            applied_option=option.model_dump(mode="json"),
-            applied=applied,
+            applied_option={
+                "adaptations": [
+                    {
+                        "culture_mechanism_id": selection.culture_mechanism_id,
+                        "option": option.model_dump(mode="json"),
+                    }
+                    for selection, _plan, option in plans_and_options
+                ]
+            },
+            applied=applied_items,
         )
 
-        return ApplyResult(
-            applied=applied,
+        return BatchApplyResult(
+            applied=applied_items,
             report=report,
             repair_rounds=rounds,
             repaired_scene_ids=repaired_scene_ids,
+            from_version=current_state.version,
+            to_version=candidate.version,
         )
 
     async def verify(self, project_id: str) -> VerifyReport:

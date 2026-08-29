@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from app.storage import MarketProfile, ProjectStore
-from app.workflow.engine import StoryBridgeWorkflow
+from app.workflow.engine import AdaptationSelection, StoryBridgeWorkflow
 
 
 async def test_full_pipeline(tmp_path, mock_client):
@@ -73,6 +73,94 @@ async def test_propagate_endpoint_logic(tmp_path, mock_client):
         raise AssertionError("should have raised KeyError")
     except KeyError:
         pass
+
+
+async def test_batch_apply_iterates_on_one_candidate_and_commits_once(
+    tmp_path, mock_client
+):
+    store = ProjectStore(tmp_path / "projects")
+    workflow = StoryBridgeWorkflow(store, mock_client)
+    meta = await workflow.create_project("batch", "script", MarketProfile())
+    initial = await workflow.analyze(meta.id)
+
+    cm01_plan = await workflow.plan(meta.id, "CM01")
+    cm02_plan = cm01_plan.model_copy(
+        deep=True,
+        update={"culture_mechanism_id": "CM02", "original_name": "彩礼"},
+    )
+    store.save_plan(meta.id, cm02_plan)
+
+    result = await workflow.apply_adaptations(
+        meta.id,
+        [
+            AdaptationSelection(culture_mechanism_id="CM01", option_label="B"),
+            AdaptationSelection(culture_mechanism_id="CM02", option_label="C"),
+        ],
+        auto_verify_and_repair=False,
+        based_on_version=initial.version,
+        operation_id="batch-once",
+    )
+
+    assert [item.plan_culture_mechanism_id for item in result.applied] == [
+        "CM01",
+        "CM02",
+    ]
+    assert result.from_version == 1
+    assert result.to_version == 2
+    assert all(item.operation_id == "batch-once" for item in result.applied)
+    assert all(item.state_version == 2 for item in result.applied)
+    assert [revision.state_version for revision in store.list_revisions(meta.id)] == [1, 2]
+    assert len(store.load_applied(meta.id)) == 2
+
+    final_state = workflow.require_state(meta.id)
+    adapted = {item.id: item.adapted_to for item in final_state.culture_mechanisms}
+    assert adapted["CM01"] == cm01_plan.option_by_label("B").replacement_definition
+    assert adapted["CM02"] == cm02_plan.option_by_label("C").replacement_definition
+
+    cm02_s05_call = next(
+        call
+        for call in mock_client.calls["rewrite_scene"]
+        if '"id": "S05"' in call.user_prompt and "彩礼" in call.user_prompt
+    )
+    assert "[REWRITTEN S05]" in cm02_s05_call.user_prompt
+
+
+async def test_batch_apply_failure_does_not_commit_partial_state(tmp_path, mock_client):
+    store = ProjectStore(tmp_path / "projects")
+    workflow = StoryBridgeWorkflow(store, mock_client)
+    meta = await workflow.create_project("atomic-batch", "script", MarketProfile())
+    await workflow.analyze(meta.id)
+    cm01_plan = await workflow.plan(meta.id, "CM01")
+    store.save_plan(
+        meta.id,
+        cm01_plan.model_copy(
+            deep=True,
+            update={"culture_mechanism_id": "CM02", "original_name": "彩礼"},
+        ),
+    )
+    original_handler = mock_client.handler
+
+    def fail_second_mechanism(request):
+        if request.step == "rewrite_scene" and "彩礼" in request.user_prompt:
+            raise RuntimeError("second adaptation failed")
+        return original_handler(request)
+
+    mock_client.handler = fail_second_mechanism
+    with pytest.raises(RuntimeError, match="second adaptation failed"):
+        await workflow.apply_adaptations(
+            meta.id,
+            [
+                AdaptationSelection(culture_mechanism_id="CM01", option_label="B"),
+                AdaptationSelection(culture_mechanism_id="CM02", option_label="B"),
+            ],
+            auto_verify_and_repair=False,
+        )
+
+    state = workflow.require_state(meta.id)
+    assert state.version == 1
+    assert all(item.adapted_to is None for item in state.culture_mechanisms)
+    assert store.load_applied(meta.id) == []
+    assert len(store.list_revisions(meta.id)) == 1
 
 
 async def test_target_script_is_version_bound_and_regenerated_after_apply(

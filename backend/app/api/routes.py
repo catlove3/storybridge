@@ -37,7 +37,9 @@ from app.schemas import (
 )
 from app.storage import MarketProfile
 from app.workflow.engine import (
+    AdaptationSelection,
     ApplyResult,
+    BatchApplyResult,
     DuplicateOperation,
     StateVersionConflict,
     StoryBridgeWorkflow,
@@ -131,6 +133,35 @@ class ApplyBody(BaseModel):
     auto_verify_and_repair: bool = True
     based_on_version: int | None = Field(default=None, ge=1)
     operation_id: str | None = Field(default=None, min_length=1, max_length=200)
+
+
+class BatchPlanBody(BaseModel):
+    culture_mechanism_ids: list[str] = Field(min_length=1, max_length=20)
+
+    @model_validator(mode="after")
+    def _validate_ids(self) -> BatchPlanBody:
+        if any(
+            not item.startswith("CM") or not item[2:].isdigit()
+            for item in self.culture_mechanism_ids
+        ):
+            raise ValueError("culture mechanism ids must match CM followed by digits")
+        if len(self.culture_mechanism_ids) != len(set(self.culture_mechanism_ids)):
+            raise ValueError("culture mechanism ids must be unique")
+        return self
+
+
+class BatchApplyBody(BaseModel):
+    adaptations: list[AdaptationSelection] = Field(min_length=1, max_length=20)
+    auto_verify_and_repair: bool = True
+    based_on_version: int | None = Field(default=None, ge=1)
+    operation_id: str | None = Field(default=None, min_length=1, max_length=200)
+
+    @model_validator(mode="after")
+    def _validate_unique_mechanisms(self) -> BatchApplyBody:
+        ids = [item.culture_mechanism_id for item in self.adaptations]
+        if len(ids) != len(set(ids)):
+            raise ValueError("each culture mechanism can only appear once in a batch")
+        return self
 
 
 @router.get("/runtime-policy", response_model=RuntimePolicyResponse)
@@ -288,6 +319,25 @@ async def create_plan(project_id: str, body: PlanBody, request: Request):
     return plan.model_dump()
 
 
+@router.post(
+    "/projects/{project_id}/adaptations/plan-batch",
+    response_model=list[AdaptationPlan],
+)
+async def create_batch_plan(project_id: str, body: BatchPlanBody, request: Request):
+    workflow = _workflow(request)
+    _project_or_404(workflow, project_id, request)
+    _enforce_llm_budget(workflow, project_id)
+    try:
+        plans = await workflow.plan_many(project_id, body.culture_mechanism_ids)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:
+        raise _upstream_failure("batch planning", project_id, exc) from exc
+    return [plan.model_dump() for plan in plans]
+
+
 @router.post("/projects/{project_id}/adaptations/apply", response_model=ApplyResult)
 async def apply_adaptation(project_id: str, body: ApplyBody, request: Request):
     workflow = _workflow(request)
@@ -308,6 +358,35 @@ async def apply_adaptation(project_id: str, body: ApplyBody, request: Request):
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:
         raise _upstream_failure("apply", project_id, exc) from exc
+    return result.model_dump()
+
+
+@router.post(
+    "/projects/{project_id}/adaptations/apply-batch",
+    response_model=BatchApplyResult,
+)
+async def apply_adaptation_batch(
+    project_id: str, body: BatchApplyBody, request: Request
+):
+    workflow = _workflow(request)
+    _project_or_404(workflow, project_id, request)
+    _enforce_llm_budget(workflow, project_id)
+    try:
+        result = await workflow.apply_adaptations(
+            project_id,
+            body.adaptations,
+            auto_verify_and_repair=body.auto_verify_and_repair,
+            based_on_version=body.based_on_version,
+            operation_id=body.operation_id,
+        )
+    except (StateVersionConflict, DuplicateOperation) as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:
+        raise _upstream_failure("batch apply", project_id, exc) from exc
     return result.model_dump()
 
 
@@ -441,6 +520,12 @@ class JobSubmitBody(BaseModel):
     kind: JobKind
     culture_mechanism_id: str | None = Field(default=None, pattern=r"^CM\d+$")
     option_label: Literal["A", "B", "C"] | None = None
+    culture_mechanism_ids: list[str] | None = Field(
+        default=None, min_length=1, max_length=20
+    )
+    adaptations: list[AdaptationSelection] | None = Field(
+        default=None, min_length=1, max_length=20
+    )
     based_on_version: int | None = Field(default=None, ge=1)
     idempotency_key: str | None = Field(default=None, min_length=1, max_length=200)
 
@@ -452,6 +537,18 @@ class JobSubmitBody(BaseModel):
             raise ValueError("apply job needs culture_mechanism_id and option_label")
         if self.kind == JobKind.PLAN and not self.culture_mechanism_id:
             raise ValueError("plan job needs culture_mechanism_id")
+        if self.kind == JobKind.PLAN_BATCH and not self.culture_mechanism_ids:
+            raise ValueError("plan_batch job needs culture_mechanism_ids")
+        if self.kind == JobKind.APPLY_BATCH and not self.adaptations:
+            raise ValueError("apply_batch job needs adaptations")
+        if self.culture_mechanism_ids and len(self.culture_mechanism_ids) != len(
+            set(self.culture_mechanism_ids)
+        ):
+            raise ValueError("culture mechanism ids must be unique")
+        if self.adaptations:
+            ids = [item.culture_mechanism_id for item in self.adaptations]
+            if len(ids) != len(set(ids)):
+                raise ValueError("each culture mechanism can only appear once in a batch")
         return self
 
 
@@ -509,6 +606,30 @@ async def submit_job(project_id: str, body: JobSubmitBody, request: Request):
             ),
             idempotency_key=body.idempotency_key,
         )
+    elif body.kind == JobKind.APPLY_BATCH:
+        assert body.adaptations
+        if body.based_on_version is not None:
+            current_version = workflow.require_state(project_id).version
+            if body.based_on_version != current_version:
+                raise HTTPException(
+                    status_code=409,
+                    detail=(
+                        f"state version conflict: expected {body.based_on_version}, "
+                        f"current version is {current_version}"
+                    ),
+                )
+        job = _submit(
+            jobs,
+            "apply_batch",
+            project_id,
+            lambda: workflow.apply_adaptations(
+                project_id,
+                body.adaptations or [],
+                based_on_version=body.based_on_version,
+                operation_id=body.idempotency_key,
+            ),
+            idempotency_key=body.idempotency_key,
+        )
     elif body.kind == JobKind.VERIFY:
         job = _submit(
             jobs,
@@ -524,6 +645,15 @@ async def submit_job(project_id: str, body: JobSubmitBody, request: Request):
             "plan",
             project_id,
             lambda: workflow.plan(project_id, body.culture_mechanism_id),
+            idempotency_key=body.idempotency_key,
+        )
+    elif body.kind == JobKind.PLAN_BATCH:
+        assert body.culture_mechanism_ids
+        job = _submit(
+            jobs,
+            "plan_batch",
+            project_id,
+            lambda: workflow.plan_many(project_id, body.culture_mechanism_ids or []),
             idempotency_key=body.idempotency_key,
         )
     elif body.kind == JobKind.RENDER:
