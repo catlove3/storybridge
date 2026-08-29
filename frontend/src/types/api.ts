@@ -321,13 +321,27 @@ export interface ProjectDetail extends CreateProjectResponse {
   data_policy: DataPolicy
 }
 
-export type JobKind = 'analyze' | 'plan' | 'apply' | 'verify' | 'render'
+export type JobKind =
+  | 'analyze'
+  | 'plan'
+  | 'apply'
+  | 'plan_batch'
+  | 'apply_batch'
+  | 'verify'
+  | 'render'
 export type JobStatus = 'queued' | 'running' | 'done' | 'failed' | 'cancelled'
+
+export interface AdaptationSelection {
+  culture_mechanism_id: string
+  option_label: 'A' | 'B' | 'C'
+}
 
 export interface SubmitJobRequest {
   kind: JobKind
   culture_mechanism_id?: string
   option_label?: string
+  culture_mechanism_ids?: string[]
+  adaptations?: AdaptationSelection[]
   based_on_version?: number
   idempotency_key?: string
 }
@@ -383,4 +397,13 @@ export interface ApplyResult {
   report: VerifyReport
   repair_rounds: number
   repaired_scene_ids: string[]
+}
+
+export interface BatchApplyResult {
+  applied: AppliedAdaptation[]
+  report: VerifyReport
+  repair_rounds: number
+  repaired_scene_ids: string[]
+  from_version: number
+  to_version: number
 }

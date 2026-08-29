@@ -196,7 +196,7 @@ class ProjectStore:
         description: str = "",
         changed_scene_ids: list[str] | None = None,
         applied_option: dict | None = None,
-        applied: AppliedAdaptation | None = None,
+        applied: AppliedAdaptation | list[AppliedAdaptation] | None = None,
     ) -> Revision:
         current_state = self.load_state(project_id)
         current_version = current_state.version if current_state is not None else 0
@@ -222,9 +222,11 @@ class ProjectStore:
             [r.model_dump(mode="json") for r in [*current_revisions, revision]],
         )
         if applied is not None:
-            applied.state_version = next_version
+            applied_items = applied if isinstance(applied, list) else [applied]
+            for item in applied_items:
+                item.state_version = next_version
             existing = self.load_applied(project_id)
-            existing.append(applied)
+            existing.extend(applied_items)
             self._write_json(
                 self._dir(project_id) / "adaptations.json",
                 [item.model_dump(mode="json") for item in existing],

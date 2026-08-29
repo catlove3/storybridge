@@ -18,13 +18,15 @@ from app.schemas import (
     VerifyReport,
 )
 from app.storage import MarketProfile
-from app.workflow.engine import ApplyResult
+from app.workflow.engine import ApplyResult, BatchApplyResult
 
 
 class JobKind(StrEnum):
     ANALYZE = "analyze"
     PLAN = "plan"
     APPLY = "apply"
+    PLAN_BATCH = "plan_batch"
+    APPLY_BATCH = "apply_batch"
     VERIFY = "verify"
     RENDER = "render"
 
@@ -147,6 +149,7 @@ class StateSummaryResponse(BaseModel):
 
 __all__ = [
     "ApplyResult",
+    "BatchApplyResult",
     "BibleResponse",
     "DataExportResponse",
     "DeleteProjectResponse",

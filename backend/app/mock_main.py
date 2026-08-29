@@ -15,6 +15,9 @@ from app.workflow.engine import build_default_workflow
 async def lifespan(app: FastAPI):
     mock = MockLLMClient()
     _load_default_mock_fixtures(mock)
+    # The browser demo can select any number of mechanisms. Let the mock handler
+    # adapt the canned plan identity to the mechanism requested by each batch item.
+    mock.responses.pop("plan_adaptation", None)
     app.state.workflow = build_default_workflow(mock)
     app.state.jobs = JobManager()
     try:

@@ -3,7 +3,7 @@ import type { GraphNode, NodeKind, StoryGraphResponse } from '../types/api'
 
 interface StoryGraphViewProps {
   graph: StoryGraphResponse
-  focusId: string
+  focusIds: Set<string>
   affectedIds: Set<string>
 }
 
@@ -37,7 +37,7 @@ function shortLabel(label: string) {
   return label.length > 15 ? `${label.slice(0, 14)}…` : label
 }
 
-export function StoryGraphView({ graph, focusId, affectedIds }: StoryGraphViewProps) {
+export function StoryGraphView({ graph, focusIds, affectedIds }: StoryGraphViewProps) {
   const layout = useMemo(() => {
     const grouped = columns.map(() => [] as GraphNode[])
     graph.nodes.forEach((node) => grouped[columnIndex(node)].push(node))
@@ -61,7 +61,7 @@ export function StoryGraphView({ graph, focusId, affectedIds }: StoryGraphViewPr
   return (
     <div className="story-graph">
       <div className="graph-legend" aria-label="图谱图例">
-        <span><i className="legend-focus" />当前机制</span>
+        <span><i className="legend-focus" />已选机制</span>
         <span><i className="legend-affected" />传播路径 / 受影响节点</span>
         <span><i className="legend-default" />上下文节点</span>
       </div>
@@ -116,7 +116,7 @@ export function StoryGraphView({ graph, focusId, affectedIds }: StoryGraphViewPr
             {graph.nodes.map((node) => {
               const point = layout.positions.get(node.id)
               if (!point) return null
-              const isFocus = node.id === focusId
+              const isFocus = focusIds.has(node.id)
               const isAffected = affectedIds.has(node.id)
               const className = isFocus ? 'is-focus' : isAffected ? 'is-affected' : ''
               return (
