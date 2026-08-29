@@ -1,6 +1,5 @@
 import type { CSSProperties } from 'react'
 import type {
-  ApplyResult,
   Revision,
   SceneDiff,
   StoryState,
@@ -27,7 +26,7 @@ export function DiffPanel({ diffs }: { diffs: SceneDiff[] }) {
 
 export function VerificationPanel({ report, applyResult, disabled, onVerify }: {
   report: VerifyReport
-  applyResult: ApplyResult
+  applyResult: { repair_rounds: number; repaired_scene_ids: string[] }
   disabled: boolean
   onVerify: () => void
 }) {
