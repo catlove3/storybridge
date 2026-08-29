@@ -116,6 +116,31 @@ async def test_plan_option_label_lowercase(tmp_path):
     assert result.applied.chosen_option.option_label == "B"
 
 
+async def test_plan_retries_when_decision_copy_is_english(tmp_path):
+    import copy
+
+    wf, client = _wf(tmp_path)
+    meta = await wf.create_project("plan-language", "script", MarketProfile())
+    await wf.analyze(meta.id)
+
+    chinese_plan = copy.deepcopy(client.responses["plan_adaptation"])
+    assert isinstance(chinese_plan, dict)
+    english_plan = copy.deepcopy(chinese_plan)
+    for option in english_plan["options"]:
+        option["title"] = "English title"
+        option["replacement_definition"] = "A target-market replacement"
+        option["rationale"] = "This keeps the narrative function"
+        option["risks"] = ["May require dialogue changes"]
+    client.set_response("plan_adaptation", [english_plan, chinese_plan])
+
+    plan = await wf.plan(meta.id, "CM01")
+
+    assert len(client.calls["plan_adaptation"]) == 2
+    assert plan.options[0].title == chinese_plan["options"][0]["title"]
+    correction = client.calls["plan_adaptation"][1].history[-1].content
+    assert "must contain Simplified Chinese" in correction
+
+
 async def test_plan_missing_option_label_b(tmp_path):
     plan = {
         "culture_mechanism_id": "CM01",
