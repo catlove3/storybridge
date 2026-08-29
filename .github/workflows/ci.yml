@@ -16,6 +16,10 @@ jobs:
         with:
           python-version: "3.12"
       - run: uv sync --frozen --extra dev
+      - name: Verify requirements.txt matches uv.lock
+        run: |
+          uv export --frozen --extra dev --no-hashes --no-annotate --no-header --output-file /tmp/storybridge-requirements.txt
+          diff -u ../requirements.txt /tmp/storybridge-requirements.txt
       - run: uv run ruff check app tests
       - run: uv run pytest tests -q --cov=app --cov-report=term-missing --cov-fail-under=85
 
@@ -38,9 +42,7 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
@@ -51,7 +53,16 @@ jobs:
           node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - run: uv sync --directory ../backend --frozen --extra dev
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npm run e2e
+      - name: Install backend
+        run: uv sync --directory backend --frozen --extra dev
+      - name: Install frontend
+        working-directory: frontend
+        run: npm ci
+      - name: Install Chromium
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+      - name: Run browser workflow
+        working-directory: frontend
+        env:
+          STORYBRIDGE_E2E_PYTHON: ${{ github.workspace }}/backend/.venv/bin/python
+        run: npm run e2e
