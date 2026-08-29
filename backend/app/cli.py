@@ -18,6 +18,22 @@ def _rewrite_echo_handler(request) -> str:
     import json as _json
     import re
 
+    if request.step == "plan_adaptation":
+        fixture_path = (
+            Path(__file__).resolve().parent.parent
+            / "tests"
+            / "fixtures"
+            / "plan_adaptation.json"
+        )
+        payload = _json.loads(fixture_path.read_text(encoding="utf-8"))
+        mechanism_id = re.search(r'"id": "(CM\d+)"', request.user_prompt)
+        mechanism_name = re.search(r'"name": "([^"]+)"', request.user_prompt)
+        if mechanism_id:
+            payload["culture_mechanism_id"] = mechanism_id.group(1)
+        if mechanism_name:
+            payload["original_name"] = mechanism_name.group(1)
+        return _json.dumps(payload, ensure_ascii=False)
+
     if request.step == "render_target_script":
         scene_ids = list(dict.fromkeys(re.findall(r'"id": "(S\d+)"', request.user_prompt)))
         target_match = re.search(r"目标语言：([^\n]+)", request.user_prompt)

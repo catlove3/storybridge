@@ -21,6 +21,7 @@ import {
 import type {
   AdaptationPlan,
   ApplyResult,
+  BatchApplyResult,
   CultureMechanism,
   EmotionalFunction,
   Job,
@@ -74,9 +75,9 @@ const phaseIndex: Record<AnalyzePhase, number> = {
 
 const actionCopy: Record<AdaptationAction, string> = {
   idle: '',
-  planning: 'Agent 正在生成 A / B / C 改编方案…',
-  'loading-impact': '正在计算传播范围并读取聚焦图谱…',
-  applying: '正在改写受影响场景，并执行 Verify / Repair…',
+  planning: 'Agent 正在为每个已选文化点生成 A / B / C 方案…',
+  'loading-impact': '正在把当前改编点的传播范围加入批次…',
+  applying: 'Agent 正在逐点迭代改写，随后统一执行 Verify / Repair…',
   verifying: '正在重新验证最新 Story State…',
   rendering: '正在将冻结的结构稿渲染为目标语言剧本…',
 }
@@ -181,8 +182,8 @@ function FrictionCard({ mechanism, order, selected, disabled, onSelect }: Fricti
       </div>
 
       <div className="friction-card__selection">
-        <span>{selected ? '当前改编对象' : '点击选择并进入改编'}</span>
-        <span aria-hidden="true">{selected ? '✓' : '→'}</span>
+        <span>{selected ? '已加入本次改编' : '点击加入本次改编'}</span>
+        <span aria-hidden="true">{selected ? '✓' : '+'}</span>
       </div>
     </article>
   )
@@ -208,16 +209,16 @@ function App() {
   const [analyzeJob, setAnalyzeJob] = useState<Job | null>(null)
   const [storyState, setStoryState] = useState<StoryState | null>(null)
   const [error, setError] = useState('')
-  const [selectedMechanismId, setSelectedMechanismId] = useState<string | null>(null)
-  const [plan, setPlan] = useState<AdaptationPlan | null>(null)
-  const [selectedOptionLabel, setSelectedOptionLabel] = useState<string | null>(null)
-  const [propagation, setPropagation] = useState<PropagationResult | null>(null)
+  const [selectedMechanismIds, setSelectedMechanismIds] = useState<string[]>([])
+  const [plans, setPlans] = useState<AdaptationPlan[]>([])
+  const [selectedOptionLabels, setSelectedOptionLabels] = useState<Record<string, string>>({})
+  const [propagations, setPropagations] = useState<Record<string, PropagationResult>>({})
   const [graph, setGraph] = useState<StoryGraphResponse | null>(null)
   const [action, setAction] = useState<AdaptationAction>('idle')
   const [actionMessage, setActionMessage] = useState('')
   const [actionError, setActionError] = useState('')
   const [activeJob, setActiveJob] = useState<Job | null>(null)
-  const [lastApply, setLastApply] = useState<{ mechanismId: string; result: ApplyResult } | null>(null)
+  const [lastApply, setLastApply] = useState<BatchApplyResult | null>(null)
   const [verifyReport, setVerifyReport] = useState<VerifyReport | null>(null)
   const [diffs, setDiffs] = useState<SceneDiff[]>([])
   const [revisions, setRevisions] = useState<Revision[]>([])
@@ -225,24 +226,41 @@ function App() {
   const controllerRef = useRef<AbortController | null>(null)
 
   const sortedMechanisms = useMemo(() => sortMechanisms(storyState?.culture_mechanisms ?? []), [storyState])
-  const selectedMechanism = useMemo(
-    () => storyState?.culture_mechanisms.find((item) => item.id === selectedMechanismId) ?? null,
-    [selectedMechanismId, storyState],
+  const selectedMechanisms = useMemo(() => {
+    const byId = new Map(storyState?.culture_mechanisms.map((item) => [item.id, item]) ?? [])
+    return selectedMechanismIds.flatMap((id) => {
+      const mechanism = byId.get(id)
+      return mechanism ? [mechanism] : []
+    })
+  }, [selectedMechanismIds, storyState])
+  const selectedMechanismIdSet = useMemo(
+    () => new Set(selectedMechanismIds),
+    [selectedMechanismIds],
   )
-  const selectedOption = useMemo(
-    () => plan?.options.find((option) => option.option_label === selectedOptionLabel) ?? null,
-    [plan, selectedOptionLabel],
-  )
+  const selectionsReady = !lastApply
+    && plans.length === selectedMechanismIds.length
+    && selectedMechanismIds.length > 0
+    && selectedMechanismIds.every(
+      (id) => Boolean(selectedOptionLabels[id] && propagations[id]),
+    )
+  const affectedSceneIds = useMemo(() => new Set(
+    Object.values(propagations).flatMap((item) => item.affected_scenes.map((scene) => scene.scene_id)),
+  ), [propagations])
+  const rewrittenSceneIds = useMemo(() => [...new Set(
+    lastApply?.applied.flatMap((item) => item.rewritten_scene_ids) ?? [],
+  )], [lastApply])
   const affectedIds = useMemo(() => {
     const ids = new Set<string>()
-    if (selectedMechanismId) ids.add(selectedMechanismId)
-    propagation?.affected_scenes.forEach((scene) => {
-      ids.add(scene.scene_id)
-      scene.reason_path.forEach((id) => ids.add(id))
+    selectedMechanismIds.forEach((id) => ids.add(id))
+    Object.values(propagations).forEach((propagation) => {
+      propagation.affected_scenes.forEach((scene) => {
+        ids.add(scene.scene_id)
+        scene.reason_path.forEach((id) => ids.add(id))
+      })
+      propagation.related_commitment_ids.forEach((id) => ids.add(id))
     })
-    propagation?.related_commitment_ids.forEach((id) => ids.add(id))
     return ids
-  }, [propagation, selectedMechanismId])
+  }, [propagations, selectedMechanismIds])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -264,7 +282,7 @@ function App() {
   const analyzeBusy = ['creating', 'analyzing', 'loading-state'].includes(phase)
   const actionBusy = action !== 'idle'
   const currentPhaseIndex = phaseIndex[phase]
-  const adaptationStep = lastApply ? 5 : propagation && selectedOption ? 3 : plan ? 2 : selectedMechanism ? 1 : 0
+  const adaptationStep = lastApply ? 5 : selectionsReady ? 3 : plans.length > 0 ? 2 : selectedMechanisms.length > 0 ? 1 : 0
 
   function nextController() {
     controllerRef.current?.abort()
@@ -284,10 +302,10 @@ function App() {
   }
 
   function resetAdaptation() {
-    setSelectedMechanismId(null)
-    setPlan(null)
-    setSelectedOptionLabel(null)
-    setPropagation(null)
+    setSelectedMechanismIds([])
+    setPlans([])
+    setSelectedOptionLabels({})
+    setPropagations({})
     setGraph(null)
     setAction('idle')
     setActionMessage('')
@@ -332,7 +350,7 @@ function App() {
           setPhase('analyzing')
           await pollJob(active.id, { signal: controller.signal, timeoutMs: 15 * 60_000, onUpdate: trackAnalyzeJob })
         } else {
-          setAction(active.kind === 'apply' ? 'applying' : active.kind === 'verify' ? 'verifying' : active.kind === 'render' ? 'rendering' : 'planning')
+          setAction(active.kind === 'apply' || active.kind === 'apply_batch' ? 'applying' : active.kind === 'verify' ? 'verifying' : active.kind === 'render' ? 'rendering' : 'planning')
           await pollJob(active.id, { signal: controller.signal, timeoutMs: 30 * 60_000, onUpdate: trackActiveJob })
           setAction('idle')
         }
@@ -341,39 +359,79 @@ function App() {
       persistJob(null)
 
       const state = await api.getStoryState(projectId, controller.signal)
-      const [nextRevisions, nextDiffs, restoredTarget] = await Promise.all([
+      const [nextRevisions, nextDiffs, restoredTarget, restoredGraph] = await Promise.all([
         api.getRevisions(projectId, controller.signal),
         api.getDiff(projectId, controller.signal).catch(() => [] as SceneDiff[]),
         api.getTargetScript(projectId, controller.signal).catch(() => null),
+        api.getGraph(projectId, undefined, 4, controller.signal),
       ])
-      const completedApply = [...jobs].reverse().find((job) => job.kind === 'apply' && job.status === 'done')
-      const applyJob = completedApply
-        ? await api.getJob<ApplyResult>(completedApply.id, controller.signal)
-        : null
-      const completedPlan = [...jobs].reverse().find((job) => job.kind === 'plan' && job.status === 'done')
-      const planJob = completedPlan
-        ? await api.getJob<AdaptationPlan>(completedPlan.id, controller.signal)
-        : null
+      const completedApply = [...jobs].reverse().find(
+        (job) => ['apply', 'apply_batch'].includes(job.kind) && job.status === 'done',
+      )
+      let restoredApply: BatchApplyResult | null = null
+      if (completedApply?.kind === 'apply_batch') {
+        restoredApply = (
+          await api.getJob<BatchApplyResult>(completedApply.id, controller.signal)
+        ).result
+      } else if (completedApply) {
+        const legacy = (await api.getJob<ApplyResult>(completedApply.id, controller.signal)).result
+        if (legacy) {
+          restoredApply = {
+            applied: [legacy.applied],
+            report: legacy.report,
+            repair_rounds: legacy.repair_rounds,
+            repaired_scene_ids: legacy.repaired_scene_ids,
+            from_version: Math.max(0, state.version - 1),
+            to_version: state.version,
+          }
+        }
+      }
+      const completedPlan = [...jobs].reverse().find(
+        (job) => ['plan', 'plan_batch'].includes(job.kind) && job.status === 'done',
+      )
+      let restoredPlans: AdaptationPlan[] = []
+      if (completedPlan?.kind === 'plan_batch') {
+        restoredPlans = (
+          await api.getJob<AdaptationPlan[]>(completedPlan.id, controller.signal)
+        ).result ?? []
+      } else if (completedPlan) {
+        const legacy = (await api.getJob<AdaptationPlan>(completedPlan.id, controller.signal)).result
+        if (legacy) restoredPlans = [legacy]
+      }
 
       setStoryState(state)
       setRevisions(nextRevisions)
       setDiffs(nextDiffs)
       setTargetScript(restoredTarget)
-      if (applyJob?.result) {
-        setLastApply({
-          mechanismId: applyJob.result.applied.plan_culture_mechanism_id,
-          result: applyJob.result,
-        })
-        setVerifyReport(applyJob.result.report)
+      setGraph(restoredGraph)
+      if (restoredApply) {
+        setLastApply(restoredApply)
+        setVerifyReport(restoredApply.report)
+        setSelectedOptionLabels(Object.fromEntries(
+          restoredApply.applied.map((item) => [
+            item.plan_culture_mechanism_id,
+            item.chosen_option.option_label,
+          ]),
+        ))
+        setPropagations(Object.fromEntries(
+          restoredApply.applied.map((item) => [
+            item.plan_culture_mechanism_id,
+            item.propagation,
+          ]),
+        ))
       }
-      if (planJob?.result && planJob.result.based_on_version === state.version) {
-        setPlan(planJob.result)
+      const currentPlans = restoredPlans.filter((item) => item.based_on_version === state.version)
+      if (currentPlans.length > 0) {
+        setPlans(currentPlans)
       }
-      const restoredMechanismId = applyJob?.result?.applied.plan_culture_mechanism_id
-        ?? planJob?.result?.culture_mechanism_id
-        ?? sortMechanisms(state.culture_mechanisms)[0]?.id
-        ?? null
-      setSelectedMechanismId(restoredMechanismId)
+      const restoredMechanismIds = restoredApply?.applied.map(
+        (item) => item.plan_culture_mechanism_id,
+      ) ?? currentPlans.map((item) => item.culture_mechanism_id)
+      setSelectedMechanismIds(
+        restoredMechanismIds.length > 0
+          ? restoredMechanismIds
+          : sortMechanisms(state.culture_mechanisms).slice(0, 1).map((item) => item.id),
+      )
       setPhase('done')
     } catch (caught) {
       const message = readableError(caught)
@@ -423,7 +481,9 @@ function App() {
       setPhase('loading-state')
       const state = await api.getStoryState(created.id, controller.signal)
       setStoryState(state)
-      setSelectedMechanismId(sortMechanisms(state.culture_mechanisms)[0]?.id ?? null)
+      setSelectedMechanismIds(
+        sortMechanisms(state.culture_mechanisms).slice(0, 1).map((item) => item.id),
+      )
       setRevisions(await api.getRevisions(created.id, controller.signal))
       setPhase('done')
       persistJob(null)
@@ -438,10 +498,12 @@ function App() {
 
   function handleSelectMechanism(mechanismId: string) {
     if (actionBusy) return
-    setSelectedMechanismId(mechanismId)
-    setPlan(null)
-    setSelectedOptionLabel(null)
-    setPropagation(null)
+    setSelectedMechanismIds((ids) => ids.includes(mechanismId)
+      ? ids.filter((id) => id !== mechanismId)
+      : [...ids, mechanismId])
+    setPlans([])
+    setSelectedOptionLabels({})
+    setPropagations({})
     setGraph(null)
     setLastApply(null)
     setVerifyReport(null)
@@ -452,28 +514,30 @@ function App() {
   }
 
   async function handlePlan() {
-    if (!project || !selectedMechanism || actionBusy) return
+    if (!project || selectedMechanismIds.length === 0 || actionBusy) return
     const controller = nextController()
     setAction('planning')
     setActionError('')
     setActionMessage('')
     setActiveJob(null)
-    setPlan(null)
-    setSelectedOptionLabel(null)
-    setPropagation(null)
+    setPlans([])
+    setSelectedOptionLabels({})
+    setPropagations({})
     setGraph(null)
     setLastApply(null)
     setVerifyReport(null)
     setDiffs([])
     try {
       const submitted = await api.submitJob(project.id, {
-        kind: 'plan', culture_mechanism_id: selectedMechanism.id, idempotency_key: crypto.randomUUID(),
+        kind: 'plan_batch',
+        culture_mechanism_ids: selectedMechanismIds,
+        idempotency_key: crypto.randomUUID(),
       }, controller.signal)
       persistJob(submitted.job_id)
-      const completed = await pollJob<AdaptationPlan>(submitted.job_id, { signal: controller.signal, timeoutMs: 15 * 60_000, onUpdate: trackActiveJob })
+      const completed = await pollJob<AdaptationPlan[]>(submitted.job_id, { signal: controller.signal, timeoutMs: 15 * 60_000, onUpdate: trackActiveJob })
       if (!completed.result) throw new Error('Plan job 已完成，但没有返回 Adaptation Plan。')
-      setPlan(completed.result)
-      setActionMessage(`已为 ${selectedMechanism.name} 生成 ${completed.result.options.length} 个真实方案。`)
+      setPlans(completed.result)
+      setActionMessage(`已为 ${completed.result.length} 个文化点分别生成 A / B / C 方案。`)
       persistJob(null)
     } catch (caught) {
       const message = readableError(caught)
@@ -484,23 +548,21 @@ function App() {
     }
   }
 
-  async function handleSelectOption(optionLabel: string) {
-    if (!project || !selectedMechanism || actionBusy) return
+  async function handleSelectOption(mechanismId: string, optionLabel: string) {
+    if (!project || !selectedMechanismIdSet.has(mechanismId) || actionBusy) return
     const controller = nextController()
-    setSelectedOptionLabel(optionLabel)
+    setSelectedOptionLabels((labels) => ({ ...labels, [mechanismId]: optionLabel }))
     setAction('loading-impact')
     setActionError('')
     setActionMessage('')
-    setPropagation(null)
-    setGraph(null)
     try {
       const [nextPropagation, nextGraph] = await Promise.all([
-        api.getPropagation(project.id, selectedMechanism.id, controller.signal),
-        api.getGraph(project.id, selectedMechanism.id, 4, controller.signal),
+        api.getPropagation(project.id, mechanismId, controller.signal),
+        api.getGraph(project.id, undefined, 4, controller.signal),
       ])
-      setPropagation(nextPropagation)
+      setPropagations((items) => ({ ...items, [mechanismId]: nextPropagation }))
       setGraph(nextGraph)
-      setActionMessage(`方案 ${optionLabel} 已选定；传播范围与聚焦图谱已加载。`)
+      setActionMessage(`${mechanismId} 的方案 ${optionLabel} 已选定；传播范围已加入批次。`)
     } catch (caught) {
       const message = readableError(caught)
       if (message) setActionError(message)
@@ -511,7 +573,12 @@ function App() {
   }
 
   async function handleApply() {
-    if (!project || !selectedMechanism || !selectedOption || !plan || !propagation || actionBusy) return
+    if (!project || !selectionsReady || actionBusy) return
+    const basedOnVersion = plans[0]?.based_on_version
+    if (!basedOnVersion || plans.some((item) => item.based_on_version !== basedOnVersion)) {
+      setActionError('批量方案不是基于同一个 Story State 版本，请重新生成方案。')
+      return
+    }
     const controller = nextController()
     setAction('applying')
     setActionError('')
@@ -521,26 +588,34 @@ function App() {
     setVerifyReport(null)
     try {
       const submitted = await api.submitJob(project.id, {
-        kind: 'apply', culture_mechanism_id: selectedMechanism.id, option_label: selectedOption.option_label,
-        based_on_version: plan.based_on_version, idempotency_key: crypto.randomUUID(),
+        kind: 'apply_batch',
+        adaptations: selectedMechanismIds.map((cultureMechanismId) => ({
+          culture_mechanism_id: cultureMechanismId,
+          option_label: selectedOptionLabels[cultureMechanismId] as 'A' | 'B' | 'C',
+        })),
+        based_on_version: basedOnVersion,
+        idempotency_key: crypto.randomUUID(),
       }, controller.signal)
       persistJob(submitted.job_id)
-      const completed = await pollJob<ApplyResult>(submitted.job_id, { signal: controller.signal, timeoutMs: 30 * 60_000, onUpdate: trackActiveJob })
+      const completed = await pollJob<BatchApplyResult>(submitted.job_id, { signal: controller.signal, timeoutMs: 30 * 60_000, onUpdate: trackActiveJob })
       if (!completed.result) throw new Error('Apply job 已完成，但没有返回改写与验证结果。')
       const [nextState, nextDiffs, nextRevisions, nextGraph] = await Promise.all([
         api.getStoryState(project.id, controller.signal),
         api.getDiff(project.id, controller.signal),
         api.getRevisions(project.id, controller.signal),
-        api.getGraph(project.id, selectedMechanism.id, 4, controller.signal),
+        api.getGraph(project.id, undefined, 4, controller.signal),
       ])
       setStoryState(nextState)
       setDiffs(nextDiffs)
       setRevisions(nextRevisions)
       setGraph(nextGraph)
-      setLastApply({ mechanismId: selectedMechanism.id, result: completed.result })
+      setLastApply(completed.result)
       setVerifyReport(completed.result.report)
       setTargetScript(null)
-      setActionMessage(`Apply 完成：改写 ${completed.result.applied.rewritten_scene_ids.length} 个场景，自动修复 ${completed.result.repair_rounds} 轮。`)
+      const rewrittenCount = new Set(
+        completed.result.applied.flatMap((item) => item.rewritten_scene_ids),
+      ).size
+      setActionMessage(`批量 Apply 完成：${completed.result.applied.length} 个文化点共同改写 ${rewrittenCount} 个场景，自动修复 ${completed.result.repair_rounds} 轮。`)
       persistJob(null)
     } catch (caught) {
       const message = readableError(caught)
@@ -682,35 +757,35 @@ function App() {
             {storyState && <div className="results">
               <div className="result-summary"><div><strong>{storyState.scenes.length}</strong><span>场景</span></div><div><strong>{storyState.characters.length}</strong><span>角色</span></div><div><strong>{storyState.culture_mechanisms.length}</strong><span>文化机制</span></div><div><strong>{storyState.dependencies.length}</strong><span>依赖关系</span></div></div>
               <div className="result-context"><span>目标市场与语言</span><strong>{storyState.target_market || market}</strong>{(storyState.audience || audience) && <small>{storyState.audience || audience} · {storyState.target_language} ({storyState.target_locale})</small>}</div>
-              {sortedMechanisms.length > 0 ? <div className="friction-list">{sortedMechanisms.map((mechanism, index) => <FrictionCard disabled={actionBusy} key={mechanism.id} mechanism={mechanism} onSelect={() => handleSelectMechanism(mechanism.id)} order={index} selected={selectedMechanismId === mechanism.id} />)}</div> : <div className="no-frictions">当前 Story State 没有保留下来的文化摩擦点。</div>}
+              {sortedMechanisms.length > 0 ? <div className="friction-list">{sortedMechanisms.map((mechanism, index) => <FrictionCard disabled={actionBusy} key={mechanism.id} mechanism={mechanism} onSelect={() => handleSelectMechanism(mechanism.id)} order={index} selected={selectedMechanismIdSet.has(mechanism.id)} />)}</div> : <div className="no-frictions">当前 Story State 没有保留下来的文化摩擦点。</div>}
             </div>}
           </div>
         </section>
 
-        {storyState && selectedMechanism && <section className="adaptation-workbench" id="adapt" aria-label="改编工作台">
-          <div className="workbench-heading"><div className="section-heading"><span>03</span><div><p className="eyebrow">ADAPTATION WORKBENCH</p><h2>从文化机制到完整改编</h2></div></div><p>当前对象 <strong>{selectedMechanism.id} · {selectedMechanism.name}</strong></p></div>
+        {storyState && selectedMechanisms.length > 0 && <section className="adaptation-workbench" id="adapt" aria-label="改编工作台">
+          <div className="workbench-heading"><div className="section-heading"><span>03</span><div><p className="eyebrow">ADAPTATION WORKBENCH</p><h2>从文化机制到完整改编</h2></div></div><p>本次批次 <strong>{selectedMechanisms.length} 个文化点</strong></p></div>
           <ol className="adaptation-pipeline" aria-label="改编进度">{['选择机制', '生成方案', '传播与图谱', '改写场景', '验证完成'].map((label, index) => <li className={adaptationStep > index ? 'is-complete' : adaptationStep === index ? 'is-active' : ''} key={label}><span>{adaptationStep > index ? '✓' : index + 1}</span><strong>{label}</strong></li>)}</ol>
           {(action !== 'idle' || actionMessage || activeJob) && <div className={`action-status${action !== 'idle' ? ' is-running' : ''}`} aria-live="polite"><span className="status-line__pulse" /><div><strong>{action !== 'idle' ? actionCopy[action] : actionMessage}</strong>{activeJob && <small>Job {activeJob.id} · {activeJob.kind} · {activeJob.status}</small>}</div>{activeJob && (activeJob.status === 'queued' || activeJob.status === 'running') && <button className="secondary-action" onClick={() => void handleCancelJob()} type="button">取消任务</button>}</div>}
           {actionError && <div className="error-message action-error" role="alert"><strong>改编流程暂未完成</strong><p>{actionError}</p></div>}
 
           <div className="selected-mechanism-panel">
-            <div><span className="detail-label">SELECTED CULTURE MECHANISM</span><h3>{selectedMechanism.name}<code>{selectedMechanism.id}</code></h3><p>{selectedMechanism.description}</p>{selectedMechanism.adapted_to && <p className="adapted-to">已改编为：<strong>{selectedMechanism.adapted_to}</strong></p>}</div>
-            <div className="selected-mechanism-functions"><FunctionGroup label="剧情" values={selectedMechanism.functions.plot} /><FunctionGroup label="社会" values={selectedMechanism.functions.social} /><FunctionGroup label="情绪" values={selectedMechanism.functions.emotional} /></div>
-            <button className="primary-action compact-action" disabled={actionBusy} onClick={handlePlan} type="button"><span>{plan ? '读取当前版本 Adaptation Plan' : '生成 Adaptation Plan'}</span><span>→</span></button>
+            <div><span className="detail-label">SELECTED CULTURE MECHANISMS</span><h3>{selectedMechanisms.length} 个改编点</h3><p>Agent 会按下列顺序在同一份候选剧本上反复迭代，最后一次性提交。</p></div>
+            <ol className="batch-selection-list">{selectedMechanisms.map((mechanism, index) => <li key={mechanism.id}><span>{index + 1}</span><div><strong>{mechanism.name}<code>{mechanism.id}</code></strong><small>{mechanism.description}</small></div></li>)}</ol>
+            <button className="primary-action compact-action" disabled={actionBusy} onClick={handlePlan} type="button"><span>{plans.length > 0 ? '重新生成批量方案' : `为 ${selectedMechanisms.length} 个点生成方案`}</span><span>→</span></button>
           </div>
 
-          {plan && <section className="workbench-section"><div className="subsection-heading"><span>04</span><div><p className="eyebrow">A / B / C OPTIONS</p><h3>选择改编方案</h3></div><p>方案直接来自 Adaptation Plan API</p></div><PlanOptions disabled={actionBusy} onSelect={handleSelectOption} plan={plan} selectedLabel={selectedOptionLabel} /></section>}
+          {plans.length > 0 && <section className="workbench-section"><div className="subsection-heading"><span>04</span><div><p className="eyebrow">A / B / C OPTIONS</p><h3>为每个文化点选择方案</h3></div><p>{Object.keys(selectedOptionLabels).length} / {plans.length} 已选择</p></div><div className="batch-plan-list">{plans.map((plan, index) => <article className="batch-plan" key={plan.culture_mechanism_id}><header><span>{index + 1}</span><div><code>{plan.culture_mechanism_id}</code><h4>{plan.original_name}</h4></div><small>{selectedOptionLabels[plan.culture_mechanism_id] ? `已选方案 ${selectedOptionLabels[plan.culture_mechanism_id]}` : '尚未选择'}</small></header><PlanOptions disabled={actionBusy} onSelect={(label) => void handleSelectOption(plan.culture_mechanism_id, label)} plan={plan} selectedLabel={selectedOptionLabels[plan.culture_mechanism_id] ?? null} /></article>)}</div></section>}
 
-          {selectedOption && propagation && graph && <>
-            <section className="workbench-section"><div className="subsection-heading"><span>05</span><div><p className="eyebrow">DEPENDENCY PROPAGATION</p><h3>影响范围与原因</h3></div><p>选定 {selectedOption.option_label} · {selectedOption.title}</p></div><ImpactPanel propagation={propagation} /></section>
-            <section className="workbench-section graph-section"><div className="subsection-heading"><span>06</span><div><p className="eyebrow">STORY GRAPH</p><h3>聚焦依赖图谱</h3></div><p>高亮当前机制及传播路径节点</p></div><StoryGraphView affectedIds={affectedIds} focusId={selectedMechanism.id} graph={graph} /></section>
-            <section className="apply-gate"><div><span className="detail-label">READY TO APPLY</span><h3>确认以方案 {selectedOption.option_label} 改写 {propagation.affected_scenes.length} 个场景</h3><p>Apply job 会依次执行 Rewrite → Verify → 必要时自动 Repair。</p></div><button className="primary-action compact-action" disabled={actionBusy} onClick={handleApply} type="button"><span>{action === 'applying' ? '改写进行中…' : '开始完整改编'}</span><span>→</span></button></section>
+          {Object.keys(propagations).length > 0 && graph && <>
+            <section className="workbench-section"><div className="subsection-heading"><span>05</span><div><p className="eyebrow">DEPENDENCY PROPAGATION</p><h3>各改编点的影响范围</h3></div><p>合计影响 {affectedSceneIds.size} 个不重复场景</p></div><div className="batch-impact-list">{selectedMechanismIds.map((mechanismId) => propagations[mechanismId] ? <article className="batch-impact" key={mechanismId}><h4><code>{mechanismId}</code>{storyState.culture_mechanisms.find((item) => item.id === mechanismId)?.name}</h4><ImpactPanel propagation={propagations[mechanismId]} /></article> : null)}</div></section>
+            <section className="workbench-section graph-section"><div className="subsection-heading"><span>06</span><div><p className="eyebrow">STORY GRAPH</p><h3>批量依赖图谱</h3></div><p>高亮全部已选机制与传播路径节点</p></div><StoryGraphView affectedIds={affectedIds} focusIds={selectedMechanismIdSet} graph={graph} /></section>
+            {selectionsReady && <section className="apply-gate"><div><span className="detail-label">READY TO APPLY</span><h3>确认同时改编 {selectedMechanismIds.length} 个文化点，覆盖 {affectedSceneIds.size} 个场景</h3><p>Agent 会依次 Rewrite 每个改编点，再统一 Verify / Repair；中途失败不会提交部分结果。</p></div><button className="primary-action compact-action" disabled={actionBusy} onClick={handleApply} type="button"><span>{action === 'applying' ? '批量改写进行中…' : `批量改编 ${selectedMechanismIds.length} 个文化点`}</span><span>→</span></button></section>}
           </>}
 
           {lastApply && storyState && verifyReport && <div className="post-apply-results">
-            <section className="workbench-section"><div className="subsection-heading"><span>07</span><div><p className="eyebrow">REWRITE RESULT</p><h3>改写后的场景</h3></div><p>{lastApply.result.applied.rewritten_scene_ids.length} 个场景已更新</p></div><div className="rewrite-list">{lastApply.result.applied.rewritten_scene_ids.map((sceneId) => { const scene = storyState.scenes.find((item) => item.id === sceneId); return scene ? <article key={scene.id}><header><code>{scene.id}</code><div><h4>{scene.title}</h4><p>{scene.summary}</p></div></header><p>{scene.text}</p></article> : null })}</div></section>
+            <section className="workbench-section"><div className="subsection-heading"><span>07</span><div><p className="eyebrow">REWRITE RESULT</p><h3>批量改写后的场景</h3></div><p>{lastApply.applied.length} 个文化点 · {rewrittenSceneIds.length} 个场景已更新</p></div><div className="rewrite-list">{rewrittenSceneIds.map((sceneId) => { const scene = storyState.scenes.find((item) => item.id === sceneId); return scene ? <article key={scene.id}><header><code>{scene.id}</code><div><h4>{scene.title}</h4><p>{scene.summary}</p></div></header><p>{scene.text}</p></article> : null })}</div></section>
             <section className="workbench-section"><div className="subsection-heading"><span>08</span><div><p className="eyebrow">BEFORE / AFTER</p><h3>场景 Diff</h3></div><p>相对于 initial_parse 基线</p></div><DiffPanel diffs={diffs} /></section>
-            <section className="workbench-section"><div className="subsection-heading"><span>09</span><div><p className="eyebrow">VERIFY / REPAIR</p><h3>一致性验证结果</h3></div><p>Apply job 内置自动验证与修复</p></div><VerificationPanel applyResult={lastApply.result} disabled={actionBusy} onVerify={handleVerify} report={verifyReport} /></section>
+            <section className="workbench-section"><div className="subsection-heading"><span>09</span><div><p className="eyebrow">VERIFY / REPAIR</p><h3>一致性验证结果</h3></div><p>批量 Apply 后统一验证与修复</p></div><VerificationPanel applyResult={lastApply} disabled={actionBusy} onVerify={handleVerify} report={verifyReport} /></section>
             <section className="workbench-section"><div className="subsection-heading"><span>10</span><div><p className="eyebrow">REVISION HISTORY</p><h3>改编修订记录</h3></div><p>{revisions.length} 个已保存版本</p></div><RevisionTimeline revisions={revisions} /></section>
             <section className="workbench-section" id="final-script"><div className="subsection-heading"><span>11</span><div><p className="eyebrow">FINAL SCRIPT</p><h3>完整演示产物</h3></div><p>由最新 Story State 场景顺序组装</p></div><CompleteScript state={storyState} /></section>
             <section className="workbench-section"><div className="subsection-heading"><span>12</span><div><p className="eyebrow">TARGET-LANGUAGE ARTIFACT</p><h3>目标语言交付稿</h3></div><button className="secondary-action" disabled={actionBusy} onClick={handleRenderTarget} type="button">{targetScript ? '读取当前版本语言稿' : `生成 ${storyState.target_language} 剧本`}</button></div>{targetScript ? <TargetLanguageScript script={targetScript} /> : <div className="inline-empty">结构改编稿已冻结；点击生成与当前状态版本绑定的目标语言剧本。</div>}</section>

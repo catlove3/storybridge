@@ -35,9 +35,9 @@ LLM_MODEL=model-name
 ```text
 StoryParser
   → FrictionDetector
-  → AdaptationPlanner（A 保留 / B 功能替换 / C 情节重构）
+  → AdaptationPlanner（每个已选机制分别生成 A / B / C）
   → MultiDiGraph + PropagationEngine（纯代码）
-  → SceneRewriter（候选状态）
+  → SceneRewriter（在同一候选状态上按选择顺序迭代）
   → strategy-aware static checks + semantic verifier
   → repair loop（最多 2 轮）
   → atomic StoryState version commit
@@ -51,7 +51,7 @@ StoryParser
 - 同一节点对可保留多种依赖关系、证据与置信度。
 - 传播只自动采用置信度阈值内的路径，并返回路径解释与置信度。
 - plan 绑定 state version；陈旧 plan/apply 返回冲突。
-- apply 先在深拷贝候选状态上完成重写和验证，最后一次提交。
+- batch apply 先在深拷贝候选状态上逐点完成重写，再统一验证，最后只提交一个版本；中途失败不暴露部分结果。
 - 项目级锁串行化同项目工作；operation/job idempotency key 防止重复执行。
 
 ## 持久化与任务
@@ -85,11 +85,13 @@ STORYBRIDGE_RUN_LOG_DIR
 | GET | `/api/projects/{id}/propagate` | 确定性影响传播 |
 | POST | `/api/projects/{id}/adaptations/plan` | 生成或读取当前版本的 A/B/C 方案 |
 | POST | `/api/projects/{id}/adaptations/apply` | 版本化、可幂等的改编提交 |
+| POST | `/api/projects/{id}/adaptations/plan-batch` | 为多个机制生成同版本方案 |
+| POST | `/api/projects/{id}/adaptations/apply-batch` | 逐点迭代、统一验证并原子提交 |
 | POST | `/api/projects/{id}/verify` | 验证当前状态 |
 | POST / GET | `/api/projects/{id}/target-script` | 生成 / 读取版本化目标语言稿 |
 | GET | `/api/projects/{id}/diff` / `revisions` / `bible` | 审计产物 |
 | GET | `/api/projects/{id}/data-export` | 项目与 LLM 元数据导出 |
-| POST | `/api/projects/{id}/jobs` | 提交 analyze/plan/apply/verify/render |
+| POST | `/api/projects/{id}/jobs` | 提交 analyze/plan/apply/plan_batch/apply_batch/verify/render |
 | GET | `/api/projects/{id}/jobs` | 项目任务历史 |
 | GET / POST | `/api/jobs/{job_id}` / `cancel` | 轮询 / 取消 |
 
