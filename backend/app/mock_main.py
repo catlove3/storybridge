@@ -6,6 +6,7 @@ from fastapi import FastAPI
 
 from app.api.routes import router
 from app.cli import _load_default_mock_fixtures
+from app.config import get_config
 from app.jobs import JobManager
 from app.llm import MockLLMClient
 from app.workflow.engine import build_default_workflow
@@ -19,7 +20,11 @@ async def lifespan(app: FastAPI):
     # adapt the canned plan identity to the mechanism requested by each batch item.
     mock.responses.pop("plan_adaptation", None)
     app.state.workflow = build_default_workflow(mock)
-    app.state.jobs = JobManager()
+    config = get_config()
+    app.state.jobs = JobManager(
+        storage_path=config.storage.jobs_file,
+        database_path=config.storage.database_file,
+    )
     try:
         yield
     finally:

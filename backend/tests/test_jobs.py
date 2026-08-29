@@ -129,6 +129,61 @@ async def test_completed_job_survives_manager_restart(tmp_path):
     assert duplicate.id == job.id
 
 
+async def test_completed_job_survives_sqlite_restart(tmp_path):
+    database_path = tmp_path / "storybridge.sqlite3"
+    manager = JobManager(database_path=database_path)
+
+    async def work():
+        return {"persisted": "sqlite"}
+
+    job = manager.submit("verify", "p1", work, idempotency_key="sqlite-once")
+    while job.status in {"queued", "running"}:
+        await asyncio.sleep(0.01)
+
+    restored = JobManager(database_path=database_path)
+    restored_job = restored.get(job.id)
+    duplicate = restored.submit("verify", "p1", work, idempotency_key="sqlite-once")
+
+    assert restored_job.status == "done"
+    assert restored_job.result == {"persisted": "sqlite"}
+    assert duplicate.id == job.id
+
+
+def test_legacy_jobs_imported_to_sqlite_once(tmp_path):
+    from app.storage import ProjectStore
+
+    legacy_path = tmp_path / "jobs.json"
+    ProjectStore._write_json(
+        legacy_path,
+        [
+            {
+                "id": "legacy-job",
+                "kind": "verify",
+                "project_id": "p1",
+                "status": "done",
+                "created_at": 1.0,
+                "finished_at": 2.0,
+                "result": {"source": "json"},
+            }
+        ],
+    )
+    database_path = tmp_path / "storybridge.sqlite3"
+    imported = JobManager(
+        storage_path=legacy_path,
+        database_path=database_path,
+        ttl_seconds=10**12,
+    )
+    assert imported.get("legacy-job").result == {"source": "json"}
+
+    ProjectStore._write_json(legacy_path, [])
+    restored = JobManager(
+        storage_path=legacy_path,
+        database_path=database_path,
+        ttl_seconds=10**12,
+    )
+    assert restored.get("legacy-job").result == {"source": "json"}
+
+
 def _noop():
     async def noop():
         return None

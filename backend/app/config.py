@@ -58,14 +58,22 @@ class SecurityConfig(BaseModel):
 
 
 class StorageConfig(BaseModel):
+    database_file: Path = BACKEND_ROOT / "data" / "storybridge.sqlite3"
     projects_dir: Path = BACKEND_ROOT / "data" / "projects"
     jobs_file: Path = BACKEND_ROOT / "data" / "jobs.json"
+
+
+class LongTextConfig(BaseModel):
+    chunk_threshold_chars: int = Field(default=24_000, ge=1_000, le=500_000)
+    chunk_chars: int = Field(default=16_000, ge=500, le=100_000)
+    friction_batch_size: int = Field(default=20, ge=1, le=100)
 
 
 class AppConfig(BaseModel):
     llm: LLMConfig = Field(default_factory=LLMConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
     storage: StorageConfig = Field(default_factory=StorageConfig)
+    long_text: LongTextConfig = Field(default_factory=LongTextConfig)
     security: SecurityConfig = Field(default_factory=SecurityConfig)
 
 
@@ -80,6 +88,7 @@ def get_config() -> AppConfig:
     for section, field_name in (
         (config.logging, "sft_log_dir"),
         (config.logging, "run_log_dir"),
+        (config.storage, "database_file"),
         (config.storage, "projects_dir"),
         (config.storage, "jobs_file"),
     ):
@@ -88,6 +97,7 @@ def get_config() -> AppConfig:
             setattr(section, field_name, (BACKEND_ROOT / path).resolve())
 
     for env_name, section, field_name in (
+        ("STORYBRIDGE_DATABASE_FILE", config.storage, "database_file"),
         ("STORYBRIDGE_PROJECTS_DIR", config.storage, "projects_dir"),
         ("STORYBRIDGE_JOBS_FILE", config.storage, "jobs_file"),
         ("STORYBRIDGE_SFT_LOG_DIR", config.logging, "sft_log_dir"),
@@ -96,6 +106,14 @@ def get_config() -> AppConfig:
         override = os.environ.get(env_name, "").strip()
         if override:
             setattr(section, field_name, Path(override).expanduser().resolve())
+
+    if (
+        "STORYBRIDGE_DATABASE_FILE" not in os.environ
+        and os.environ.get("STORYBRIDGE_PROJECTS_DIR", "").strip()
+    ):
+        config.storage.database_file = (
+            config.storage.projects_dir.parent / "storybridge.sqlite3"
+        ).resolve()
 
     # The default profile is the normal runtime path for every current skill.
     # Keep advanced per-step profiles in YAML, while allowing one .env file to

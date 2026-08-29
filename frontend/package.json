@@ -7,6 +7,10 @@
     "node": ">=20.19 <21 || >=22.12"
   },
   "scripts": {
+    "openapi:export": "cd ../backend && .venv/bin/python -m scripts.export_openapi",
+    "openapi:types": "openapi-typescript openapi.json -o src/api/generated/schema.ts",
+    "openapi:generate": "npm run openapi:export && npm run openapi:types",
+    "openapi:check": "npm run openapi:generate && git diff --exit-code -- openapi.json src/api/generated/schema.ts",
     "dev": "vite",
     "typecheck": "tsc -b",
     "build": "tsc -b && vite build",
@@ -15,6 +19,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "openapi-fetch": "^0.15.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
@@ -24,8 +29,9 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
+    "openapi-typescript": "^7.10.1",
     "oxlint": "^1.79.0",
-    "typescript": "~6.0.2",
+    "typescript": "^5.9.3",
     "vite": "^8.2.2"
   }
 }

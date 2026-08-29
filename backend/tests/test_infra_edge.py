@@ -70,6 +70,9 @@ def test_config_paths_are_resolved_against_backend_root():
     try:
         assert config.storage.projects_dir == (BACKEND_ROOT / "data/projects").resolve()
         assert config.storage.jobs_file == (BACKEND_ROOT / "data/jobs.json").resolve()
+        assert config.storage.database_file == (
+            BACKEND_ROOT / "data/storybridge.sqlite3"
+        ).resolve()
         assert config.logging.sft_log_dir == (BACKEND_ROOT / "data/sft_logs").resolve()
         assert config.logging.run_log_dir == (BACKEND_ROOT / "data/run_logs").resolve()
         assert config.logging.sft_log_enabled is False
@@ -89,6 +92,7 @@ def test_config_storage_paths_support_environment_overrides(tmp_path, monkeypatc
         config = get_config()
         assert config.storage.projects_dir == (tmp_path / "projects").resolve()
         assert config.storage.jobs_file == (tmp_path / "jobs.json").resolve()
+        assert config.storage.database_file == (tmp_path / "storybridge.sqlite3").resolve()
         assert config.logging.sft_log_dir == (tmp_path / "sft").resolve()
         assert config.logging.run_log_dir == (tmp_path / "runs").resolve()
     finally:
