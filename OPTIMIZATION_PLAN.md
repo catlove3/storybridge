@@ -29,7 +29,7 @@
 以下内容没有被包装成“已完成”：
 
 1. **人工评测执行**：代码已支持外部 gold annotations、统一目标语言与 run manifest，但冻结 8～12 个样本、多人盲评、每样本多次真实模型运行需要真实评审者和模型预算。
-2. **SQLite 与 migration**：当前采用单机单进程、项目锁、原子 JSON 和持久化 job；尚未迁移为数据库事务或多 worker claim。
+2. **SQLite 与 migration**：已完成单机 WAL、版本 migration、事务化项目/job 存储和旧 JSON 幂等导入；多 worker claim 仍未实现。
 3. **长文本分块**：尚未实现 scene checkpoint、跨块实体合并与二次承诺链接，API 字符上限不等于已验证的长篇质量。
 4. **OpenAPI client 自动生成**：后端 response model 已严格化，前端契约仍是手工维护。
 5. **大型图交互**：关系已有键盘/触屏可读文本，但缩放、筛选和降噪仍可继续增强。

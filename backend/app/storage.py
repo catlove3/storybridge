@@ -176,6 +176,17 @@ class ProjectStore:
             )
         return state
 
+    def load_history_state(self, project_id: str, version: int) -> StoryState | None:
+        raw = self._read_json(
+            self._peek_dir(project_id) / "history" / f"rev{version:03d}.json"
+        )
+        if raw is None:
+            return None
+        try:
+            return StoryState.model_validate(raw)
+        except ValidationError:
+            return None
+
     def list_revisions(self, project_id: str) -> list[Revision]:
         raw = self._read_json(self._peek_dir(project_id) / "revisions.json")
         revisions = [Revision.model_validate(r) for r in (raw or [])]

@@ -18,6 +18,7 @@ from app.schemas import (
     TargetScript,
     VerifyReport,
 )
+from app.sqlite_storage import SQLiteProjectStore
 from app.storage import MarketProfile, ProjectMeta, ProjectStore
 from app.workflow.friction import FrictionDetector
 from app.workflow.parser import StoryParser
@@ -429,5 +430,9 @@ class StoryBridgeWorkflow:
 
 def build_default_workflow(client: LLMClient) -> StoryBridgeWorkflow:
     cfg = get_config()
-    store = ProjectStore(cfg.storage.projects_dir)
+    store = SQLiteProjectStore(
+        cfg.storage.database_file,
+        artifacts_dir=cfg.storage.projects_dir,
+    )
+    store.import_legacy_projects(cfg.storage.projects_dir)
     return StoryBridgeWorkflow(store, client)

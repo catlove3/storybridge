@@ -10,7 +10,8 @@ from app.baselines.runner import BaselineRunner, EvalAnnotations, save_experimen
 from app.config import get_config
 from app.export.bible import export_bible
 from app.llm import MockLLMClient, build_router
-from app.storage import MarketProfile, ProjectStore
+from app.sqlite_storage import SQLiteProjectStore
+from app.storage import MarketProfile
 from app.workflow.engine import StoryBridgeWorkflow, build_default_workflow
 
 
@@ -87,7 +88,12 @@ def _workflow(mock: bool, mock_responses: str | None) -> StoryBridgeWorkflow:
                 client.set_response(step, spec)
         else:
             _load_default_mock_fixtures(client)
-        store = ProjectStore(get_config().storage.projects_dir)
+        config = get_config()
+        store = SQLiteProjectStore(
+            config.storage.database_file,
+            artifacts_dir=config.storage.projects_dir,
+        )
+        store.import_legacy_projects(config.storage.projects_dir)
         return StoryBridgeWorkflow(store, client)
     return build_default_workflow(build_router())
 

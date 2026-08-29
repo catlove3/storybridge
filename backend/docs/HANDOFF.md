@@ -77,7 +77,7 @@ mock 只替换 LLM 输出，HTTP、job、storage、Graph、Propagation、Diff、
 
 ## 仍需后续处理
 
-1. SQLite schema、migration 与多进程 job claim。
+1. 多进程/多机 job claim、lease 与故障恢复（单机 SQLite schema/migration 已完成）。
 2. 场景分块解析、跨块实体归一、承诺二次链接和 checkpoint。
 3. 由 OpenAPI 自动生成前端 client/types。
 4. 冻结人工 gold set、多人盲评、重复运行和统计报告。

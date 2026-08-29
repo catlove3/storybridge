@@ -58,6 +58,9 @@ backend/data/projects/
 backend/data/sft_logs/
 backend/data/run_logs/
 backend/data/jobs.json
+backend/data/*.sqlite3
+backend/data/*.sqlite3-wal
+backend/data/*.sqlite3-shm
 backend/data/history/
 
 # ===== 大体积外部语料 (见 FINDINGS.md, 许可禁止再分发) =====
