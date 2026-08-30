@@ -3,18 +3,22 @@ set -Eeuo pipefail
 
 STORYBRIDGE_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 STORYBRIDGE_MODE="real"
-STORYBRIDGE_INSTALL=1
+STORYBRIDGE_INSTALL_MODE="auto"
 STORYBRIDGE_BACKEND_PID=""
 STORYBRIDGE_FRONTEND_PID=""
 STORYBRIDGE_RUN_DIR=""
+STORYBRIDGE_RUNTIME_DIR="$STORYBRIDGE_ROOT/.storybridge/runtime"
+STORYBRIDGE_BACKEND_PYTHON="$STORYBRIDGE_ROOT/backend/.venv/bin/python"
+STORYBRIDGE_BACKEND_SYNC_MARKER="$STORYBRIDGE_ROOT/backend/.venv/.storybridge-sync"
 
 usage() {
   cat <<'EOF'
-Usage: ./speed_run.sh [--real|--mock] [--skip-install]
+Usage: ./speed_run.sh [--real|--mock] [--refresh|--skip-install]
 
   --real          Start the configured real-model backend (default).
   --mock          Start the offline mock backend with isolated temporary data.
-  --skip-install  Reuse installed Python and npm dependencies.
+  --refresh       Force-refresh the Python and frontend dependencies.
+  --skip-install  Skip dependency checks and reuse the existing environment.
   -h, --help      Show this help.
 EOF
 }
@@ -23,7 +27,8 @@ while (($#)); do
   case "$1" in
     --real) STORYBRIDGE_MODE="real" ;;
     --mock) STORYBRIDGE_MODE="mock" ;;
-    --skip-install) STORYBRIDGE_INSTALL=0 ;;
+    --refresh) STORYBRIDGE_INSTALL_MODE="refresh" ;;
+    --skip-install) STORYBRIDGE_INSTALL_MODE="skip" ;;
     -h|--help)
       usage
       exit 0
@@ -89,15 +94,29 @@ activate_project_node() {
   done
 
   if ! node_is_supported; then
+    node_executable="$STORYBRIDGE_RUNTIME_DIR/node_modules/node/bin/node"
+    if [[ -x "$node_executable" ]] && [[ "$("$node_executable" --version)" == "v$requested_version" ]]; then
+      export PATH="$(dirname -- "$node_executable"):$PATH"
+    fi
+  fi
+
+  if ! node_is_supported; then
     require_command npm
-    require_command npx
-    echo "Preparing project Node $requested_version (system $(node --version 2>/dev/null || echo unavailable))..."
-    if ! node_executable="$(npx --yes --package="node@$requested_version" -- node -p process.execPath)"; then
-      echo "Could not prepare Node $requested_version through npm." >&2
+    echo "Installing project-local Node $requested_version once (system $(node --version 2>/dev/null || echo unavailable))..."
+    mkdir -p "$STORYBRIDGE_RUNTIME_DIR"
+    if ! npm install \
+      --prefix "$STORYBRIDGE_RUNTIME_DIR" \
+      --no-save \
+      --no-package-lock \
+      --no-audit \
+      --no-fund \
+      "node@$requested_version"; then
+      echo "Could not install project-local Node $requested_version through npm." >&2
       exit 1
     fi
+    node_executable="$STORYBRIDGE_RUNTIME_DIR/node_modules/node/bin/node"
     if [[ ! -x "$node_executable" ]]; then
-      echo "npm returned an invalid Node executable: $node_executable" >&2
+      echo "The project-local Node executable is missing: $node_executable" >&2
       exit 1
     fi
     export PATH="$(dirname -- "$node_executable"):$PATH"
@@ -108,6 +127,52 @@ activate_project_node() {
   if ! node_is_supported; then
     echo "Node $(node --version) is unsupported; use Node 22.12+ (frontend/.nvmrc)." >&2
     exit 1
+  fi
+}
+
+sync_dependencies() {
+  local sync_backend=0
+  local sync_frontend=0
+  local frontend_install_marker="$STORYBRIDGE_ROOT/frontend/node_modules/.package-lock.json"
+
+  if [[ "$STORYBRIDGE_INSTALL_MODE" == "refresh" ]]; then
+    sync_backend=1
+    sync_frontend=1
+  elif [[ "$STORYBRIDGE_INSTALL_MODE" == "auto" ]]; then
+    if [[ ! -x "$STORYBRIDGE_BACKEND_PYTHON" \
+      || ! -f "$STORYBRIDGE_BACKEND_SYNC_MARKER" \
+      || "$STORYBRIDGE_ROOT/backend/uv.lock" -nt "$STORYBRIDGE_BACKEND_SYNC_MARKER" \
+      || "$STORYBRIDGE_ROOT/backend/pyproject.toml" -nt "$STORYBRIDGE_BACKEND_SYNC_MARKER" ]]; then
+      sync_backend=1
+    fi
+    if [[ ! -x "$STORYBRIDGE_ROOT/frontend/node_modules/.bin/vite" \
+      || ! -f "$frontend_install_marker" \
+      || "$STORYBRIDGE_ROOT/frontend/package-lock.json" -nt "$frontend_install_marker" \
+      || "$STORYBRIDGE_ROOT/frontend/package.json" -nt "$frontend_install_marker" ]]; then
+      sync_frontend=1
+    fi
+  fi
+
+  if ((sync_backend)); then
+    require_command uv
+    echo "Syncing backend environment..."
+    (cd "$STORYBRIDGE_ROOT/backend" && uv sync --frozen --extra dev)
+    touch "$STORYBRIDGE_BACKEND_SYNC_MARKER"
+  elif [[ ! -x "$STORYBRIDGE_BACKEND_PYTHON" ]]; then
+    echo "Backend environment is missing; run without --skip-install." >&2
+    exit 1
+  fi
+
+  if ((sync_frontend)); then
+    echo "Installing frontend dependencies..."
+    (cd "$STORYBRIDGE_ROOT/frontend" && npm ci)
+  elif [[ ! -x "$STORYBRIDGE_ROOT/frontend/node_modules/.bin/vite" ]]; then
+    echo "Frontend dependencies are missing; run without --skip-install." >&2
+    exit 1
+  fi
+
+  if ((!sync_backend && !sync_frontend)); then
+    echo "Reusing existing project environment."
   fi
 }
 
@@ -133,16 +198,9 @@ wait_for_service() {
   return 1
 }
 
-require_command uv
 require_command curl
 activate_project_node
-
-if ((STORYBRIDGE_INSTALL)); then
-  echo "Syncing backend dependencies..."
-  (cd "$STORYBRIDGE_ROOT/backend" && uv sync --frozen --extra dev)
-  echo "Installing frontend dependencies..."
-  (cd "$STORYBRIDGE_ROOT/frontend" && npm ci)
-fi
+sync_dependencies
 
 STORYBRIDGE_RUN_DIR="$(mktemp -d -t storybridge-speed-run.XXXXXX)"
 STORYBRIDGE_BACKEND_LOG="$STORYBRIDGE_RUN_DIR/backend.log"
@@ -156,12 +214,12 @@ if [[ "$STORYBRIDGE_MODE" == "mock" ]]; then
     export STORYBRIDGE_SFT_LOG_DIR="$STORYBRIDGE_RUN_DIR/sft"
     export STORYBRIDGE_RUN_LOG_DIR="$STORYBRIDGE_RUN_DIR/runs"
     cd "$STORYBRIDGE_ROOT/backend"
-    exec uv run uvicorn app.mock_main:app --host 127.0.0.1 --port 8000
+    exec "$STORYBRIDGE_BACKEND_PYTHON" -m uvicorn app.mock_main:app --host 127.0.0.1 --port 8000
   ) >"$STORYBRIDGE_BACKEND_LOG" 2>&1 &
 else
   (
     cd "$STORYBRIDGE_ROOT/backend"
-    exec uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
+    exec "$STORYBRIDGE_BACKEND_PYTHON" -m uvicorn app.main:app --host 127.0.0.1 --port 8000
   ) >"$STORYBRIDGE_BACKEND_LOG" 2>&1 &
 fi
 STORYBRIDGE_BACKEND_PID=$!
