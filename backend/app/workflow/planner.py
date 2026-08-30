@@ -1,9 +1,31 @@
 from __future__ import annotations
 
+import re
+
 from app.graph import StoryGraph
 from app.llm import LLMClient
 from app.schemas import AdaptationPlan, CultureMechanism, StoryState
 from app.skills import PLAN_ADAPTATION, SkillSpec
+
+_CJK_RE = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff]")
+
+
+def _require_chinese_decision_copy(plan: AdaptationPlan) -> None:
+    for option in plan.options:
+        fields = {
+            "title": option.title,
+            "replacement_definition": option.replacement_definition,
+            "rationale": option.rationale,
+        }
+        fields.update(
+            {f"risks[{index}]": risk for index, risk in enumerate(option.risks)}
+        )
+        missing = [name for name, value in fields.items() if not _CJK_RE.search(value)]
+        if missing:
+            raise ValueError(
+                f"option {option.option_label} fields must contain Simplified Chinese "
+                f"decision copy (English proper nouns are allowed): {', '.join(missing)}"
+            )
 
 
 class AdaptationPlanner:
@@ -79,6 +101,7 @@ class AdaptationPlanner:
                     "adaptation plan mechanism name mismatch: "
                     f"expected {mechanism.name!r}, got {plan.original_name!r}"
                 )
+            _require_chinese_decision_copy(plan)
 
         plan = await self.skill.run(
             self.client,

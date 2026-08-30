@@ -13,6 +13,13 @@ export function persistProject(projectId: string): void {
   window.history.replaceState({}, '', url)
 }
 
+export function clearProjectRecovery(): void {
+  window.localStorage.removeItem(PROJECT_KEY)
+  const url = new URL(window.location.href)
+  url.searchParams.delete('project')
+  window.history.replaceState({}, '', url)
+}
+
 export function persistJob(jobId: string | null): void {
   if (jobId) window.localStorage.setItem(JOB_KEY, jobId)
   else window.localStorage.removeItem(JOB_KEY)

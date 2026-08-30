@@ -45,6 +45,22 @@ StoryBridge 是面向中文短剧与网文出海的跨文化故事改编系统�
 
 Mock 模式不需要模型密钥。它只替换 LLM 返回值，HTTP、job、storage、Graph、Propagation、Diff、revision 和目标语言产物仍走真实代码。
 
+在仓库根目录一条命令即可安装依赖并同时启动前后端：
+
+```bash
+./speed_run.sh --mock
+```
+
+使用 `.env` 中配置的真实模型：
+
+```bash
+./speed_run.sh
+```
+
+脚本会优先使用 nvm；如果系统 Node 版本过低且没有 nvm，会通过 npm 自动准备项目固定的 Node 版本，不会替换系统 Node。就绪后访问 `http://127.0.0.1:5173`，按 `Ctrl+C` 同时停止两个服务。依赖已经安装时可追加 `--skip-install` 加快启动。
+
+也可以分别启动两个终端：
+
 终端一：
 
 ```bash
