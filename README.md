@@ -57,7 +57,9 @@ Mock 模式不需要模型密钥。它只替换 LLM 返回值，HTTP、job、sto
 ./speed_run.sh
 ```
 
-脚本会优先使用 nvm；如果系统 Node 版本过低且没有 nvm，会通过 npm 自动准备项目固定的 Node 版本，不会替换系统 Node。就绪后访问 `http://127.0.0.1:5173`，按 `Ctrl+C` 同时停止两个服务。依赖已经安装时可追加 `--skip-install` 加快启动。
+脚本会优先使用 nvm；如果系统 Node 版本过低且没有 nvm，首次运行会把固定版本安装到项目本地 `.storybridge/runtime`，不会替换系统 Node。Python 环境保存在 `backend/.venv`，前端依赖保存在 `frontend/node_modules`；后续启动会自动复用，仅在依赖清单变化时同步。需要强制重装时使用 `--refresh`，确认环境完整且希望跳过所有检查时可使用 `--skip-install`。
+
+脚本就绪后访问 `http://127.0.0.1:5173`，按 `Ctrl+C` 同时停止两个服务。
 
 也可以分别启动两个终端：
 

@@ -24,6 +24,7 @@ venv/
 .coverage
 htmlcov/
 .uv-cache/
+.storybridge/
 
 # ===== Node / 前端 (同学B 的 React) =====
 node_modules/
