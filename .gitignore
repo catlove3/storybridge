@@ -64,7 +64,7 @@ backend/data/*.sqlite3-wal
 backend/data/*.sqlite3-shm
 backend/data/history/
 
-# ===== 大体积外部语料 (见 FINDINGS.md, 许可禁止再分发) =====
+# ===== 大体积外部语料（许可禁止再分发） =====
 backend/data/raw/
 *.parquet
 opensubtitles*.zip

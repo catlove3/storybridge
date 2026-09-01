@@ -187,15 +187,12 @@ backend/                 FastAPI、工作流、图引擎、存储、评测与测
 frontend/                React 工作台与 Playwright E2E
 .github/workflows/       后端、前端和浏览器 CI
 requirements.txt         从 uv.lock 导出的精确兼容依赖
-OPTIMIZATION_PLAN.md      严格评审、实施记录与后续边界
 ```
 
 更多资料：
 
 - [后端说明](backend/README.md)
 - [前端说明](frontend/README.md)
-- [交接文档](backend/docs/HANDOFF.md)
-- [优化方案与实施状态](OPTIMIZATION_PLAN.md)
 
 ## 当前边界
 
