@@ -13,6 +13,17 @@ from app.llm import MockLLMClient
 from tests.fixtures import sample_story_state_dict  # noqa: E402
 
 
+@pytest.fixture(autouse=True)
+def isolate_operator_credentials(monkeypatch):
+    # Offline tests must never decrypt or compare the operator's real key.
+    # Tests requiring authentication install their own disposable credentials.
+    for name in (
+        "LLM_API_KEY", "LLM_API_KEY_ENCRYPTED", "OPENAI_API_KEY",
+        "OPENAI_API_KEY_ENCRYPTED", "LOCAL_FT_API_KEY", "LOCAL_FT_API_KEY_ENCRYPTED",
+    ):
+        monkeypatch.delenv(name, raising=False)
+
+
 @pytest.fixture
 def state_dict() -> dict:
     return sample_story_state_dict()

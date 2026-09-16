@@ -1,0 +1,33 @@
+{
+  "finish_reason": "stop",
+  "headings": [
+    "S01",
+    "S02",
+    "S03",
+    "S04",
+    "S05",
+    "S06",
+    "S07",
+    "S08",
+    "S09",
+    "S10",
+    "S11",
+    "S12"
+  ],
+  "expected": [
+    "S01",
+    "S02",
+    "S03",
+    "S04",
+    "S05",
+    "S06",
+    "S07",
+    "S08",
+    "S09",
+    "S10",
+    "S11",
+    "S12"
+  ],
+  "complete": true,
+  "validation_note": "Initial validator did not recognize bold Markdown headings such as **S01 — ...**. The frozen first response contains S01-S12 exactly once and ended with finish_reason=stop; no model retry was performed."
+}

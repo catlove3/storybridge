@@ -1,0 +1,55 @@
+{
+  "changed_node_id": "CM01",
+  "affected_scenes": [
+    {
+      "scene_id": "S01",
+      "impact_kinds": [
+        "causal",
+        "motivation"
+      ],
+      "reason_path": [
+        "CM01",
+        "E02",
+        "S01"
+      ],
+      "evidence": "CM01 --motivates--> E02 (\"高考前小宁摔伤住院，错过考试。\"); E02 --appears_in--> S01 (\"高考前小宁摔伤住院，错过考试。\")",
+      "path_confidence": 0.95
+    },
+    {
+      "scene_id": "S02",
+      "impact_kinds": [
+        "causal",
+        "motivation"
+      ],
+      "reason_path": [
+        "CM01",
+        "E02",
+        "E03",
+        "E04",
+        "S02"
+      ],
+      "evidence": "CM01 --motivates--> E02 (\"高考前小宁摔伤住院，错过考试。\"); E02 --causes--> E03 (\"高考前小宁摔伤住院，错过考试。一个升学中介私下对父亲说：“人不用到，成绩我们安排。”\"); E03 --causes--> E04 (\"父亲以为有特殊补考名额，交了钱。中介发来一份写着小宁名字的高考成绩单。\"); E04 --appears_in--> S02 (\"中介发来一份写着小宁名字的高考成绩单\")",
+      "path_confidence": 0.7695
+    },
+    {
+      "scene_id": "S03",
+      "impact_kinds": [
+        "causal",
+        "motivation"
+      ],
+      "reason_path": [
+        "CM01",
+        "E02",
+        "E03",
+        "E04",
+        "E05",
+        "E06",
+        "S03"
+      ],
+      "evidence": "CM01 --motivates--> E02 (\"高考前小宁摔伤住院，错过考试。\"); E02 --causes--> E03 (\"高考前小宁摔伤住院，错过考试。一个升学中介私下对父亲说：“人不用到，成绩我们安排。”\"); E03 --causes--> E04 (\"父亲以为有特殊补考名额，交了钱。中介发来一份写着小宁名字的高考成绩单。\"); E04 --causes--> E05 (\"小宁说：“可那两天我一直在医院。”父亲反复看着高分，劝她先别问。\"); E05 --causes--> E06 (\"她把成绩单和照片都存进手机。小岚来还毕业纪念册，留下了一份考场座位表。\"); E06 --appears_in--> S03 (\"小岚来还毕业纪念册，留下了一份考场座位表。\")",
+      "path_confidence": 0.52326
+    }
+  ],
+  "related_commitment_ids": [],
+  "summary": "Changing 'CM01' (高考) affects 3 scene(s): S01, S02, S03"
+}

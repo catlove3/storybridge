@@ -11,6 +11,7 @@ from app.api.security import ApiUsageGuard
 from app.config import api_key_owners, get_config
 from app.jobs import JobManager
 from app.llm import build_router
+from app.web import install_web, prepare_public_runtime
 from app.workflow.engine import build_default_workflow
 
 logger = logging.getLogger(__name__)
@@ -19,6 +20,8 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     config = get_config()
+    prepare_public_runtime()
+    app.state.mock_mode = False
     configured_api_keys = api_key_owners(config)
     router_llm = build_router()
     app.state.workflow = build_default_workflow(router_llm)
@@ -37,7 +40,7 @@ async def lifespan(app: FastAPI):
     )
     logger.info(
         "StoryBridge security mode=%s sft_collection=%s",
-        "api-key" if configured_api_keys else "local-single-user",
+        "anonymous-public" if config.share.enabled else "api-key" if configured_api_keys else "local-single-user",
         "enabled-with-project-opt-in" if config.logging.sft_log_enabled else "disabled",
     )
     try:
@@ -70,3 +73,6 @@ async def readyz(response: Response) -> dict:
     if not ready:
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     return {"status": "ready" if ready else "not_ready", "checks": checks}
+
+
+install_web(app)

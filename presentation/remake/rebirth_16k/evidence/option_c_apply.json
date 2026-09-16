@@ -1,0 +1,267 @@
+{
+  "applied": {
+    "plan_culture_mechanism_id": "CM01",
+    "state_version": 2,
+    "operation_id": null,
+    "chosen_option": {
+      "option_label": "C",
+      "strategy": "plot_reconstruction",
+      "title": "重构为‘全国学术锦标赛’（虚构）",
+      "replacement_definition": "创造一个虚构的美国全国性学术竞赛‘National Academic Championship (NAC)’，其决赛成绩直接决定顶尖大学录取和全额奖学金。决赛为一场持续数日的综合考试，最后一场为‘综合能力测试’。借笔发生在最后一场考试前；查分夜改为NAC官网公布成绩；复核改为向NAC委员会申请成绩审查；志愿填报改为‘大学承诺日’（Commitment Day），学生需在当日确认接受哪所大学的录取。分数映射：林知夏NAC 669（满分700），周雨原330换后487，沈曼原487换后330。台词示例：‘NAC成绩出来了，我669，和模拟考一样。’‘我申请了成绩审查，委员会说我的487无误，可我明明只考了330！’",
+      "rationale": "通过虚构机制，完全控制规则，避免真实考试机构带来的事实核查风险，同时保留‘一考定终身’的极端压力。NAC可以设计为类似‘学术奥运会’，增加戏剧性和美国观众熟悉的竞赛叙事（如拼字比赛、科学碗）。",
+      "preserved_functions": [
+        "plot: motivation, constraint, conflict, revelation, foreshadowing, payoff",
+        "social: status, institutional_access, economic_security, reputation",
+        "emotional: fear, aspiration, suspense, satisfaction, humiliation"
+      ],
+      "lost_functions": [
+        "institutional_access: 虚构机制可能缺乏真实感，观众难以完全投入。",
+        "reputation: 真实考试的社会认可度更高，虚构竞赛需要建立可信度。"
+      ],
+      "risks": [
+        "观众可能觉得虚构设定过于人为，降低代入感。",
+        "需要额外场景建立NAC的权威性和重要性，可能挤占主线时间。",
+        "与‘易分系统’的科幻元素叠加，可能让世界观过于复杂。"
+      ]
+    },
+    "propagation": {
+      "changed_node_id": "CM01",
+      "affected_scenes": [
+        {
+          "scene_id": "S01",
+          "impact_kinds": [
+            "motivation"
+          ],
+          "reason_path": [
+            "CM01",
+            "E01",
+            "S01"
+          ],
+          "evidence": "CM01 --motivates--> E01 (\"最后一科开考前，考场外。林知夏默背着作文素材，沈曼迎上来：\"知夏，笔借我用一下，我那支突然断墨了。\"\"); E01 --appears_in--> S01 (\"沈曼迎上来：\"知夏，笔借我用一下\"\")",
+          "path_confidence": 0.81
+        },
+        {
+          "scene_id": "S02",
+          "impact_kinds": [
+            "causal",
+            "motivation"
+          ],
+          "reason_path": [
+            "CM01",
+            "E02",
+            "S02"
+          ],
+          "evidence": "CM01 --motivates--> E02 (\"深夜查分，屏幕跳出\"487\"。\"); E02 --appears_in--> S02 (\"深夜查分，屏幕跳出\"487\"。\")",
+          "path_confidence": 0.81
+        },
+        {
+          "scene_id": "S03",
+          "impact_kinds": [
+            "causal",
+            "motivation"
+          ],
+          "reason_path": [
+            "CM01",
+            "E05",
+            "S03"
+          ],
+          "evidence": "CM01 --motivates--> E05 (\"志愿填报截止那天，匿名短信把她约上天台。\"); E05 --appears_in--> S03 (\"沈曼卸下所有伪装：\"你以为我是靠我爸？\"\")",
+          "path_confidence": 0.81
+        },
+        {
+          "scene_id": "S04",
+          "impact_kinds": [
+            "causal",
+            "motivation"
+          ],
+          "reason_path": [
+            "CM01",
+            "E07",
+            "S04"
+          ],
+          "evidence": "CM01 --motivates--> E07 (\"再睁眼，是高考第一天清晨。\"); E07 --appears_in--> S04 (\"再睁眼，是高考第一天清晨。\")",
+          "path_confidence": 0.81
+        },
+        {
+          "scene_id": "S05",
+          "impact_kinds": [
+            "causal",
+            "motivation"
+          ],
+          "reason_path": [
+            "CM01",
+            "E09",
+            "S05"
+          ],
+          "evidence": "CM01 --motivates--> E09 (\"最后一科开考前，沈曼果然凑过来：\"知夏，笔借我用一下，我那支断墨了。\"\"); E09 --appears_in--> S05 (\"沈曼果然凑过来：\"知夏，笔借我用一下\"\")",
+          "path_confidence": 0.81
+        },
+        {
+          "scene_id": "S06",
+          "impact_kinds": [
+            "causal",
+            "motivation"
+          ],
+          "reason_path": [
+            "CM01",
+            "E10",
+            "S06"
+          ],
+          "evidence": "CM01 --motivates--> E10 (\"查分夜。林知夏输入准考证号，屏幕跳出：669\"); E10 --appears_in--> S06 (\"屏幕跳出：669\")",
+          "path_confidence": 0.81
+        }
+      ],
+      "related_commitment_ids": [
+        "NC01",
+        "NC02",
+        "NC03",
+        "NC04",
+        "NC05"
+      ],
+      "summary": "Changing 'CM01' (高考) affects 6 scene(s): S01, S02, S03, S04, S05, S06"
+    },
+    "rewritten_scene_ids": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06"
+    ],
+    "notes": ""
+  },
+  "report": {
+    "issues": [
+      {
+        "issue_type": "motivation_break",
+        "severity": "warning",
+        "scene_id": null,
+        "description": "重构策略仍保留 CM01 的旧因果依赖边，需要人工确认因果链是否已同步重建",
+        "evidence": "CM01--motivates-->E01, CM01--motivates-->E02, CM01--motivates-->E04, CM01--motivates-->E05, CM01--motivates-->E07"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S02",
+        "description": "S02中林知夏查到487分，但改编后分数映射规定林知夏NAC应为669分，487分是周雨被换后的分数。",
+        "evidence": "屏幕终于跳出\"487\""
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S02",
+        "description": "S02中沈曼以669分登上NAC全国榜首，但改编后分数映射规定沈曼NAC应为330分，669分是林知夏的分数。",
+        "evidence": "沈曼以\"669分\"登上NAC全国榜首"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S06",
+        "description": "S06中林知夏查到669分，与改编后分数映射一致，但周雨查到487分、沈曼330分，与改编后映射一致，不构成冲突。",
+        "evidence": "屏幕跳出：669"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S07",
+        "description": "S07中沈曼脱口而出'你明明只有330'，但改编后分数映射规定周雨原330换后487，沈曼原487换后330，此处沈曼说周雨只有330与映射一致，不构成冲突。",
+        "evidence": "你明明只有330"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S10",
+        "description": "S10中法官问沈曼'你查到487分'，但改编后分数映射规定沈曼NAC应为330分，487分是周雨被换后的分数。",
+        "evidence": "你查到487分"
+      },
+      {
+        "issue_type": "motivation_break",
+        "severity": "warning",
+        "scene_id": "S07",
+        "description": "S07中林知夏承认故意把周雨的笔借给沈曼，但改编后NAC背景下林知夏应知道借笔会导致换分，其动机与保护周雨的目标冲突。",
+        "evidence": "我递给她的，是你的笔"
+      },
+      {
+        "issue_type": "commitment_violation",
+        "severity": "error",
+        "scene_id": "S08",
+        "description": "S08中林知夏在天台对峙时使用运动相机和录音笔录下证据，但NC01承诺录下沈曼推人证据，此处沈曼并未推人，而是撞上护栏，承诺未完全回收。",
+        "evidence": "书包带上别着运动相机，袖口藏着录音笔"
+      },
+      {
+        "issue_type": "unresolved_payoff",
+        "severity": "warning",
+        "scene_id": "S12",
+        "description": "S12中林知夏保留周雨的笔作为警示，但NC07承诺系统没有消失，在等下一个借笔的人，此处未明确回收该悬念。",
+        "evidence": "系统没有消失，它只是换了一种方式，在等下一个借笔的人"
+      }
+    ],
+    "commitment_checks": [
+      {
+        "commitment_id": "NC01",
+        "status": "needs_review",
+        "explanation": "S08中林知夏使用运动相机和录音笔，但沈曼并未推人，而是撞上护栏，录下的证据内容与承诺的'推人证据'不完全一致。"
+      },
+      {
+        "commitment_id": "NC02",
+        "status": "preserved",
+        "explanation": "S04中林知夏写下'她借笔，是为了换分。笔是锚。'，S05中沈曼借笔并还笔时指尖停半秒，S08中沈曼承认换分，设定保持一致。"
+      },
+      {
+        "commitment_id": "NC03",
+        "status": "preserved",
+        "explanation": "S02中沈曼掌心蓝痕正在褪色，S03中蓝痕已经淡得看不见，蓝痕作为换分成功标志的设定保持一致。"
+      },
+      {
+        "commitment_id": "NC04",
+        "status": "preserved",
+        "explanation": "S11中官方通报沈曼利用易分系统非法对调NAC成绩数据，揭露了换分真相，承诺得到回收。"
+      },
+      {
+        "commitment_id": "NC05",
+        "status": "preserved",
+        "explanation": "S11中周雨发消息'分数回来了。但我们回不去了。'，林知夏回复'嗯'，道德亏欠得到清算。"
+      },
+      {
+        "commitment_id": "NC06",
+        "status": "preserved",
+        "explanation": "S11中官方通报'易分系统来源不明，已移交专门机构调查'，悬念保留。"
+      },
+      {
+        "commitment_id": "NC07",
+        "status": "preserved",
+        "explanation": "S12中林知夏保留周雨的笔，并暗示系统没有消失，在等下一个借笔的人，悬念保留。"
+      }
+    ],
+    "checked_scene_ids": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "S08",
+      "S09",
+      "S10",
+      "S11",
+      "S12"
+    ],
+    "static_checks_passed": 2,
+    "static_checks_total": 3,
+    "commitments_verified": 6,
+    "commitments_total": 7,
+    "scenes_checked": 12,
+    "scenes_total": 12,
+    "overall_status": "fail",
+    "consistency_score": 0.0
+  },
+  "repair_rounds": 2,
+  "repaired_scene_ids": [
+    "S07",
+    "S10",
+    "S07",
+    "S10",
+    "S11"
+  ]
+}

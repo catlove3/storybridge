@@ -1,0 +1,22 @@
+{
+  "pptx_sha256": "31e087aa600dc79ee938b94a7a1424833e5ea45c0585d8ff2c1cab3a412f3dd6",
+  "slides": 12,
+  "main_slides": 10,
+  "hidden_slides": [
+    11,
+    12
+  ],
+  "speaker_seconds": 300,
+  "source_scenes": 12,
+  "storybridge_scenes": 12,
+  "baseline_scenes": 12,
+  "text_overflow": 0,
+  "windows_powerpoint_version": "16.0",
+  "windows_video_position_after_2s_ms": 2104,
+  "windows_native_passed": true,
+  "mac_native_tested": false,
+  "pdf_pages": 12,
+  "standalone_video_seconds": 18.0,
+  "storybridge_internal_status": "fail",
+  "known_graph_gap": "CM10 initial propagation returned no downstream scenes"
+}

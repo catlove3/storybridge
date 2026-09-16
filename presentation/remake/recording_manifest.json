@@ -1,0 +1,34 @@
+{
+  "raw_video": "/home/zypca/zhili/presentation/remake/recordings/page@65242f98c50c729ca2f66b740520d718.webm",
+  "segments": [
+    {
+      "name": "选择赛艇改编方案",
+      "start": 1.0661402769983397,
+      "end": 3.5595130510009767
+    },
+    {
+      "name": "沿依赖找到第三场",
+      "start": 3.9332799969997723,
+      "end": 7.19391867000013
+    },
+    {
+      "name": "朋友与证据一起改",
+      "start": 8.332580574999156,
+      "end": 12.679895093999221
+    },
+    {
+      "name": "留下父女和解的结尾",
+      "start": 12.75319626000055,
+      "end": 15.557364829001017
+    }
+  ],
+  "description": "Live interactions with the real React app. Saved real workflow results; generation wait omitted. No fabricated interface or model text.",
+  "edited_video": "/home/zypca/zhili/presentation/StoryBridge_18秒操作演示.mp4",
+  "duration_seconds": 18,
+  "subtitles": [
+    "选一个改法：高考替考 → 赛艇履历造假",
+    "看依赖图：第三场的朋友也受影响",
+    "对照第三场：朋友的经历、她带来的证据一起改",
+    "读到结尾：名字和作品，终于都是她自己的"
+  ]
+}

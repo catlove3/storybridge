@@ -10,7 +10,7 @@
     "openapi:export": "cd ../backend && .venv/bin/python -m scripts.export_openapi",
     "openapi:types": "openapi-typescript openapi.json -o src/api/generated/schema.ts",
     "openapi:generate": "npm run openapi:export && npm run openapi:types",
-    "openapi:check": "npm run openapi:generate && git diff --exit-code -- openapi.json src/api/generated/schema.ts",
+    "openapi:check": "node scripts/check-openapi.mjs",
     "dev": "vite",
     "typecheck": "tsc -b",
     "build": "tsc -b && vite build",

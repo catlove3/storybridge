@@ -1,0 +1,278 @@
+[
+  {
+    "culture_mechanism_id": "CM01",
+    "original_name": "高考",
+    "based_on_version": 1,
+    "friction_level": "high",
+    "options": [
+      {
+        "option_label": "A",
+        "strategy": "preserve",
+        "title": "保留中国高考设定，以字幕注释降低理解门槛",
+        "replacement_definition": "场景仍设定在中国，保留“高考”“准考证号”“查分”“估分”等原词。在首次出现时以屏幕注释说明：Gaokao — China's national college entrance exam, a single score that determines university placement and life trajectory. 台词维持原样，例如“最后一科开考前”“查分”“复核被驳回”。",
+        "rationale": "对熟悉亚洲升学叙事的北美垂直短剧观众而言，高考作为“一考定终身”的符号已有一定认知度，保留原语境可维持异域悬念感，且改动成本最低。",
+        "preserved_functions": [
+          "motivation",
+          "constraint",
+          "conflict",
+          "revelation",
+          "foreshadowing",
+          "payoff",
+          "status",
+          "institutional_access",
+          "economic_security",
+          "reputation",
+          "aspiration",
+          "fear",
+          "suspense",
+          "satisfaction"
+        ],
+        "lost_functions": [
+          "institutional_access 的本地可信度",
+          "economic_security 与北美学费/奖学金体系的直接对应"
+        ],
+        "risks": [
+          "北美观众对高考的分数体系、复核流程缺乏实感，可能削弱“487/669”的冲击力",
+          "字幕注释会打断竖屏短剧的快节奏",
+          "中国考场、查分网站、复核机制对目标观众显得陌生，降低代入感"
+        ]
+      },
+      {
+        "option_label": "B",
+        "strategy": "functional_replacement",
+        "title": "替换为 SAT/ACT 与大学早申绑定的一次性高风险考试",
+        "replacement_definition": "将高考替换为“SAT 最终场 + 大学早申截止”的复合机制：主角就读于虚构的“Riverton Prep”，所有学生必须在同一天参加 SAT 最后一场考试，该分数直接决定能否进入早申名单与奖学金资格。台词改为：“SAT 最后一科开考前”“查分”“准考证号”改为“准考证号/Admission Ticket Number”或“College Board 账号”，“复核”改为“score verification”。分数体系改为 SAT 1600 制：林知夏 1520，周雨原 1050、换后 1180，沈曼原 1180、换后 1050。保留“最后一科开考前借笔”“查分夜”“复核确认”等场景功能。",
+        "rationale": "SAT 在北美 18-35 岁观众中具有同等“一考定终身”的焦虑记忆，且与大学录取、奖学金、家庭期待直接挂钩，能无缝承接 status、institutional_access、economic_security 等社会功能。分数改为 1600 制后，数字对比依然清晰，且不依赖中国高考的具体流程。",
+        "preserved_functions": [
+          "motivation",
+          "constraint",
+          "conflict",
+          "revelation",
+          "foreshadowing",
+          "payoff",
+          "status",
+          "institutional_access",
+          "economic_security",
+          "reputation",
+          "aspiration",
+          "fear",
+          "suspense",
+          "satisfaction"
+        ],
+        "lost_functions": [
+          "全国统一考试带来的“全民同一时刻”集体仪式感",
+          "中国式“全校榜首”与班级群动态的特定社交压力形态"
+        ],
+        "risks": [
+          "SAT 可重考，需在台词中明确“这是最后一次机会/早申截止前唯一一场”，否则削弱一次性压力",
+          "美国大学录取是综合评估，需用“奖学金线”“早申名单”等设定补足分数决定论",
+          "不同州、不同学校对 SAT 的重视程度不一，需通过虚构学校设定统一标准"
+        ]
+      },
+      {
+        "option_label": "C",
+        "strategy": "plot_reconstruction",
+        "title": "重构为“州级学术锦标赛决赛 + 大学全额奖学金绑定”的直播排名赛",
+        "replacement_definition": "取消标准化考试，改为虚构的“Meridian State Academic Championship”决赛：全州顶尖高中生参加为期一天的直播学术竞赛，最终排名实时公开，冠军直接获得州立大学全额奖学金与早申录取。比赛最后一轮为“个人笔试环节”，选手在开考前可互相借文具。分数改为 1000 分制：林知夏 940，周雨原 330、换后 487，沈曼原 487、换后 330。查分改为“直播排名页刷新”，复核改为“赛事仲裁复核”。借笔发生在“最后一轮开考前”，笔成为换分锚点。",
+        "rationale": "将考试重构为直播竞赛，把“查分夜”变成公开的、有观众围观的排名揭晓，强化羞辱与复仇的戏剧张力，同时保留分数交换的叙事功能。直播排名天然适配竖屏短剧的视觉节奏，且“奖学金绑定”替代高考的 institutional_access 与 economic_security。",
+        "preserved_functions": [
+          "motivation",
+          "constraint",
+          "conflict",
+          "revelation",
+          "foreshadowing",
+          "payoff",
+          "status",
+          "institutional_access",
+          "economic_security",
+          "reputation",
+          "aspiration",
+          "fear",
+          "suspense",
+          "satisfaction"
+        ],
+        "lost_functions": [
+          "全国统一考试带来的普遍共鸣",
+          "查分夜的私密焦虑感（改为公开直播后情绪形态变化）"
+        ],
+        "risks": [
+          "直播竞赛设定偏架空，需在前几场快速建立规则可信度",
+          "公开排名可能削弱“复核被驳回”的私密压迫感，需用仲裁流程补足",
+          "改动较大，需重新设计 S02、S06、S07 的查分与复核场景细节"
+        ]
+      }
+    ]
+  },
+  {
+    "culture_mechanism_id": "CM02",
+    "original_name": "成绩复核",
+    "based_on_version": 1,
+    "friction_level": "high",
+    "options": [
+      {
+        "option_label": "A",
+        "strategy": "preserve",
+        "title": "保留中国高考复核机制，加注说明",
+        "replacement_definition": "保留中国高考成绩复核设定，在台词中通过角色解释'复核只检查分数加总，不重新评卷'，并暗示权力干预。例如老陈台词改为：'我帮你申请复核，但复核只查加总错误，不重新评卷。' 后续驳回答复保持'成绩无误'。",
+        "rationale": "保留原文化机制，通过角色对话向美国观众解释中国高考复核的特殊性。适合希望保持异域悬疑感、不介意文化门槛的创作方向。",
+        "preserved_functions": [
+          "plot: motivation",
+          "plot: conflict",
+          "plot: revelation",
+          "plot: payoff",
+          "social: institutional_access",
+          "social: power",
+          "social: reputation",
+          "emotional: fear",
+          "emotional: suspense",
+          "emotional: satisfaction"
+        ],
+        "lost_functions": [],
+        "risks": [
+          "美国观众可能不理解高考复核的局限性和权力干预的普遍性，导致情感共鸣减弱。",
+          "需要额外台词解释，可能拖慢节奏。",
+          "文化隔阂可能让观众觉得'复核被驳回'是剧情漏洞而非制度性压迫。"
+        ]
+      },
+      {
+        "option_label": "B",
+        "strategy": "functional_replacement",
+        "title": "替换为美国大学录取申诉与成绩复议机制",
+        "replacement_definition": "将高考复核替换为美国大学录取过程中的成绩复议（grade appeal）或录取决定申诉（admission decision appeal）。具体设定：林知夏向大学招生办提交成绩复议申请，要求核查标准化考试（SAT/ACT）分数或高中成绩单（transcript）的录入错误。招生办回复'分数已核实无误'，但沈曼家族通过捐赠（donation）或校友关系（legacy）影响申诉结果。关键台词：'我提交了成绩复议，他们只查录入错误，不重新评分。' '申诉被驳回了，回复是分数无误。'",
+        "rationale": "美国大学录取存在成绩复议和申诉机制，且富裕家庭通过捐赠影响录取是公众认知中的现实。这保留了制度性压迫、权力干预和申诉无门的叙事功能，同时让美国观众立即理解。",
+        "preserved_functions": [
+          "plot: motivation",
+          "plot: conflict",
+          "plot: revelation",
+          "plot: payoff",
+          "social: institutional_access",
+          "social: power",
+          "social: reputation",
+          "emotional: fear",
+          "emotional: suspense",
+          "emotional: satisfaction"
+        ],
+        "lost_functions": [
+          "中国高考特有的'一考定终身'的绝对性",
+          "复核只查加总错误的精确制度细节"
+        ],
+        "risks": [
+          "美国大学录取申诉不如高考复核那样具有全国统一性和绝对性，可能削弱'成绩被换'的严重性。",
+          "需要确保虚构大学名称不影射真实学校。",
+          "捐赠影响录取的设定可能被视为刻板印象，需谨慎处理。"
+        ]
+      },
+      {
+        "option_label": "C",
+        "strategy": "plot_reconstruction",
+        "title": "重构为标准化考试（SAT/ACT）成绩异常调查与申诉",
+        "replacement_definition": "将冲突机制从'复核'重构为'标准化考试成绩异常调查'。具体设定：林知夏发现自己的SAT/ACT成绩与预期严重不符，向考试机构（如College Board）申请成绩验证（score verification）。考试机构回复'分数无误'，但林知夏发现成绩被篡改，而沈曼家族通过贿赂考试机构内部人员或利用系统漏洞修改成绩。关键台词：'我申请了成绩验证，他们只检查答题卡扫描错误，不重新阅卷。' '验证结果：分数无误。' 后续通过周雨的成绩异常暴露真相。",
+        "rationale": "美国标准化考试（SAT/ACT）成绩对大学录取至关重要，成绩异常和申诉是观众能理解的冲突。重构后更贴近美国教育体系，同时保留权力干预和制度性压迫的核心。",
+        "preserved_functions": [
+          "plot: motivation",
+          "plot: conflict",
+          "plot: revelation",
+          "plot: payoff",
+          "social: institutional_access",
+          "social: power",
+          "social: reputation",
+          "emotional: fear",
+          "emotional: suspense",
+          "emotional: satisfaction"
+        ],
+        "lost_functions": [
+          "高考作为全国统一考试的绝对权威性",
+          "复核只查加总错误的特定制度细节"
+        ],
+        "risks": [
+          "标准化考试机构通常有严格的安全措施，贿赂或篡改成绩的设定可能显得牵强。",
+          "需要避免对考试机构的不实描述引发法律问题。",
+          "成绩验证的流程和局限性需要准确呈现，否则可能被观众质疑。"
+        ]
+      }
+    ]
+  },
+  {
+    "culture_mechanism_id": "CM09",
+    "original_name": "高考分数与录取",
+    "based_on_version": 1,
+    "friction_level": "high",
+    "options": [
+      {
+        "option_label": "A",
+        "strategy": "preserve",
+        "title": "保留中国高考语境，加注说明",
+        "replacement_definition": "保留“高考”“录取通知书”等中国专有设定，在台词中用一句自然对白交代背景，例如：“高考，中国决定大学录取的唯一标准考试，分数就是命。”录取通知书仍作为升学凭证出现。",
+        "rationale": "最大程度保留原叙事逻辑和数字意义，避免改动换分系统的锚点。适合对中国文化有一定认知或愿意接受异域设定的观众。",
+        "preserved_functions": [
+          "motivation",
+          "payoff",
+          "revelation",
+          "status",
+          "institutional_access",
+          "economic_security",
+          "aspiration",
+          "satisfaction"
+        ],
+        "lost_functions": [],
+        "risks": [
+          "美国18-35岁观众可能对高考的绝对权威性缺乏共鸣，导致情感投入降低。",
+          "需要额外解释，可能拖慢短剧节奏。",
+          "录取通知书作为凭证的仪式感在美国文化中较弱。"
+        ]
+      },
+      {
+        "option_label": "B",
+        "strategy": "functional_replacement",
+        "title": "替换为美国大学录取体系：SAT/ACT 分数 + 提前录取（Early Decision）",
+        "replacement_definition": "将高考替换为美国大学录取机制：SAT/ACT 分数是核心硬指标，但录取还结合 GPA、课外活动、推荐信等。关键道具改为“提前录取（Early Decision）绑定协议”和“录取包裹（admissions packet）”。分数公布方式改为在线查分，录取结果以电子邮件和实体包裹送达。换分系统仍作用于“最终提交给大学的官方分数”，即借笔人提交的分数与笔原主人最终提交的分数对调。台词示例：“你的 SAT 分数是 1580，她的是 1210，但系统里显示的是反过来的。”",
+        "rationale": "美国大学录取虽非唯分数论，但 SAT/ACT 高分仍是顶尖名校的硬通货，且“提前录取”具有绑定性和不可撤回性，能保留原机制中“成绩公布后交换锁死”的规则。录取包裹的仪式感可替代录取通知书。",
+        "preserved_functions": [
+          "motivation",
+          "payoff",
+          "revelation",
+          "status",
+          "institutional_access",
+          "economic_security",
+          "aspiration",
+          "satisfaction"
+        ],
+        "lost_functions": [
+          "分数作为唯一录取标准的绝对性",
+          "全国统一考试带来的集体焦虑感"
+        ],
+        "risks": [
+          "美国观众可能质疑“分数对调”为何能影响录取，因为录取并非唯分数论，需在台词中强调“提前录取绑定协议”和“分数是门槛”。",
+          "SAT/ACT 分数范围与高考不同，需调整数字（如 1580/1210/980）以符合美国认知。",
+          "录取包裹的送达时间可能不如中国录取通知书集中，需设定统一放榜日。"
+        ]
+      },
+      {
+        "option_label": "C",
+        "strategy": "plot_reconstruction",
+        "title": "重构为“全国学术竞赛（National Academic Championship）排名与大学保送资格”",
+        "replacement_definition": "将高考替换为美国全国性学术竞赛（如 National Academic Championship，虚构名称），决赛排名直接决定顶尖大学保送资格。分数改为竞赛得分，录取通知书改为“保送邀请函（invitation to the honors program）”。换分系统作用于竞赛最终得分：借笔人竞赛得分与笔原主人最终公布得分对调，且成绩公布后锁定。台词示例：“决赛得分 669 分，全国第三，直接保送。但系统里，我的分数变成了她的。”",
+        "rationale": "竞赛排名具有绝对的量化性和公开性，能保留分数作为硬通货的功能，同时避免美国观众对高考的陌生感。保送资格类似录取，且绑定性强，适合制造复仇动机。",
+        "preserved_functions": [
+          "motivation",
+          "payoff",
+          "revelation",
+          "status",
+          "institutional_access",
+          "economic_security",
+          "aspiration",
+          "satisfaction"
+        ],
+        "lost_functions": [
+          "高考的全民性和社会普遍意义",
+          "录取通知书作为家庭荣耀的象征"
+        ],
+        "risks": [
+          "竞赛保送在美国并非主流录取途径，可能显得不真实。",
+          "需要建立竞赛的权威性和影响力，占用叙事篇幅。",
+          "换分系统作用于竞赛得分，需确保逻辑自洽。"
+        ]
+      }
+    ]
+  }
+]

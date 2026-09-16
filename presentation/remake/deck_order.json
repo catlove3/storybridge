@@ -1,0 +1,6 @@
+{
+  "main_slides": 10,
+  "video_slide": 8,
+  "thanks_slide": 10,
+  "hidden_slides": [11, 12]
+}

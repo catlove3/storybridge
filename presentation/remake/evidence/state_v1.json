@@ -1,0 +1,971 @@
+{
+  "version": 1,
+  "target_market": "United States",
+  "audience": "18–35",
+  "format": "Short drama",
+  "genre": "Family suspense",
+  "source_language": "zh-CN",
+  "target_language": "English",
+  "target_locale": "en-US",
+  "style_guide": "把这部短剧搬到美国背景，把高考替考骗局改编为中介伪造赛艇运动员履历、企图借体育招募进入名校的骗局。小宁从未练过赛艇。人物、学校、赛事、俱乐部均为虚构。保留父亲的名校执念、小宁对画画的热爱、朋友先埋线索后带来原始材料、再次索费、主动揭穿、放弃假资格，以及最后凭自己画作申请的父女和解。新骗局的材料和证据必须与赛艇履历对应；不要编造万能的官方查询网站，也不要让一张证书自动保证录取。人物的身份和经历可以随新骗局调整。用能拍出来的动作和简短对白写故事，保留七场顺序。",
+  "terminology_map": {},
+  "characters": [
+    {
+      "id": "C01",
+      "name": "小宁",
+      "role": "protagonist",
+      "description": "高三学生，热爱画画，因摔伤住院错过高考。性格清醒、有原则，最终选择放弃假成绩，用自己的作品申请艺术方向课程。",
+      "goals": [
+        "学画画",
+        "查清假成绩的真相",
+        "用自己的真实能力申请艺术方向课程"
+      ]
+    },
+    {
+      "id": "C02",
+      "name": "父亲",
+      "role": "supporting",
+      "description": "小宁的父亲，认定只有名校才有出路。因女儿错过高考而焦虑，一度接受中介的假成绩安排，最终承认错误并支持女儿走真实的路。",
+      "goals": [
+        "让女儿上名校",
+        "弥补女儿错过高考的遗憾",
+        "最终支持女儿的真实选择"
+      ]
+    },
+    {
+      "id": "C03",
+      "name": "中介",
+      "role": "antagonist",
+      "description": "升学中介，声称可以安排高考成绩，实际是让替考者冒名参加考试。不断催促父亲交钱，并暗示一旦被追问孩子前途就完了。",
+      "goals": [
+        "骗取父亲的钱财",
+        "促成假成绩升学交易"
+      ]
+    },
+    {
+      "id": "C04",
+      "name": "小岚",
+      "role": "supporting",
+      "description": "小宁的朋友，帮同学整理过本班考试材料，保留了一份考场座位表。她提供关键线索，帮助小宁比对证据。",
+      "goals": [
+        "帮助小宁查清真相"
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "id": "S01",
+      "title": "她没去的考试",
+      "summary": "小宁想学画画但父亲认定只有名校才有出路；高考前小宁摔伤住院错过考试，中介私下向父亲承诺可以安排成绩。",
+      "text": "高三学生小宁想学画画，父亲却认定只有名校才有出路。高考前小宁摔伤住院，错过考试。一个升学中介私下对父亲说：“人不用到，成绩我们安排。”父亲以为有特殊补考名额，交了钱。小宁问到底怎么考，中介没有回答。",
+      "character_ids": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "event_ids": [
+        "E01",
+        "E02",
+        "E03"
+      ]
+    },
+    {
+      "id": "S02",
+      "title": "一份不属于她的成绩",
+      "summary": "中介发来写有小宁名字的高考成绩单和模糊的入场核验照片，催父亲办升学材料；小宁质疑自己当时在医院，父亲劝她先别问，她把材料存进手机。",
+      "text": "中介发来一份写着小宁名字的高考成绩单，还有一张模糊的入场核验照片，催父亲赶紧办升学材料。小宁说：“可那两天我一直在医院。”父亲反复看着高分，劝她先别问，错过就没有机会了。她把成绩单和照片都存进手机。",
+      "character_ids": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "event_ids": [
+        "E04",
+        "E05"
+      ]
+    },
+    {
+      "id": "S03",
+      "title": "朋友留下的线索",
+      "summary": "小岚来还毕业纪念册，留下考场座位表，指出照片中模糊的座位号不是小宁的位置；小宁约她带原始材料核对，纪念册里夹着小宁的自画像。",
+      "text": "小岚来还毕业纪念册，她帮同学整理过本班的考试材料，留下了一份考场座位表。她指着照片里一处模糊的座位号说：“我记得这个位置坐的不是你。”小宁没有立刻下结论，约她把原始材料带来核对。纪念册里夹着小宁画了很久的自画像。",
+      "character_ids": [
+        "C01",
+        "C04"
+      ],
+      "event_ids": [
+        "E06",
+        "E07"
+      ]
+    },
+    {
+      "id": "S04",
+      "title": "再交一笔钱",
+      "summary": "中介以核验为由让父亲再交协调费，并暗示一旦有人追问孩子前途就完了；父亲准备借钱，小宁按住他手机要求先查清楚成绩是谁的。",
+      "text": "中介说升学材料需要进一步核验，让父亲再交一笔“协调费”。他暗示一旦有人追问，孩子的前途就完了。父亲又准备借钱，小宁按住他的手机：“先查清楚，那份成绩到底是谁的。”",
+      "character_ids": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "event_ids": [
+        "E08",
+        "E09"
+      ]
+    },
+    {
+      "id": "S05",
+      "title": "她决定拆穿",
+      "summary": "小岚带来原始座位表，两人比对中介的入场照片和小宁的住院记录，确认是替考；小宁对父亲说“你给我买的未来，连里面的人都不是我”。",
+      "text": "小岚带来原始座位表，两人比对中介的入场照片和小宁的住院记录。照片里的考生坐在另一名同学的座位，考试当天小宁仍躺在病床上。父女这才确认：所谓特殊名额是让另一个人替她参加高考。小宁把证据存好，对父亲说：“你给我买的未来，连里面的人都不是我。”",
+      "character_ids": [
+        "C01",
+        "C02",
+        "C04"
+      ],
+      "event_ids": [
+        "E10",
+        "E11"
+      ]
+    },
+    {
+      "id": "S06",
+      "title": "放弃那条捷径",
+      "summary": "父亲承认自己不敢面对女儿错过考试，只想抓住名校名额；父女保存证据，主动向学校说明情况，停止使用假成绩，父亲把画册推回女儿面前。",
+      "text": "父亲承认自己不敢面对女儿错过考试，只想抓住一个名校名额。父女保存中介承诺、付款记录和原始材料，主动向相关学校说明情况，停止使用假成绩，愿意配合核查。父亲把借款页面关掉，把画册推回女儿面前：“那我们从你真正会的事情开始。”",
+      "character_ids": [
+        "C01",
+        "C02"
+      ],
+      "event_ids": [
+        "E12",
+        "E13",
+        "E14"
+      ]
+    },
+    {
+      "id": "S07",
+      "title": "她自己的名字",
+      "summary": "过了一段时间，小宁用自己的画申请艺术方向课程，拿到作品面试邀请，把邀请和自画像放在父亲面前；父亲第一次认真翻完她的毕业纪念册。",
+      "text": "过了一段时间，小宁用自己的画申请艺术方向课程，拿到了作品面试邀请。她把邀请和那张自画像放在父亲面前：“这一次，上面的名字和作品，都是我的。”父亲第一次认真翻完她的毕业纪念册。",
+      "character_ids": [
+        "C01",
+        "C02"
+      ],
+      "event_ids": [
+        "E15",
+        "E16"
+      ]
+    }
+  ],
+  "events": [
+    {
+      "id": "E01",
+      "description": "小宁想学画画，父亲认定只有名校才有出路。",
+      "scene_ids": [
+        "S01"
+      ]
+    },
+    {
+      "id": "E02",
+      "description": "高考前小宁摔伤住院，错过考试。",
+      "scene_ids": [
+        "S01"
+      ]
+    },
+    {
+      "id": "E03",
+      "description": "中介私下对父亲说“人不用到，成绩我们安排”，父亲以为有特殊补考名额并交了钱。",
+      "scene_ids": [
+        "S01"
+      ]
+    },
+    {
+      "id": "E04",
+      "description": "中介发来写有小宁名字的高考成绩单和模糊的入场核验照片，催父亲办升学材料。",
+      "scene_ids": [
+        "S02"
+      ]
+    },
+    {
+      "id": "E05",
+      "description": "小宁质疑自己那两天一直在医院，父亲劝她先别问，她把成绩单和照片存进手机。",
+      "scene_ids": [
+        "S02"
+      ]
+    },
+    {
+      "id": "E06",
+      "description": "小岚来还毕业纪念册，留下考场座位表，指出照片中模糊的座位号不是小宁的位置。",
+      "scene_ids": [
+        "S03"
+      ]
+    },
+    {
+      "id": "E07",
+      "description": "小宁约小岚把原始材料带来核对，纪念册里夹着小宁的自画像。",
+      "scene_ids": [
+        "S03"
+      ]
+    },
+    {
+      "id": "E08",
+      "description": "中介以核验为由让父亲再交一笔协调费，并暗示一旦有人追问孩子前途就完了。",
+      "scene_ids": [
+        "S04"
+      ]
+    },
+    {
+      "id": "E09",
+      "description": "父亲准备借钱，小宁按住他手机要求先查清楚成绩是谁的。",
+      "scene_ids": [
+        "S04"
+      ]
+    },
+    {
+      "id": "E10",
+      "description": "小岚带来原始座位表，两人比对中介的入场照片和小宁的住院记录。",
+      "scene_ids": [
+        "S05"
+      ]
+    },
+    {
+      "id": "E11",
+      "description": "确认所谓特殊名额是让另一个人替小宁参加高考，小宁把证据存好并质问父亲。",
+      "scene_ids": [
+        "S05"
+      ]
+    },
+    {
+      "id": "E12",
+      "description": "父亲承认自己不敢面对女儿错过考试，只想抓住一个名校名额。",
+      "scene_ids": [
+        "S06"
+      ]
+    },
+    {
+      "id": "E13",
+      "description": "父女保存中介承诺、付款记录和原始材料，主动向相关学校说明情况，停止使用假成绩，愿意配合核查。",
+      "scene_ids": [
+        "S06"
+      ]
+    },
+    {
+      "id": "E14",
+      "description": "父亲把借款页面关掉，把画册推回女儿面前，说从她真正会的事情开始。",
+      "scene_ids": [
+        "S06"
+      ]
+    },
+    {
+      "id": "E15",
+      "description": "过了一段时间，小宁用自己的画申请艺术方向课程，拿到作品面试邀请。",
+      "scene_ids": [
+        "S07"
+      ]
+    },
+    {
+      "id": "E16",
+      "description": "小宁把邀请和自画像放在父亲面前，说这次名字和作品都是她的；父亲第一次认真翻完她的毕业纪念册。",
+      "scene_ids": [
+        "S07"
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "id": "SET01",
+      "name": "中国高考",
+      "description": "中国普通高等学校招生全国统一考试，是高三学生升入大学的主要途径，成绩直接决定能进入的大学层次。"
+    },
+    {
+      "id": "SET02",
+      "name": "高三备考家庭",
+      "description": "中国高三学生家庭普遍以高考为重心，家长高度焦虑，名校被视为唯一出路。"
+    },
+    {
+      "id": "SET03",
+      "name": "升学中介",
+      "description": "声称能通过特殊渠道帮助学生升学的灰色中介，常以“内部名额”“协调费”等名义收费。"
+    }
+  ],
+  "culture_mechanisms": [
+    {
+      "id": "CM01",
+      "name": "高考",
+      "description": "中国普通高等学校招生全国统一考试，是决定学生能否进入大学及大学层次的核心制度，社会关注度极高。",
+      "surface_text": [
+        "高考"
+      ],
+      "scene_ids": [
+        "S01",
+        "S02",
+        "S05"
+      ],
+      "friction_level": "high",
+      "narrative_importance": "high",
+      "functions": {
+        "plot": [
+          "motivation",
+          "constraint",
+          "conflict"
+        ],
+        "social": [
+          "institutional_access",
+          "status",
+          "economic_security"
+        ],
+        "emotional": [
+          "fear",
+          "aspiration",
+          "suspense"
+        ]
+      },
+      "adapted_to": null,
+      "adapted_strategy": null
+    },
+    {
+      "id": "CM02",
+      "name": "名校",
+      "description": "中国社会对顶尖大学的统称，常被视为人生成功的唯一出路，家长普遍以此为目标。",
+      "surface_text": [
+        "名校"
+      ],
+      "scene_ids": [
+        "S01",
+        "S06"
+      ],
+      "friction_level": "medium",
+      "narrative_importance": "high",
+      "functions": {
+        "plot": [
+          "motivation",
+          "conflict"
+        ],
+        "social": [
+          "status",
+          "reputation",
+          "economic_security"
+        ],
+        "emotional": [
+          "aspiration",
+          "fear"
+        ]
+      },
+      "adapted_to": null,
+      "adapted_strategy": null
+    },
+    {
+      "id": "CM03",
+      "name": "特殊补考名额",
+      "description": "中国高考中不存在可由中介安排的“特殊补考名额”，这是中介编造的骗局话术。",
+      "surface_text": [
+        "特殊补考名额"
+      ],
+      "scene_ids": [
+        "S01"
+      ],
+      "friction_level": "high",
+      "narrative_importance": "high",
+      "functions": {
+        "plot": [
+          "motivation",
+          "foreshadowing",
+          "revelation"
+        ],
+        "social": [
+          "institutional_access",
+          "economic_security"
+        ],
+        "emotional": [
+          "suspense",
+          "fear"
+        ]
+      },
+      "adapted_to": null,
+      "adapted_strategy": null
+    },
+    {
+      "id": "CM04",
+      "name": "替考",
+      "description": "中国高考中由他人冒名代替参加考试的行为，属于严重违法犯罪，破坏考试公平。",
+      "surface_text": [
+        "替她参加高考"
+      ],
+      "scene_ids": [
+        "S05"
+      ],
+      "friction_level": "high",
+      "narrative_importance": "high",
+      "functions": {
+        "plot": [
+          "revelation",
+          "payoff",
+          "reversal"
+        ],
+        "social": [
+          "institutional_access",
+          "reputation"
+        ],
+        "emotional": [
+          "suspense",
+          "humiliation",
+          "satisfaction"
+        ]
+      },
+      "adapted_to": null,
+      "adapted_strategy": null
+    },
+    {
+      "id": "CM05",
+      "name": "协调费",
+      "description": "灰色升学中介常用的收费名目，声称用于“协调”关系或核验材料，实为骗取钱财。",
+      "surface_text": [
+        "协调费"
+      ],
+      "scene_ids": [
+        "S04"
+      ],
+      "friction_level": "medium",
+      "narrative_importance": "medium",
+      "functions": {
+        "plot": [
+          "motivation",
+          "conflict"
+        ],
+        "social": [
+          "economic_security",
+          "power"
+        ],
+        "emotional": [
+          "fear",
+          "suspense"
+        ]
+      },
+      "adapted_to": null,
+      "adapted_strategy": null
+    },
+    {
+      "id": "CM06",
+      "name": "艺术方向课程",
+      "description": "中国高校中通过艺术类专业考试或作品集申请的艺术类课程，为有艺术特长的学生提供升学路径。",
+      "surface_text": [
+        "艺术方向课程"
+      ],
+      "scene_ids": [
+        "S07"
+      ],
+      "friction_level": "medium",
+      "narrative_importance": "medium",
+      "functions": {
+        "plot": [
+          "payoff",
+          "motivation"
+        ],
+        "social": [
+          "institutional_access",
+          "status"
+        ],
+        "emotional": [
+          "aspiration",
+          "satisfaction"
+        ]
+      },
+      "adapted_to": null,
+      "adapted_strategy": null
+    },
+    {
+      "id": "CM07",
+      "name": "作品面试邀请",
+      "description": "艺术类课程申请中，学校根据作品集发出的面试邀请，是正规升学流程的一部分。",
+      "surface_text": [
+        "作品面试邀请"
+      ],
+      "scene_ids": [
+        "S07"
+      ],
+      "friction_level": "low",
+      "narrative_importance": "medium",
+      "functions": {
+        "plot": [
+          "payoff"
+        ],
+        "social": [
+          "institutional_access"
+        ],
+        "emotional": [
+          "satisfaction",
+          "aspiration"
+        ]
+      },
+      "adapted_to": null,
+      "adapted_strategy": null
+    }
+  ],
+  "commitments": [
+    {
+      "id": "NC01",
+      "description": "中介承诺“人不用到，成绩我们安排”，暗示存在特殊补考名额，后续必须揭示这是替考骗局。",
+      "established_at_scene_id": "S01",
+      "payoff_scene_id": "S05",
+      "must_preserve": true
+    },
+    {
+      "id": "NC02",
+      "description": "小宁把成绩单和照片存进手机，为后续比对证据埋下伏笔。",
+      "established_at_scene_id": "S02",
+      "payoff_scene_id": "S05",
+      "must_preserve": true
+    },
+    {
+      "id": "NC03",
+      "description": "小岚指出照片里的座位号不是小宁的位置，承诺带原始材料核对。",
+      "established_at_scene_id": "S03",
+      "payoff_scene_id": "S05",
+      "must_preserve": true
+    },
+    {
+      "id": "NC04",
+      "description": "纪念册里夹着小宁画了很久的自画像，为结尾她用自己的作品申请艺术方向课程做铺垫。",
+      "established_at_scene_id": "S03",
+      "payoff_scene_id": "S07",
+      "must_preserve": true
+    },
+    {
+      "id": "NC05",
+      "description": "父亲把画册推回女儿面前，说“那我们从你真正会的事情开始”，承诺支持女儿走真实的路。",
+      "established_at_scene_id": "S06",
+      "payoff_scene_id": "S07",
+      "must_preserve": true
+    }
+  ],
+  "dependencies": [
+    {
+      "source_id": "CM01",
+      "target_id": "E02",
+      "relation": "motivates",
+      "evidence": "高考前小宁摔伤住院，错过考试。",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "CM02",
+      "target_id": "E01",
+      "relation": "motivates",
+      "evidence": "父亲却认定只有名校才有出路。",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "CM03",
+      "target_id": "E03",
+      "relation": "motivates",
+      "evidence": "父亲以为有特殊补考名额，交了钱。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "CM04",
+      "target_id": "E11",
+      "relation": "causes",
+      "evidence": "所谓特殊名额是让另一个人替她参加高考。",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "CM05",
+      "target_id": "E08",
+      "relation": "motivates",
+      "evidence": "中介说升学材料需要进一步核验，让父亲再交一笔“协调费”。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "CM06",
+      "target_id": "E15",
+      "relation": "motivates",
+      "evidence": "小宁用自己的画申请艺术方向课程。",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "CM07",
+      "target_id": "E15",
+      "relation": "causes",
+      "evidence": "拿到了作品面试邀请。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E01",
+      "target_id": "E02",
+      "relation": "causes",
+      "evidence": "小宁想学画画，父亲却认定只有名校才有出路。高考前小宁摔伤住院，错过考试。",
+      "confidence": 0.8
+    },
+    {
+      "source_id": "E02",
+      "target_id": "E03",
+      "relation": "causes",
+      "evidence": "高考前小宁摔伤住院，错过考试。一个升学中介私下对父亲说：“人不用到，成绩我们安排。”",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E03",
+      "target_id": "E04",
+      "relation": "causes",
+      "evidence": "父亲以为有特殊补考名额，交了钱。中介发来一份写着小宁名字的高考成绩单。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E04",
+      "target_id": "E05",
+      "relation": "causes",
+      "evidence": "小宁说：“可那两天我一直在医院。”父亲反复看着高分，劝她先别问。",
+      "confidence": 0.85
+    },
+    {
+      "source_id": "E05",
+      "target_id": "E06",
+      "relation": "causes",
+      "evidence": "她把成绩单和照片都存进手机。小岚来还毕业纪念册，留下了一份考场座位表。",
+      "confidence": 0.8
+    },
+    {
+      "source_id": "E06",
+      "target_id": "E07",
+      "relation": "causes",
+      "evidence": "小宁没有立刻下结论，约她把原始材料带来核对。",
+      "confidence": 0.85
+    },
+    {
+      "source_id": "E07",
+      "target_id": "E10",
+      "relation": "sets_up",
+      "evidence": "小岚带来原始座位表，两人比对中介的入场照片和小宁的住院记录。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E08",
+      "target_id": "E09",
+      "relation": "causes",
+      "evidence": "父亲又准备借钱，小宁按住他的手机：“先查清楚，那份成绩到底是谁的。”",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E09",
+      "target_id": "E10",
+      "relation": "causes",
+      "evidence": "小宁按住他的手机：“先查清楚，那份成绩到底是谁的。”小岚带来原始座位表，两人比对。",
+      "confidence": 0.85
+    },
+    {
+      "source_id": "E10",
+      "target_id": "E11",
+      "relation": "causes",
+      "evidence": "父女这才确认：所谓特殊名额是让另一个人替她参加高考。",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "E11",
+      "target_id": "E12",
+      "relation": "causes",
+      "evidence": "父亲承认自己不敢面对女儿错过考试，只想抓住一个名校名额。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E12",
+      "target_id": "E13",
+      "relation": "causes",
+      "evidence": "父女保存中介承诺、付款记录和原始材料，主动向相关学校说明情况，停止使用假成绩。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E13",
+      "target_id": "E14",
+      "relation": "causes",
+      "evidence": "父亲把借款页面关掉，把画册推回女儿面前：“那我们从你真正会的事情开始。”",
+      "confidence": 0.85
+    },
+    {
+      "source_id": "E14",
+      "target_id": "E15",
+      "relation": "causes",
+      "evidence": "过了一段时间，小宁用自己的画申请艺术方向课程，拿到了作品面试邀请。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E15",
+      "target_id": "E16",
+      "relation": "causes",
+      "evidence": "她把邀请和那张自画像放在父亲面前：“这一次，上面的名字和作品，都是我的。”",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "NC01",
+      "target_id": "CM03",
+      "relation": "depends_on",
+      "evidence": "父亲以为有特殊补考名额，交了钱。",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "NC02",
+      "target_id": "E05",
+      "relation": "sets_up",
+      "evidence": "她把成绩单和照片都存进手机。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "NC03",
+      "target_id": "E06",
+      "relation": "sets_up",
+      "evidence": "小岚来还毕业纪念册，留下了一份考场座位表。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "NC04",
+      "target_id": "E07",
+      "relation": "sets_up",
+      "evidence": "纪念册里夹着小宁画了很久的自画像。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "NC05",
+      "target_id": "E14",
+      "relation": "sets_up",
+      "evidence": "父亲把画册推回女儿面前：“那我们从你真正会的事情开始。”",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "C01",
+      "target_id": "S01",
+      "relation": "appears_in",
+      "evidence": "高三学生小宁想学画画",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C02",
+      "target_id": "S01",
+      "relation": "appears_in",
+      "evidence": "父亲却认定只有名校才有出路",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C03",
+      "target_id": "S01",
+      "relation": "appears_in",
+      "evidence": "一个升学中介私下对父亲说",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C01",
+      "target_id": "S02",
+      "relation": "appears_in",
+      "evidence": "小宁说：“可那两天我一直在医院。”",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C02",
+      "target_id": "S02",
+      "relation": "appears_in",
+      "evidence": "父亲反复看着高分，劝她先别问",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C03",
+      "target_id": "S02",
+      "relation": "appears_in",
+      "evidence": "中介发来一份写着小宁名字的高考成绩单",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C01",
+      "target_id": "S03",
+      "relation": "appears_in",
+      "evidence": "小宁没有立刻下结论，约她把原始材料带来核对",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C04",
+      "target_id": "S03",
+      "relation": "appears_in",
+      "evidence": "小岚来还毕业纪念册",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C01",
+      "target_id": "S04",
+      "relation": "appears_in",
+      "evidence": "小宁按住他的手机：“先查清楚，那份成绩到底是谁的。”",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C02",
+      "target_id": "S04",
+      "relation": "appears_in",
+      "evidence": "父亲又准备借钱",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C03",
+      "target_id": "S04",
+      "relation": "appears_in",
+      "evidence": "中介说升学材料需要进一步核验",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C01",
+      "target_id": "S05",
+      "relation": "appears_in",
+      "evidence": "小宁把证据存好，对父亲说",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C02",
+      "target_id": "S05",
+      "relation": "appears_in",
+      "evidence": "父女这才确认",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C04",
+      "target_id": "S05",
+      "relation": "appears_in",
+      "evidence": "小岚带来原始座位表",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C01",
+      "target_id": "S06",
+      "relation": "appears_in",
+      "evidence": "父女保存中介承诺、付款记录和原始材料",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C02",
+      "target_id": "S06",
+      "relation": "appears_in",
+      "evidence": "父亲承认自己不敢面对女儿错过考试",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C01",
+      "target_id": "S07",
+      "relation": "appears_in",
+      "evidence": "小宁用自己的画申请艺术方向课程",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C02",
+      "target_id": "S07",
+      "relation": "appears_in",
+      "evidence": "父亲第一次认真翻完她的毕业纪念册",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E01",
+      "target_id": "S01",
+      "relation": "appears_in",
+      "evidence": "高三学生小宁想学画画，父亲却认定只有名校才有出路。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E02",
+      "target_id": "S01",
+      "relation": "appears_in",
+      "evidence": "高考前小宁摔伤住院，错过考试。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E03",
+      "target_id": "S01",
+      "relation": "appears_in",
+      "evidence": "一个升学中介私下对父亲说：“人不用到，成绩我们安排。”",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E04",
+      "target_id": "S02",
+      "relation": "appears_in",
+      "evidence": "中介发来一份写着小宁名字的高考成绩单",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E05",
+      "target_id": "S02",
+      "relation": "appears_in",
+      "evidence": "她把成绩单和照片都存进手机。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E06",
+      "target_id": "S03",
+      "relation": "appears_in",
+      "evidence": "小岚来还毕业纪念册，留下了一份考场座位表。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E07",
+      "target_id": "S03",
+      "relation": "appears_in",
+      "evidence": "小宁约她把原始材料带来核对。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E08",
+      "target_id": "S04",
+      "relation": "appears_in",
+      "evidence": "中介说升学材料需要进一步核验，让父亲再交一笔“协调费”。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E09",
+      "target_id": "S04",
+      "relation": "appears_in",
+      "evidence": "小宁按住他的手机：“先查清楚，那份成绩到底是谁的。”",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E10",
+      "target_id": "S05",
+      "relation": "appears_in",
+      "evidence": "小岚带来原始座位表，两人比对中介的入场照片和小宁的住院记录。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E11",
+      "target_id": "S05",
+      "relation": "appears_in",
+      "evidence": "父女这才确认：所谓特殊名额是让另一个人替她参加高考。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E12",
+      "target_id": "S06",
+      "relation": "appears_in",
+      "evidence": "父亲承认自己不敢面对女儿错过考试，只想抓住一个名校名额。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E13",
+      "target_id": "S06",
+      "relation": "appears_in",
+      "evidence": "父女保存中介承诺、付款记录和原始材料，主动向相关学校说明情况。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E14",
+      "target_id": "S06",
+      "relation": "appears_in",
+      "evidence": "父亲把借款页面关掉，把画册推回女儿面前。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E15",
+      "target_id": "S07",
+      "relation": "appears_in",
+      "evidence": "小宁用自己的画申请艺术方向课程，拿到了作品面试邀请。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E16",
+      "target_id": "S07",
+      "relation": "appears_in",
+      "evidence": "她把邀请和那张自画像放在父亲面前。",
+      "confidence": 1.0
+    }
+  ]
+}

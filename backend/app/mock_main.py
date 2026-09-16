@@ -9,11 +9,14 @@ from app.cli import _load_default_mock_fixtures
 from app.config import get_config
 from app.jobs import JobManager
 from app.llm import MockLLMClient
+from app.web import install_web, prepare_public_runtime
 from app.workflow.engine import build_default_workflow
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    prepare_public_runtime(mock=True)
+    app.state.mock_mode = True
     mock = MockLLMClient()
     _load_default_mock_fixtures(mock)
     # The browser demo can select any number of mechanisms. Let the mock handler
@@ -38,3 +41,11 @@ app.include_router(router)
 @app.get("/healthz")
 async def healthz() -> dict:
     return {"status": "ok", "llm_mode": "mock"}
+
+
+@app.get("/readyz")
+async def readyz() -> dict:
+    return {"status": "ready", "llm_mode": "mock"}
+
+
+install_web(app)

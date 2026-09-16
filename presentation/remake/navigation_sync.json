@@ -1,0 +1,118 @@
+{
+  "before_sha256": "779ab0d4897fba582c33527426da7158ed0c0737de3c8d5ce06df07c46809d9a",
+  "after_sha256": "cee17100d445be112e022395d3f223db111a34080bcb5e860e785a6544d1c5fc",
+  "order_preserved": true,
+  "slide_ids": [
+    256,
+    257,
+    258,
+    264,
+    265,
+    260,
+    261,
+    262,
+    266,
+    263,
+    259,
+    267
+  ],
+  "unchanged_parts_byte_identical": true,
+  "changes": [
+    {
+      "page": 1,
+      "shape_id": 5,
+      "before": "01 / 08",
+      "after": "01 / 10"
+    },
+    {
+      "page": 2,
+      "shape_id": 5,
+      "before": "02 / 08",
+      "after": "02 / 10"
+    },
+    {
+      "page": 3,
+      "shape_id": 5,
+      "before": "03 / 08",
+      "after": "03 / 10"
+    },
+    {
+      "page": 4,
+      "shape_id": 5,
+      "before": "备答 1",
+      "after": "04 / 10"
+    },
+    {
+      "page": 4,
+      "shape_id": 6,
+      "before": "备答：我们确实把所有改编信息交给了 AI。",
+      "after": "我们确实把所有改编信息交给了 AI。"
+    },
+    {
+      "page": 5,
+      "shape_id": 5,
+      "before": "备答 2",
+      "after": "05 / 10"
+    },
+    {
+      "page": 5,
+      "shape_id": 6,
+      "before": "备答：第二场的英语原句。",
+      "after": "第二场的英语原句。"
+    },
+    {
+      "page": 6,
+      "shape_id": 5,
+      "before": "05 / 08",
+      "after": "06 / 10"
+    },
+    {
+      "page": 7,
+      "shape_id": 5,
+      "before": "06 / 08",
+      "after": "07 / 10"
+    },
+    {
+      "page": 8,
+      "shape_id": 5,
+      "before": "07 / 08",
+      "after": "08 / 10"
+    },
+    {
+      "page": 9,
+      "shape_id": 5,
+      "before": "备答 3",
+      "after": "09 / 10"
+    },
+    {
+      "page": 9,
+      "shape_id": 6,
+      "before": "备答：图能解释改动，成稿仍要由人审。",
+      "after": "图能解释改动，成稿仍要由人审。"
+    },
+    {
+      "page": 10,
+      "shape_id": 5,
+      "before": "08 / 08",
+      "after": "10 / 10"
+    },
+    {
+      "page": 11,
+      "shape_id": 5,
+      "before": "04 / 08",
+      "after": "备答 1"
+    },
+    {
+      "page": 12,
+      "shape_id": 4,
+      "before": "视频播放失败时直接跳到第 12 页；按第 7 页要点讲解",
+      "after": "视频播放失败时直接跳到第 12 页；按第 8 页要点讲解"
+    },
+    {
+      "page": 12,
+      "shape_id": 5,
+      "before": "备答 4",
+      "after": "备答 2"
+    }
+  ]
+}

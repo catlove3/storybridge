@@ -1,0 +1,43 @@
+{
+  "keywords": [
+    "高考"
+  ],
+  "selected_scenes": [
+    "S01",
+    "S02",
+    "S05"
+  ],
+  "same_model": true,
+  "same_parsed_state": true,
+  "same_option": {
+    "option_label": "B",
+    "strategy": "functional_replacement",
+    "title": "用美国大学体育招募（赛艇）替代高考",
+    "replacement_definition": "小宁是高三学生，父亲认定只有进常春藤名校才有出路。小宁从未练过赛艇，但中介伪造她作为赛艇运动员的履历和比赛记录，承诺通过体育招募渠道帮她进入名校。关键证据包括：伪造的赛艇俱乐部注册记录、PS的船队合影（小宁的脸被贴到别人身上）、以及一份写有她名字的'区域赛参赛确认函'。小宁摔伤住院错过的是赛艇招募展示日（recruit showcase），而非考试。中介的承诺是'人不用到，招募名额我们安排'。小岚带来的原始材料是赛艇俱乐部的真实队员名单和座位安排表，与中介提供的照片比对后发现小宁根本不在船上。",
+    "rationale": "美国大学体育招募（尤其是赛艇这类'冷门'运动）是真实存在且被广泛讨论的招生捷径，具有与高考相似的'制度性通道'功能：决定能否进入名校、影响社会地位和经济前景。赛艇招募的造假空间（伪造履历、替考、PS照片）与高考替考骗局在叙事功能上高度对等。美国观众对大学招生丑闻（如2019年Varsity Blues案）有认知基础，能迅速理解冲突。赛艇作为'白人精英运动'的刻板印象可以被用来增加阶层张力，但需避免过度简化。",
+    "preserved_functions": [
+      "motivation",
+      "constraint",
+      "conflict",
+      "institutional_access",
+      "status",
+      "economic_security",
+      "fear",
+      "aspiration",
+      "suspense"
+    ],
+    "lost_functions": [
+      "高考作为全国性统一考试的集体焦虑感和全民关注度",
+      "一考定终身的绝对性（美国招生是多维评估，体育招募只是其中一环）"
+    ],
+    "risks": [
+      "美国大学招生并非单一考试决定，体育招募只是众多通道之一，可能削弱'唯一出路'的紧迫感。需通过父亲台词强化'这是她唯一的机会'。",
+      "赛艇在美国属于小众运动，部分观众可能不熟悉其招募流程。需通过中介台词简要说明。",
+      "可能被批评为利用'体育特长生'刻板印象，需确保小宁的画画才能和赛艇的对比是叙事核心，而非贬低体育。",
+      "伪造赛艇履历的细节需要准确，避免出现'一张证书自动保证录取'的简化逻辑。"
+    ]
+  },
+  "same_scene_rewriter": true,
+  "global_verification": false,
+  "limitation": "Not the strong-prompt baseline; isolates the practical limitation of only editing explicit mentions."
+}

@@ -1,0 +1,90 @@
+{
+  "preselected": {
+    "id": "CM02",
+    "name": "成绩复核",
+    "description": "对高考成绩有异议时可申请复核，但通常只核对分数加总，不重新评卷。",
+    "surface_text": [
+      "复核",
+      "申请复核",
+      "复核驳回"
+    ],
+    "scene_ids": [
+      "S02",
+      "S03",
+      "S07",
+      "S10",
+      "S11"
+    ],
+    "friction_level": "high",
+    "narrative_importance": "high",
+    "functions": {
+      "plot": [
+        "constraint",
+        "conflict",
+        "revelation",
+        "payoff"
+      ],
+      "social": [
+        "institutional_access",
+        "power"
+      ],
+      "emotional": [
+        "fear",
+        "suspense",
+        "satisfaction"
+      ]
+    },
+    "adapted_to": null,
+    "adapted_strategy": null
+  },
+  "selected": {
+    "id": "CM01",
+    "name": "高考",
+    "description": "中国普通高等学校招生全国统一考试，决定考生命运的关键考试，分数可被非法对调。",
+    "surface_text": [
+      "高考",
+      "最后一科",
+      "查分",
+      "准考证号",
+      "估分"
+    ],
+    "scene_ids": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "S08"
+    ],
+    "friction_level": "high",
+    "narrative_importance": "high",
+    "functions": {
+      "plot": [
+        "motivation",
+        "constraint",
+        "conflict",
+        "revelation",
+        "foreshadowing",
+        "payoff"
+      ],
+      "social": [
+        "status",
+        "institutional_access",
+        "economic_security",
+        "reputation"
+      ],
+      "emotional": [
+        "aspiration",
+        "fear",
+        "suspense",
+        "satisfaction"
+      ]
+    },
+    "adapted_to": null,
+    "adapted_strategy": null
+  },
+  "reason": "The broad gaokao node is the core story mechanism and touches S01-S08; the first score-review node was too narrow for the planned end-to-end demo.",
+  "same_parsed_state": true
+}

@@ -1,0 +1,96 @@
+{
+  "changed_node_id": "CM01",
+  "affected_scenes": [
+    {
+      "scene_id": "S01",
+      "impact_kinds": [
+        "motivation"
+      ],
+      "reason_path": [
+        "CM01",
+        "E01",
+        "S01"
+      ],
+      "evidence": "CM01 --motivates--> E01 (\"最后一科开考前，考场外。林知夏默背着作文素材，沈曼迎上来：\"知夏，笔借我用一下，我那支突然断墨了。\"\"); E01 --appears_in--> S01 (\"沈曼迎上来：\"知夏，笔借我用一下\"\")",
+      "path_confidence": 0.81
+    },
+    {
+      "scene_id": "S02",
+      "impact_kinds": [
+        "causal",
+        "motivation"
+      ],
+      "reason_path": [
+        "CM01",
+        "E02",
+        "S02"
+      ],
+      "evidence": "CM01 --motivates--> E02 (\"深夜查分，屏幕跳出\"487\"。\"); E02 --appears_in--> S02 (\"深夜查分，屏幕跳出\"487\"。\")",
+      "path_confidence": 0.81
+    },
+    {
+      "scene_id": "S03",
+      "impact_kinds": [
+        "causal",
+        "motivation"
+      ],
+      "reason_path": [
+        "CM01",
+        "E05",
+        "S03"
+      ],
+      "evidence": "CM01 --motivates--> E05 (\"志愿填报截止那天，匿名短信把她约上天台。\"); E05 --appears_in--> S03 (\"沈曼卸下所有伪装：\"你以为我是靠我爸？\"\")",
+      "path_confidence": 0.81
+    },
+    {
+      "scene_id": "S04",
+      "impact_kinds": [
+        "causal",
+        "motivation"
+      ],
+      "reason_path": [
+        "CM01",
+        "E07",
+        "S04"
+      ],
+      "evidence": "CM01 --motivates--> E07 (\"再睁眼，是高考第一天清晨。\"); E07 --appears_in--> S04 (\"再睁眼，是高考第一天清晨。\")",
+      "path_confidence": 0.81
+    },
+    {
+      "scene_id": "S05",
+      "impact_kinds": [
+        "causal",
+        "motivation"
+      ],
+      "reason_path": [
+        "CM01",
+        "E09",
+        "S05"
+      ],
+      "evidence": "CM01 --motivates--> E09 (\"最后一科开考前，沈曼果然凑过来：\"知夏，笔借我用一下，我那支断墨了。\"\"); E09 --appears_in--> S05 (\"沈曼果然凑过来：\"知夏，笔借我用一下\"\")",
+      "path_confidence": 0.81
+    },
+    {
+      "scene_id": "S06",
+      "impact_kinds": [
+        "causal",
+        "motivation"
+      ],
+      "reason_path": [
+        "CM01",
+        "E10",
+        "S06"
+      ],
+      "evidence": "CM01 --motivates--> E10 (\"查分夜。林知夏输入准考证号，屏幕跳出：669\"); E10 --appears_in--> S06 (\"屏幕跳出：669\")",
+      "path_confidence": 0.81
+    }
+  ],
+  "related_commitment_ids": [
+    "NC01",
+    "NC02",
+    "NC03",
+    "NC04",
+    "NC05"
+  ],
+  "summary": "Changing 'CM01' (高考) affects 6 scene(s): S01, S02, S03, S04, S05, S06"
+}

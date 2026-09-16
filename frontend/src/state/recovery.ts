@@ -1,30 +1,41 @@
-const PROJECT_KEY = 'storybridge.activeProjectId'
-const JOB_KEY = 'storybridge.activeJobId'
+import type { SubmitJobRequest } from '../types/api'
 
-export function recoveryProjectId(): string | null {
-  const fromUrl = new URL(window.location.href).searchParams.get('project')
-  return fromUrl || window.localStorage.getItem(PROJECT_KEY)
+export type Stage = 'analyze' | 'plan_batch' | 'apply_batch' | 'verify' | 'render'
+export interface Task {
+  stage: Stage
+  key: string
+  jobId?: string
+  request: SubmitJobRequest
+  chain: boolean
+  status: 'running' | 'failed' | 'blocked' | 'cancelled' | 'done'
+  error?: string
+  resetsAt?: string
 }
-
-export function persistProject(projectId: string): void {
-  window.localStorage.setItem(PROJECT_KEY, projectId)
-  const url = new URL(window.location.href)
-  url.searchParams.set('project', projectId)
-  window.history.replaceState({}, '', url)
+export interface Draft {
+  name: string; script: string; market: string; language: string; locale: string
+  audience: string; genre: string; format: string; createKey: string
 }
-
-export function clearProjectRecovery(): void {
-  window.localStorage.removeItem(PROJECT_KEY)
-  const url = new URL(window.location.href)
-  url.searchParams.delete('project')
-  window.history.replaceState({}, '', url)
+export interface Progress {
+  projectId: string | null
+  selected: string[]
+  labels: Record<string, string>
+  task: Task | null
+  view?: 'choose' | 'result'
 }
+export const emptyProgress = (): Progress => ({ projectId: null, selected: [], labels: {}, task: null })
+export const newDraft = (): Draft => ({
+  name: '', script: '', market: '美国', language: 'English', locale: 'en-US',
+  audience: '大众观众', genre: '', format: '短剧', createKey: crypto.randomUUID(),
+})
 
-export function persistJob(jobId: string | null): void {
-  if (jobId) window.localStorage.setItem(JOB_KEY, jobId)
-  else window.localStorage.removeItem(JOB_KEY)
+export function readSaved<T>(owner: string, key: string): T | null {
+  try { return JSON.parse(localStorage.getItem(`storybridge.v2.${owner}.${key}`) || 'null') as T | null }
+  catch { return null }
 }
-
-export function recoveryJobId(): string | null {
-  return window.localStorage.getItem(JOB_KEY)
+export function save(owner: string, key: string, value: unknown): boolean {
+  try { localStorage.setItem(`storybridge.v2.${owner}.${key}`, JSON.stringify(value)); return true }
+  catch { return false }
+}
+export function newTask(stage: Stage, request: Partial<SubmitJobRequest> = {}, chain = false, key: string = crypto.randomUUID()): Task {
+  return { stage, key, request: { auto_verify_and_repair: true, ...request, kind: stage, idempotency_key: key }, chain, status: 'running' }
 }

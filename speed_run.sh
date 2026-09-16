@@ -3,6 +3,9 @@ set -Eeuo pipefail
 
 STORYBRIDGE_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 STORYBRIDGE_MODE="real"
+STORYBRIDGE_SHARE_MODE=0
+STORYBRIDGE_TUNNEL_PID=""
+STORYBRIDGE_QUICK_TUNNEL=0
 STORYBRIDGE_INSTALL_MODE="auto"
 STORYBRIDGE_BACKEND_PID=""
 STORYBRIDGE_FRONTEND_PID=""
@@ -13,10 +16,11 @@ STORYBRIDGE_BACKEND_SYNC_MARKER="$STORYBRIDGE_ROOT/backend/.venv/.storybridge-sy
 
 usage() {
   cat <<'EOF'
-Usage: ./speed_run.sh [--real|--mock] [--refresh|--skip-install]
+Usage: ./speed_run.sh [--share] [--real|--mock] [--refresh|--skip-install]
 
   --real          Start the configured real-model backend (default).
   --mock          Start the offline mock backend with isolated temporary data.
+  --share         Build the website and share it over a temporary HTTPS tunnel.
   --refresh       Force-refresh the Python and frontend dependencies.
   --skip-install  Skip dependency checks and reuse the existing environment.
   -h, --help      Show this help.
@@ -26,6 +30,7 @@ EOF
 while (($#)); do
   case "$1" in
     --real) STORYBRIDGE_MODE="real" ;;
+    --share) STORYBRIDGE_SHARE_MODE=1 ;;
     --mock) STORYBRIDGE_MODE="mock" ;;
     --refresh) STORYBRIDGE_INSTALL_MODE="refresh" ;;
     --skip-install) STORYBRIDGE_INSTALL_MODE="skip" ;;
@@ -45,12 +50,12 @@ done
 cleanup() {
   local exit_status=$?
   trap - EXIT INT TERM
-  for process_id in "$STORYBRIDGE_FRONTEND_PID" "$STORYBRIDGE_BACKEND_PID"; do
+  for process_id in "$STORYBRIDGE_TUNNEL_PID" "$STORYBRIDGE_FRONTEND_PID" "$STORYBRIDGE_BACKEND_PID"; do
     if [[ -n "$process_id" ]] && kill -0 "$process_id" 2>/dev/null; then
       kill "$process_id" 2>/dev/null || true
     fi
   done
-  for process_id in "$STORYBRIDGE_FRONTEND_PID" "$STORYBRIDGE_BACKEND_PID"; do
+  for process_id in "$STORYBRIDGE_TUNNEL_PID" "$STORYBRIDGE_FRONTEND_PID" "$STORYBRIDGE_BACKEND_PID"; do
     if [[ -n "$process_id" ]]; then
       wait "$process_id" 2>/dev/null || true
     fi
@@ -206,6 +211,46 @@ STORYBRIDGE_RUN_DIR="$(mktemp -d -t storybridge-speed-run.XXXXXX)"
 STORYBRIDGE_BACKEND_LOG="$STORYBRIDGE_RUN_DIR/backend.log"
 STORYBRIDGE_FRONTEND_LOG="$STORYBRIDGE_RUN_DIR/frontend.log"
 
+if ((STORYBRIDGE_SHARE_MODE)); then
+  # Refuse to expose an unrelated service that already occupies our port.
+  "$STORYBRIDGE_BACKEND_PYTHON" -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",8000)); s.close()'
+  if [[ "$STORYBRIDGE_MODE" == "real" ]]; then
+    (cd "$STORYBRIDGE_ROOT/backend" && "$STORYBRIDGE_BACKEND_PYTHON" -m app.secrets)
+  fi
+  echo "Building the shared website..."
+  (cd "$STORYBRIDGE_ROOT/frontend" && STORYBRIDGE_PUBLIC_BUILD=1 npm run build)
+  if [[ -z "${STORYBRIDGE_PUBLIC_URL:-}" ]]; then
+    if command -v cloudflared >/dev/null 2>&1; then
+      STORYBRIDGE_CLOUDFLARED="$(command -v cloudflared)"
+    else
+      echo "Preparing cloudflared..."
+      (cd "$STORYBRIDGE_ROOT/backend" && "$STORYBRIDGE_BACKEND_PYTHON" -m scripts.prepare_tunnel)
+      STORYBRIDGE_CLOUDFLARED="$STORYBRIDGE_RUNTIME_DIR/cloudflared"
+    fi
+    STORYBRIDGE_TUNNEL_LOG="$STORYBRIDGE_RUN_DIR/tunnel.log"
+    # An explicit empty config avoids altering any existing named-tunnel config.
+    echo '{}' > "$STORYBRIDGE_RUN_DIR/tunnel.yaml"
+    "$STORYBRIDGE_CLOUDFLARED" tunnel --config "$STORYBRIDGE_RUN_DIR/tunnel.yaml" \
+      --no-autoupdate --url http://127.0.0.1:8000 >"$STORYBRIDGE_TUNNEL_LOG" 2>&1 &
+    STORYBRIDGE_TUNNEL_PID=$!
+    STORYBRIDGE_QUICK_TUNNEL=1
+    for attempt in {1..120}; do
+      if ! kill -0 "$STORYBRIDGE_TUNNEL_PID" 2>/dev/null; then
+        echo "Tunnel exited. See $STORYBRIDGE_TUNNEL_LOG" >&2
+        exit 1
+      fi
+      STORYBRIDGE_PUBLIC_URL="$(sed -nE 's/.*(https:\/\/[a-z0-9-]+\.trycloudflare\.com).*/\1/p' "$STORYBRIDGE_TUNNEL_LOG" | head -n 1)"
+      [[ -n "$STORYBRIDGE_PUBLIC_URL" ]] && break
+      sleep 0.5
+    done
+    if [[ -z "$STORYBRIDGE_PUBLIC_URL" ]]; then
+      echo "No tunnel address received. See $STORYBRIDGE_TUNNEL_LOG" >&2
+      exit 1
+    fi
+  fi
+  export STORYBRIDGE_PUBLIC_URL STORYBRIDGE_SHARE=1 STORYBRIDGE_SERVE_FRONTEND=1
+fi
+
 if [[ "$STORYBRIDGE_MODE" == "mock" ]]; then
   (
     export STORYBRIDGE_DATABASE_FILE="$STORYBRIDGE_RUN_DIR/storybridge.sqlite3"
@@ -214,42 +259,87 @@ if [[ "$STORYBRIDGE_MODE" == "mock" ]]; then
     export STORYBRIDGE_SFT_LOG_DIR="$STORYBRIDGE_RUN_DIR/sft"
     export STORYBRIDGE_RUN_LOG_DIR="$STORYBRIDGE_RUN_DIR/runs"
     cd "$STORYBRIDGE_ROOT/backend"
-    exec "$STORYBRIDGE_BACKEND_PYTHON" -m uvicorn app.mock_main:app --host 127.0.0.1 --port 8000
+    exec "$STORYBRIDGE_BACKEND_PYTHON" -m uvicorn app.mock_main:app --host 127.0.0.1 --port 8000 --workers 1
   ) >"$STORYBRIDGE_BACKEND_LOG" 2>&1 &
 else
   (
     cd "$STORYBRIDGE_ROOT/backend"
-    exec "$STORYBRIDGE_BACKEND_PYTHON" -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+    exec "$STORYBRIDGE_BACKEND_PYTHON" -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1
   ) >"$STORYBRIDGE_BACKEND_LOG" 2>&1 &
 fi
 STORYBRIDGE_BACKEND_PID=$!
 
+if ((!STORYBRIDGE_SHARE_MODE)); then
 (
   cd "$STORYBRIDGE_ROOT/frontend"
   exec npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
 ) >"$STORYBRIDGE_FRONTEND_LOG" 2>&1 &
 STORYBRIDGE_FRONTEND_PID=$!
+fi
 
 wait_for_service \
-  "http://127.0.0.1:8000/healthz" \
+  "http://127.0.0.1:8000/readyz" \
   "$STORYBRIDGE_BACKEND_PID" \
   "Backend" \
   "$STORYBRIDGE_BACKEND_LOG"
+if ((!STORYBRIDGE_SHARE_MODE)); then
 wait_for_service \
   "http://127.0.0.1:5173/" \
   "$STORYBRIDGE_FRONTEND_PID" \
   "Frontend" \
   "$STORYBRIDGE_FRONTEND_LOG"
+else
+  STORYBRIDGE_PUBLIC_CHECK_LOG="$STORYBRIDGE_RUN_DIR/public-health.log"
+  if ! curl --fail --silent --show-error --max-time 8 "$STORYBRIDGE_PUBLIC_URL/readyz" \
+      >/dev/null 2>"$STORYBRIDGE_PUBLIC_CHECK_LOG"; then
+    echo "Waiting for public HTTPS and DNS (up to 30 seconds; checking without the shell proxy)..."
+    STORYBRIDGE_PUBLIC_READY=0
+    STORYBRIDGE_PUBLIC_DEADLINE=$((SECONDS + 30))
+    while ((SECONDS < STORYBRIDGE_PUBLIC_DEADLINE)); do
+      if curl --noproxy '*' --fail --silent --show-error --max-time 5 "$STORYBRIDGE_PUBLIC_URL/readyz" \
+          >/dev/null 2>"$STORYBRIDGE_PUBLIC_CHECK_LOG"; then
+        STORYBRIDGE_PUBLIC_READY=1
+        break
+      fi
+      kill -0 "$STORYBRIDGE_BACKEND_PID" 2>/dev/null || break
+      if [[ -n "$STORYBRIDGE_TUNNEL_PID" ]]; then
+        kill -0 "$STORYBRIDGE_TUNNEL_PID" 2>/dev/null || break
+      fi
+      sleep 2
+    done
+    if ((!STORYBRIDGE_PUBLIC_READY)); then
+      if ((STORYBRIDGE_QUICK_TUNNEL)) \
+          && grep -q "Registered tunnel connection" "$STORYBRIDGE_TUNNEL_LOG" \
+          && grep -q "Could not resolve host" "$STORYBRIDGE_PUBLIC_CHECK_LOG"; then
+        echo "Warning: this computer cannot resolve the temporary hostname, but the Cloudflare tunnel is connected." >&2
+        echo "The services will stay running; verify the displayed URL from a phone, preferably over mobile data." >&2
+      else
+        echo "Public HTTPS health check failed. Check DNS/network or use STORYBRIDGE_PUBLIC_URL with a fixed HTTPS proxy." >&2
+        cat "$STORYBRIDGE_PUBLIC_CHECK_LOG" >&2
+        exit 1
+      fi
+    fi
+  fi
+fi
 
 echo
 echo "StoryBridge is ready ($STORYBRIDGE_MODE mode)."
-echo "App:      http://127.0.0.1:5173"
-echo "API docs: http://127.0.0.1:8000/docs"
+if ((STORYBRIDGE_SHARE_MODE)); then
+  echo "App: $STORYBRIDGE_PUBLIC_URL/"
+  echo "打开页面右上角「手机扫码体验」可放大、下载二维码。"
+  echo "请保持电脑和此终端运行；临时地址可能随重启变化。"
+else
+  echo "App:      http://127.0.0.1:5173"
+  echo "API docs: http://127.0.0.1:8000/docs"
+fi
 echo "Press Ctrl+C to stop both services."
 echo
 
 set +e
-wait -n "$STORYBRIDGE_BACKEND_PID" "$STORYBRIDGE_FRONTEND_PID"
+STORYBRIDGE_PIDS=("$STORYBRIDGE_BACKEND_PID")
+[[ -n "$STORYBRIDGE_FRONTEND_PID" ]] && STORYBRIDGE_PIDS+=("$STORYBRIDGE_FRONTEND_PID")
+[[ -n "$STORYBRIDGE_TUNNEL_PID" ]] && STORYBRIDGE_PIDS+=("$STORYBRIDGE_TUNNEL_PID")
+wait -n "${STORYBRIDGE_PIDS[@]}"
 STORYBRIDGE_EXIT_STATUS=$?
 set -e
 if ((STORYBRIDGE_EXIT_STATUS != 0)); then

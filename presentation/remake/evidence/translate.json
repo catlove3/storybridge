@@ -1,0 +1,50 @@
+{
+  "source_state_version": 0,
+  "source_language": "zh-CN",
+  "target_language": "English",
+  "target_locale": "en-US",
+  "scenes": [
+    {
+      "id": "S01",
+      "title": "The Exam She Missed",
+      "summary": "Xiaoning, a high school senior who wants to study art, is pressured by her father to aim for a prestigious university. She is hospitalized after an injury and misses the college entrance exam. An admissions agent tells her father that they can arrange a score without her being present, and he pays, believing it's a special make-up opportunity. Xiaoning asks how it works, but the agent avoids answering.",
+      "text": "Xiaoning, a high school senior, wants to study art, but her father believes only a prestigious university can lead to a good future. Before the college entrance exam, Xiaoning falls and is hospitalized, missing the test. An admissions agent privately tells her father, \"She doesn't need to be there; we'll arrange the score.\" Her father thinks there is a special make-up exam slot and pays. Xiaoning asks how the exam will actually be taken, but the agent doesn't answer."
+    },
+    {
+      "id": "S02",
+      "title": "A Score That Isn't Hers",
+      "summary": "The agent sends a college entrance exam score report with Xiaoning's name and a blurry verification photo, urging her father to quickly prepare admission materials. Xiaoning says she was in the hospital those two days. Her father, fixated on the high score, tells her not to ask questions and that the opportunity will be lost. She saves both the score report and the photo on her phone.",
+      "text": "The agent sends a college entrance exam score report with Xiaoning's name on it, along with a blurry entry verification photo, and urges her father to quickly process the admission materials. Xiaoning says, \"But I was in the hospital those two days.\" Her father repeatedly looks at the high score and advises her not to ask questions, saying the opportunity will be gone if she misses it. She saves both the score report and the photo on her phone."
+    },
+    {
+      "id": "S03",
+      "title": "The Clue Left by a Friend",
+      "summary": "Xiaolan returns a graduation album and mentions she once helped organize exam materials for the class, leaving behind a seating chart. She points to a blurry seat number in the photo and says she remembers that seat wasn't Xiaoning's. Xiaoning doesn't jump to conclusions and asks her to bring the original materials for comparison. Tucked in the album is a self-portrait Xiaoning spent a long time drawing.",
+      "text": "Xiaolan comes to return the graduation album. She had helped organize the class's exam materials and left behind a seating chart. Pointing to a blurry seat number in the photo, she says, \"I remember this seat wasn't yours.\" Xiaoning doesn't jump to conclusions and asks her to bring the original materials to verify. Tucked in the album is a self-portrait Xiaoning had drawn over a long time."
+    },
+    {
+      "id": "S04",
+      "title": "Another Payment",
+      "summary": "The agent says the admission materials need further verification and asks the father to pay another 'coordination fee.' He hints that if anyone questions it, the child's future is ruined. The father is about to borrow money again, but Xiaoning presses his phone: 'Let's find out first whose score that really is.'",
+      "text": "The agent says the admission materials need further verification and asks the father to pay another \"coordination fee.\" He hints that if anyone questions it, the child's future is over. The father is about to borrow money again, but Xiaoning presses his phone: \"Let's find out first whose score that really is.\""
+    },
+    {
+      "id": "S05",
+      "title": "She Decides to Expose It",
+      "summary": "Xiaolan brings the original seating chart, and together they compare the agent's entry photo with Xiaoning's hospital records. The candidate in the photo sits in another classmate's seat, and on the exam day Xiaoning is still in a hospital bed. Father and daughter confirm that the so-called special slot was for someone else to take the exam for her. Xiaoning saves the evidence and tells her father, 'The future you bought me doesn't even have me in it.'",
+      "text": "Xiaolan brings the original seating chart, and the two compare the agent's entry photo with Xiaoning's hospital records. The candidate in the photo sits in another classmate's seat, and on the exam day Xiaoning is still lying in a hospital bed. Father and daughter confirm: the so-called special slot was for another person to take the college entrance exam for her. Xiaoning saves the evidence and says to her father, \"The future you bought me doesn't even have me in it.\""
+    },
+    {
+      "id": "S06",
+      "title": "Giving Up the Shortcut",
+      "summary": "The father admits he couldn't face his daughter missing the exam and just wanted to grab a spot at a prestigious school. Father and daughter save the agent's promises, payment records, and original materials, proactively explain the situation to the relevant schools, stop using the fake score, and offer to cooperate with the investigation. The father closes the loan page and pushes the sketchbook back to his daughter: 'Then let's start with what you can truly do.'",
+      "text": "The father admits he didn't dare face his daughter missing the exam and only wanted to seize a spot at a prestigious school. Father and daughter save the agent's promises, payment records, and original materials, proactively explain the situation to the relevant schools, stop using the fake score, and are willing to cooperate with the investigation. The father closes the loan page and pushes the sketchbook back to his daughter: \"Then let's start with what you can truly do.\""
+    },
+    {
+      "id": "S07",
+      "title": "Her Own Name",
+      "summary": "Some time later, Xiaoning applies to an art program with her own drawings and receives an interview invitation for her portfolio. She places the invitation and the self-portrait in front of her father: 'This time, the name and the work on it are both mine.' For the first time, her father seriously flips through her graduation album.",
+      "text": "After some time, Xiaoning applies to an art program with her own drawings and receives an interview invitation for her portfolio. She places the invitation and the self-portrait in front of her father: \"This time, the name and the work on it are both mine.\" For the first time, her father seriously flips through her graduation album."
+    }
+  ]
+}

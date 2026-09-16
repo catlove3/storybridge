@@ -1,0 +1,175 @@
+{
+  "applied": [
+    {
+      "plan_culture_mechanism_id": "CM01",
+      "state_version": 2,
+      "operation_id": null,
+      "chosen_option": {
+        "option_label": "C",
+        "strategy": "plot_reconstruction",
+        "title": "重构为“州级学术锦标赛决赛 + 大学全额奖学金绑定”的直播排名赛",
+        "replacement_definition": "取消标准化考试，改为虚构的“Meridian State Academic Championship”决赛：全州顶尖高中生参加为期一天的直播学术竞赛，最终排名实时公开，冠军直接获得州立大学全额奖学金与早申录取。比赛最后一轮为“个人笔试环节”，选手在开考前可互相借文具。分数改为 1000 分制：林知夏 940，周雨原 330、换后 487，沈曼原 487、换后 330。查分改为“直播排名页刷新”，复核改为“赛事仲裁复核”。借笔发生在“最后一轮开考前”，笔成为换分锚点。",
+        "rationale": "将考试重构为直播竞赛，把“查分夜”变成公开的、有观众围观的排名揭晓，强化羞辱与复仇的戏剧张力，同时保留分数交换的叙事功能。直播排名天然适配竖屏短剧的视觉节奏，且“奖学金绑定”替代高考的 institutional_access 与 economic_security。",
+        "preserved_functions": [
+          "motivation",
+          "constraint",
+          "conflict",
+          "revelation",
+          "foreshadowing",
+          "payoff",
+          "status",
+          "institutional_access",
+          "economic_security",
+          "reputation",
+          "aspiration",
+          "fear",
+          "suspense",
+          "satisfaction"
+        ],
+        "lost_functions": [
+          "全国统一考试带来的普遍共鸣",
+          "查分夜的私密焦虑感（改为公开直播后情绪形态变化）"
+        ],
+        "risks": [
+          "直播竞赛设定偏架空，需在前几场快速建立规则可信度",
+          "公开排名可能削弱“复核被驳回”的私密压迫感，需用仲裁流程补足",
+          "改动较大，需重新设计 S02、S06、S07 的查分与复核场景细节"
+        ]
+      },
+      "propagation": {
+        "changed_node_id": "CM01",
+        "affected_scenes": [
+          {
+            "scene_id": "S01",
+            "impact_kinds": [
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E01",
+              "S01"
+            ],
+            "evidence": "CM01 --motivates--> E01 (\"最后一科开考前，考场外。林知夏默背着作文素材，沈曼迎上来：\"知夏，笔借我用一下，我那支突然断墨了。\"\"); E01 --appears_in--> S01 (\"沈曼迎上来：\"知夏，笔借我用一下\"\")",
+            "path_confidence": 0.9
+          },
+          {
+            "scene_id": "S02",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E02",
+              "S02"
+            ],
+            "evidence": "CM01 --motivates--> E02 (\"深夜查分，屏幕跳出\"487\"。\"); E02 --appears_in--> S02 (\"深夜查分，屏幕跳出\"487\"。\")",
+            "path_confidence": 0.9
+          }
+        ],
+        "related_commitment_ids": [
+          "NC01",
+          "NC02",
+          "NC03"
+        ],
+        "summary": "Changing 'CM01' (高考) affects 2 scene(s): S01, S02"
+      },
+      "rewritten_scene_ids": [
+        "S01",
+        "S02"
+      ],
+      "notes": ""
+    }
+  ],
+  "report": {
+    "issues": [
+      {
+        "issue_type": "motivation_break",
+        "severity": "warning",
+        "scene_id": null,
+        "description": "重构策略仍保留 CM01 的旧因果依赖边，需要人工确认因果链是否已同步重建",
+        "evidence": "CM01--motivates-->E01, CM01--motivates-->E02, NC01--depends_on-->CM01, NC02--depends_on-->CM01, NC03--depends_on-->CM01"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S02",
+        "description": "S02中沈曼以330分登上全州榜首，与改编后330为低分、940为高分的设定矛盾。",
+        "evidence": "沈曼以“330分”登上全州榜首"
+      }
+    ],
+    "commitment_checks": [
+      {
+        "commitment_id": "NC01",
+        "status": "preserved",
+        "explanation": "S04立下录下推人证据的计划，S09运动相机与周雨直播、S10直播画面和运动相机正面画面均兑现了该承诺。"
+      },
+      {
+        "commitment_id": "NC02",
+        "status": "preserved",
+        "explanation": "S04点明借笔是为换分、笔是锚，S09沈曼解释系统只认笔原主人，机制得到解释和利用。"
+      },
+      {
+        "commitment_id": "NC03",
+        "status": "preserved",
+        "explanation": "S05林知夏将周雨的笔借给沈曼，S06周雨得487、S07周雨明白真相并结盟，后果得到处理。"
+      },
+      {
+        "commitment_id": "NC04",
+        "status": "preserved",
+        "explanation": "S10沈曼在相同天台场景重演推人并落空，随后被警察逮捕，最终S11法院认定故意杀人未遂。"
+      },
+      {
+        "commitment_id": "NC05",
+        "status": "preserved",
+        "explanation": "S09沈曼说明借笔人成绩与笔主人最终公布成绩对调且公布后锁死，S11官方成绩维持不变印证锁死。"
+      },
+      {
+        "commitment_id": "NC06",
+        "status": "preserved",
+        "explanation": "S07沈曼脱口说出周雨原分330，S10法官用330分截图质问其动机，沈曼无言以对。"
+      },
+      {
+        "commitment_id": "NC07",
+        "status": "preserved",
+        "explanation": "S12结尾笔杆深处闪过一道极淡的蓝光后熄灭，伏笔保留。"
+      }
+    ],
+    "checked_scene_ids": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "S08",
+      "S09",
+      "S10",
+      "S11",
+      "S12"
+    ],
+    "static_checks_passed": 2,
+    "static_checks_total": 3,
+    "commitments_verified": 7,
+    "commitments_total": 7,
+    "scenes_checked": 12,
+    "scenes_total": 12,
+    "overall_status": "fail",
+    "consistency_score": 0.8
+  },
+  "repair_rounds": 2,
+  "repaired_scene_ids": [
+    "S04",
+    "S07",
+    "S02",
+    "S06",
+    "S11",
+    "S02",
+    "S06",
+    "S07",
+    "S11"
+  ],
+  "from_version": 1,
+  "to_version": 2
+}

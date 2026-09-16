@@ -1,0 +1,352 @@
+[
+  {
+    "id": "CM01",
+    "name": "高考",
+    "description": "中国全国普通高等学校招生统一考试，是决定学生能否进入大学及进入何种大学的关键考试，分数具有极高社会重要性。",
+    "surface_text": [
+      "高考",
+      "最后一科开考前",
+      "查分",
+      "准考证号",
+      "估分"
+    ],
+    "scene_ids": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07"
+    ],
+    "friction_level": "high",
+    "narrative_importance": "high",
+    "functions": {
+      "plot": [
+        "motivation",
+        "constraint",
+        "conflict",
+        "revelation",
+        "foreshadowing",
+        "payoff"
+      ],
+      "social": [
+        "status",
+        "institutional_access",
+        "economic_security",
+        "reputation"
+      ],
+      "emotional": [
+        "aspiration",
+        "fear",
+        "suspense",
+        "satisfaction"
+      ]
+    },
+    "adapted_to": null,
+    "adapted_strategy": null
+  },
+  {
+    "id": "CM02",
+    "name": "成绩复核",
+    "description": "考生对高考成绩有异议时可申请复核，但复核通常只检查分数加总是否有误，不重新评卷，且可能被权力和金钱干预。",
+    "surface_text": [
+      "复核",
+      "申请复核",
+      "复核驳回",
+      "成绩无误"
+    ],
+    "scene_ids": [
+      "S02",
+      "S03",
+      "S07"
+    ],
+    "friction_level": "high",
+    "narrative_importance": "high",
+    "functions": {
+      "plot": [
+        "motivation",
+        "conflict",
+        "revelation",
+        "payoff"
+      ],
+      "social": [
+        "institutional_access",
+        "power",
+        "reputation"
+      ],
+      "emotional": [
+        "fear",
+        "suspense",
+        "satisfaction"
+      ]
+    },
+    "adapted_to": null,
+    "adapted_strategy": null
+  },
+  {
+    "id": "CM03",
+    "name": "豪门",
+    "description": "指富裕且有社会地位的家族，其子女常被公众关注，成绩优秀会被视为家族荣耀。",
+    "surface_text": [
+      "豪门",
+      "豪门还这么努力"
+    ],
+    "scene_ids": [
+      "S02"
+    ],
+    "friction_level": "medium",
+    "narrative_importance": "low",
+    "functions": {
+      "plot": [
+        "motivation"
+      ],
+      "social": [
+        "status",
+        "reputation"
+      ],
+      "emotional": [
+        "aspiration"
+      ]
+    },
+    "adapted_to": null,
+    "adapted_strategy": null
+  },
+  {
+    "id": "CM04",
+    "name": "志愿填报",
+    "description": "高考后考生根据分数填报大学志愿，是录取的关键步骤，有截止日期。",
+    "surface_text": [
+      "志愿填报截止"
+    ],
+    "scene_ids": [
+      "S03"
+    ],
+    "friction_level": "high",
+    "narrative_importance": "medium",
+    "functions": {
+      "plot": [
+        "motivation",
+        "constraint"
+      ],
+      "social": [
+        "institutional_access"
+      ],
+      "emotional": [
+        "suspense"
+      ]
+    },
+    "adapted_to": null,
+    "adapted_strategy": null
+  },
+  {
+    "id": "CM05",
+    "name": "班级群",
+    "description": "中国学校中常用的即时通讯群组，用于发布通知、成绩等信息，成员包括班级学生和老师。",
+    "surface_text": [
+      "班级群"
+    ],
+    "scene_ids": [
+      "S07"
+    ],
+    "friction_level": "low",
+    "narrative_importance": "low",
+    "functions": {
+      "plot": [
+        "revelation"
+      ],
+      "social": [
+        "reputation"
+      ],
+      "emotional": [
+        "humiliation"
+      ]
+    },
+    "adapted_to": null,
+    "adapted_strategy": null
+  },
+  {
+    "id": "CM06",
+    "name": "天台",
+    "description": "中国校园中常见的建筑顶部平台，常被用作学生私下见面或发生冲突的场所，在故事中也是前世推人事件的地点。",
+    "surface_text": [
+      "天台",
+      "老地方"
+    ],
+    "scene_ids": [
+      "S08",
+      "S09",
+      "S10"
+    ],
+    "friction_level": "low",
+    "narrative_importance": "medium",
+    "functions": {
+      "plot": [
+        "motivation",
+        "conflict",
+        "reversal"
+      ],
+      "social": [],
+      "emotional": [
+        "suspense",
+        "fear"
+      ]
+    },
+    "adapted_to": null,
+    "adapted_strategy": null
+  },
+  {
+    "id": "CM07",
+    "name": "直播",
+    "description": "通过网络平台实时传播视频，观众可同步观看并互动，常用于曝光事件。",
+    "surface_text": [
+      "直播"
+    ],
+    "scene_ids": [
+      "S08",
+      "S09",
+      "S10"
+    ],
+    "friction_level": "low",
+    "narrative_importance": "high",
+    "functions": {
+      "plot": [
+        "revelation",
+        "payoff",
+        "reversal"
+      ],
+      "social": [
+        "reputation",
+        "power"
+      ],
+      "emotional": [
+        "satisfaction",
+        "suspense"
+      ]
+    },
+    "adapted_to": null,
+    "adapted_strategy": null
+  },
+  {
+    "id": "CM08",
+    "name": "庭审",
+    "description": "中国法院对刑事案件进行公开审理的程序，包括检方举证、法官审理等环节。",
+    "surface_text": [
+      "庭审",
+      "检方",
+      "法官"
+    ],
+    "scene_ids": [
+      "S10"
+    ],
+    "friction_level": "medium",
+    "narrative_importance": "high",
+    "functions": {
+      "plot": [
+        "payoff",
+        "revelation"
+      ],
+      "social": [
+        "institutional_access",
+        "power"
+      ],
+      "emotional": [
+        "satisfaction"
+      ]
+    },
+    "adapted_to": null,
+    "adapted_strategy": null
+  },
+  {
+    "id": "CM09",
+    "name": "高考分数与录取",
+    "description": "中国高考以分数决定大学录取，分数具有极高社会意义，录取通知书是升学凭证。",
+    "surface_text": [
+      "669",
+      "487",
+      "330",
+      "录取",
+      "通知书",
+      "升学资格"
+    ],
+    "scene_ids": [
+      "S11",
+      "S12"
+    ],
+    "friction_level": "high",
+    "narrative_importance": "high",
+    "functions": {
+      "plot": [
+        "motivation",
+        "payoff",
+        "revelation"
+      ],
+      "social": [
+        "status",
+        "institutional_access",
+        "economic_security"
+      ],
+      "emotional": [
+        "aspiration",
+        "satisfaction"
+      ]
+    },
+    "adapted_to": null,
+    "adapted_strategy": null
+  },
+  {
+    "id": "CM10",
+    "name": "故意杀人未遂",
+    "description": "中国刑法罪名，指故意非法剥夺他人生命但因意志以外原因未得逞，需承担刑事责任。",
+    "surface_text": [
+      "故意杀人未遂"
+    ],
+    "scene_ids": [
+      "S11"
+    ],
+    "friction_level": "medium",
+    "narrative_importance": "high",
+    "functions": {
+      "plot": [
+        "payoff",
+        "revelation"
+      ],
+      "social": [
+        "institutional_access",
+        "power"
+      ],
+      "emotional": [
+        "satisfaction"
+      ]
+    },
+    "adapted_to": null,
+    "adapted_strategy": null
+  },
+  {
+    "id": "CM11",
+    "name": "校纪处分",
+    "description": "学校依据校规对违纪学生作出的纪律处分，可影响升学资格。",
+    "surface_text": [
+      "校纪处分"
+    ],
+    "scene_ids": [
+      "S11"
+    ],
+    "friction_level": "medium",
+    "narrative_importance": "medium",
+    "functions": {
+      "plot": [
+        "payoff"
+      ],
+      "social": [
+        "institutional_access",
+        "reputation"
+      ],
+      "emotional": [
+        "satisfaction"
+      ]
+    },
+    "adapted_to": null,
+    "adapted_strategy": null
+  }
+]

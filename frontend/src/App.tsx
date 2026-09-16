@@ -1,840 +1,342 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import type { FormEvent, KeyboardEvent } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { FormEvent } from 'react'
 import { api, ApiError } from './api/client'
-import { pollJob } from './api/pollJob'
-import { ImpactPanel, PlanOptions } from './components/AdaptationPanels'
-import {
-  CompleteScript,
-  DiffPanel,
-  RevisionTimeline,
-  TargetLanguageScript,
-  VerificationPanel,
-} from './components/FinalArtifacts'
+import { JobFailure, pollJob, wait } from './api/pollJob'
+import { PlanOptions } from './components/AdaptationPanels'
+import { CopyDownload, DemoPicker, Modal, ShareDialog } from './components/ExperienceDialogs'
 import { StoryGraphView } from './components/StoryGraphView'
-import { ProjectSwitcher } from './components/ProjectSwitcher'
-import {
-  clearProjectRecovery,
-  persistJob,
-  persistProject,
-  recoveryJobId,
-  recoveryProjectId,
-} from './state/recovery'
-import type {
-  AdaptationPlan,
-  ApplyResult,
-  BatchApplyResult,
-  CultureMechanism,
-  EmotionalFunction,
-  Job,
-  Level,
-  PlotFunction,
-  PropagationResult,
-  ProjectSummary,
-  Revision,
-  RuntimePolicy,
-  SceneDiff,
-  SocialFunction,
-  StoryGraphResponse,
-  StoryState,
-  TargetScript,
-  VerifyReport,
-} from './types/api'
+import { emptyProgress, newDraft, newTask, readSaved, save } from './state/recovery'
+import type { Draft, Progress, Stage } from './state/recovery'
+import type { AdaptationPlan, ProjectSummary, PropagationResult, RuntimePolicy, StoryGraphResponse, StoryState, VerifyReport } from './types/api'
 import './App.css'
 
-type AnalyzePhase = 'idle' | 'creating' | 'analyzing' | 'loading-state' | 'done' | 'error'
-type AdaptationAction = 'idle' | 'planning' | 'loading-impact' | 'applying' | 'verifying' | 'rendering'
-type NarrativeFunction = PlotFunction | SocialFunction | EmotionalFunction
-
-const levelMeta: Record<Level, { label: string; description: string }> = {
-  high: { label: '高摩擦', description: '需要重点本土化' },
-  medium: { label: '中摩擦', description: '需要语境解释' },
-  low: { label: '低摩擦', description: '可直接保留' },
+type Artifacts = Awaited<ReturnType<typeof api.exportProject>>
+const stageCopy: Record<Stage, string> = {
+  analyze: '正在读懂故事，识别需要调整的文化背景',
+  plan_batch: '正在为每个文化点准备三种改编方案',
+  apply_batch: '正在按你的选择改写关联场景',
+  verify: '正在检查人物动机、因果和伏笔是否连贯',
+  render: '正在生成完整的目标语言剧本',
 }
-
-const functionLabels: Record<NarrativeFunction, string> = {
-  motivation: '人物动机', constraint: '情节约束', conflict: '冲突来源',
-  revelation: '信息揭示', foreshadowing: '伏笔铺设', payoff: '承诺回收',
-  reversal: '剧情反转', status: '社会地位', power: '权力关系',
-  obligation: '社会义务', kinship: '亲缘关系', reputation: '声誉压力',
-  institutional_access: '制度准入', economic_security: '经济安全',
-  humiliation: '羞辱感', aspiration: '向往感', fear: '恐惧感',
-  sympathy: '共情', suspense: '悬念', satisfaction: '满足感',
+const languages = [
+  { label: '英语（美国）', language: 'English', locale: 'en-US' },
+  { label: '英语（英国）', language: 'English', locale: 'en-GB' },
+  { label: '日语（日本）', language: 'Japanese', locale: 'ja-JP' },
+  { label: '西班牙语（西班牙）', language: 'Spanish', locale: 'es-ES' },
+  { label: '法语（法国）', language: 'French', locale: 'fr-FR' },
+  { label: '韩语（韩国）', language: 'Korean', locale: 'ko-KR' },
+]
+let sessionPromise: ReturnType<typeof api.session> | null = null
+function initializeSession() {
+  sessionPromise ??= api.session().catch(error => { sessionPromise = null; throw error })
+  return sessionPromise
 }
-
-const phaseCopy: Record<AnalyzePhase, string> = {
-  idle: '等待输入剧本',
-  creating: '正在创建项目…',
-  analyzing: 'Agent 正在解析故事与识别文化摩擦…',
-  'loading-state': '分析完成，正在读取 Story State…',
-  done: '分析完成，可选择文化机制继续改编',
-  error: '流程中断',
-}
-
-const phaseIndex: Record<AnalyzePhase, number> = {
-  idle: 0, creating: 1, analyzing: 2, 'loading-state': 3, done: 4, error: 0,
-}
-
-const actionCopy: Record<AdaptationAction, string> = {
-  idle: '',
-  planning: 'Agent 正在为每个已选文化点生成 A / B / C 方案…',
-  'loading-impact': '正在把当前改编点的传播范围加入批次…',
-  applying: 'Agent 正在逐点迭代改写，随后统一执行 Verify / Repair…',
-  verifying: '正在重新验证最新 Story State…',
-  rendering: '正在将冻结的结构稿渲染为目标语言剧本…',
-}
-
-function readableError(caught: unknown) {
-  if (caught instanceof DOMException && caught.name === 'AbortError') return ''
-  if (caught instanceof ApiError) return `后端返回 ${caught.status}：${caught.message}`
-  if (caught instanceof Error) return caught.message
-  return '发生未知错误。'
-}
-
-function sortMechanisms(mechanisms: CultureMechanism[]) {
-  const rank: Record<Level, number> = { high: 3, medium: 2, low: 1 }
-  return [...mechanisms].sort(
-    (left, right) => rank[right.friction_level] - rank[left.friction_level],
-  )
-}
-
-function FunctionGroup({ label, values }: { label: string; values: NarrativeFunction[] }) {
-  return (
-    <div className="function-group">
-      <span className="function-group__label">{label}</span>
-      <div className="function-group__tags">
-        {values.length > 0
-          ? values.map((value) => <span key={value}>{functionLabels[value]}</span>)
-          : <span className="function-tag--empty">未标注</span>}
-      </div>
-    </div>
-  )
-}
-
-interface FrictionCardProps {
-  mechanism: CultureMechanism
-  order: number
-  selected: boolean
-  disabled: boolean
-  onSelect: () => void
-}
-
-function FrictionCard({ mechanism, order, selected, disabled, onSelect }: FrictionCardProps) {
-  const meta = levelMeta[mechanism.friction_level]
-  function handleKeyDown(event: KeyboardEvent<HTMLElement>) {
-    if (!disabled && (event.key === 'Enter' || event.key === ' ')) {
-      event.preventDefault()
-      onSelect()
-    }
+function readable(error: unknown) {
+  if (error instanceof ApiError) {
+    const reset = error.resetsAt ? ` 可于 ${new Date(error.resetsAt).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}（北京时间）重试。` : ''
+    return error.message + reset
   }
-
-  return (
-    <article
-      aria-disabled={disabled}
-      aria-pressed={selected}
-      className={`friction-card friction-card--${mechanism.friction_level}${selected ? ' is-selected' : ''}`}
-      onClick={disabled ? undefined : onSelect}
-      onKeyDown={handleKeyDown}
-      role="button"
-      tabIndex={disabled ? -1 : 0}
-    >
-      <header className="friction-card__header">
-        <div className="friction-card__identity">
-          <span className="friction-card__order">{String(order + 1).padStart(2, '0')}</span>
-          <div>
-            <div className="friction-card__title-line">
-              <h3>{mechanism.name}</h3><code>{mechanism.id}</code>
-              {mechanism.adapted_to && <span className="adapted-badge">已改编</span>}
-            </div>
-            <p>{mechanism.description || '后端未提供机制说明'}</p>
-          </div>
-        </div>
-        <div className={`level-badge level-badge--${mechanism.friction_level}`}>
-          <strong>{meta.label}</strong><span>{meta.description}</span>
-        </div>
-      </header>
-
-      <div className="friction-card__evidence">
-        <div>
-          <span className="detail-label">原文证据</span>
-          <div className="quote-list">
-            {mechanism.surface_text.length > 0
-              ? mechanism.surface_text.map((quote, index) => <q key={`${quote}-${index}`}>{quote}</q>)
-              : <span className="muted">无直接文本证据</span>}
-          </div>
-        </div>
-        <div>
-          <span className="detail-label">叙事重要度</span>
-          <p className="scene-list">{levelMeta[mechanism.narrative_importance].label}</p>
-          <span className="detail-label detail-label--spaced">出现位置</span>
-          <p className="scene-list">
-            {mechanism.scene_ids.length > 0 ? mechanism.scene_ids.join(' · ') : '未关联场景'}
-          </p>
-        </div>
-      </div>
-
-      <div className="narrative-functions">
-        <div className="narrative-functions__heading">
-          <span className="detail-label">Narrative Functions</span>
-          <span>改编时必须保住的叙事作用</span>
-        </div>
-        <FunctionGroup label="剧情" values={mechanism.functions.plot} />
-        <FunctionGroup label="社会" values={mechanism.functions.social} />
-        <FunctionGroup label="情绪" values={mechanism.functions.emotional} />
-      </div>
-
-      <div className="friction-card__selection">
-        <span>{selected ? '已加入本次改编' : '点击加入本次改编'}</span>
-        <span aria-hidden="true">{selected ? '✓' : '+'}</span>
-      </div>
-    </article>
-  )
+  return error instanceof TypeError ? '暂时无法连接，请联网后重试。已保存的内容会保留。' : error instanceof Error ? error.message : '暂未完成，请重试。'
+}
+function defaultSelection(data: Artifacts): string[] {
+  const points = data.state?.culture_mechanisms || []
+  return points.length ? [(points.find(p => p.friction_level === 'high') || points[0]).id] : []
 }
 
 function App() {
-  const [name, setName] = useState('跨文化分析 Demo')
-  const [script, setScript] = useState('')
-  const [market, setMarket] = useState('United States')
-  const [audience, setAudience] = useState('18–30')
-  const [format, setFormat] = useState('Short drama')
-  const [genre, setGenre] = useState('Urban drama')
-  const [targetLanguage, setTargetLanguage] = useState('English')
-  const [targetLocale, setTargetLocale] = useState('en-US')
-  const [sftOptIn, setSftOptIn] = useState(false)
-  const [contentSource, setContentSource] = useState('')
-  const [contentLicense, setContentLicense] = useState('')
-  const [consentNote, setConsentNote] = useState('')
-  const [runtimePolicy, setRuntimePolicy] = useState<RuntimePolicy | null>(null)
+  const [owner, setOwner] = useState('')
+  const [ready, setReady] = useState(false)
+  const [draft, setDraft] = useState<Draft>(newDraft)
+  const [progress, setProgress] = useState<Progress>(emptyProgress)
+  const current = useRef(progress)
+  const [artifacts, setArtifacts] = useState<Artifacts | null>(null)
+  const [report, setReport] = useState<VerifyReport | null>(null)
+  const [policy, setPolicy] = useState<RuntimePolicy | null>(null)
   const [projects, setProjects] = useState<ProjectSummary[]>([])
-  const [phase, setPhase] = useState<AnalyzePhase>('idle')
-  const [project, setProject] = useState<{ id: string; name: string } | null>(null)
-  const [analyzeJob, setAnalyzeJob] = useState<Job | null>(null)
-  const [storyState, setStoryState] = useState<StoryState | null>(null)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [selectedMechanismIds, setSelectedMechanismIds] = useState<string[]>([])
-  const [plans, setPlans] = useState<AdaptationPlan[]>([])
-  const [selectedOptionLabels, setSelectedOptionLabels] = useState<Record<string, string>>({})
-  const [propagations, setPropagations] = useState<Record<string, PropagationResult>>({})
+  const [pause, setPause] = useState('')
+  const [storageNote, setStorageNote] = useState('')
+  const [dialog, setDialog] = useState<'demo' | 'share' | 'stories' | null>(null)
+  const [impacts, setImpacts] = useState<PropagationResult[]>([])
   const [graph, setGraph] = useState<StoryGraphResponse | null>(null)
-  const [action, setAction] = useState<AdaptationAction>('idle')
-  const [actionMessage, setActionMessage] = useState('')
-  const [actionError, setActionError] = useState('')
-  const [activeJob, setActiveJob] = useState<Job | null>(null)
-  const [lastApply, setLastApply] = useState<BatchApplyResult | null>(null)
-  const [verifyReport, setVerifyReport] = useState<VerifyReport | null>(null)
-  const [diffs, setDiffs] = useState<SceneDiff[]>([])
-  const [revisions, setRevisions] = useState<Revision[]>([])
-  const [targetScript, setTargetScript] = useState<TargetScript | null>(null)
-  const [projectSidebarOpen, setProjectSidebarOpen] = useState(false)
-  const controllerRef = useRef<AbortController | null>(null)
+  const [detailsError, setDetailsError] = useState('')
+  const [compare, setCompare] = useState<'source' | 'adapted'>('source')
+  const controller = useRef<AbortController | null>(null)
+  const state = artifacts?.state as StoryState | null | undefined
+  const task = progress.task
+  const busy = loading || task?.status === 'running'
+  const plans = (artifacts?.plans || []).filter(p => p.based_on_version === state?.version && progress.selected.includes(p.culture_mechanism_id)) as AdaptationPlan[]
+  const sorted = [...(state?.culture_mechanisms || [])].sort((a, b) => ({ high: 3, medium: 2, low: 1 }[b.friction_level] - { high: 3, medium: 2, low: 1 }[a.friction_level]))
+  const target = artifacts?.target_script
+  const step = (target && progress.view !== 'choose') || (task && ['apply_batch', 'verify', 'render'].includes(task.stage)) ? 3 : state ? 2 : 1
+  const limited = !!policy?.quota && (policy.quota.visitor_used >= policy.quota.visitor_limit || policy.quota.site_used >= policy.quota.site_limit)
 
-  const sortedMechanisms = useMemo(() => sortMechanisms(storyState?.culture_mechanisms ?? []), [storyState])
-  const selectedMechanisms = useMemo(() => {
-    const byId = new Map(storyState?.culture_mechanisms.map((item) => [item.id, item]) ?? [])
-    return selectedMechanismIds.flatMap((id) => {
-      const mechanism = byId.get(id)
-      return mechanism ? [mechanism] : []
-    })
-  }, [selectedMechanismIds, storyState])
-  const selectedMechanismIdSet = useMemo(
-    () => new Set(selectedMechanismIds),
-    [selectedMechanismIds],
-  )
-  const selectionsReady = !lastApply
-    && plans.length === selectedMechanismIds.length
-    && selectedMechanismIds.length > 0
-    && selectedMechanismIds.every(
-      (id) => Boolean(selectedOptionLabels[id] && propagations[id]),
-    )
-  const affectedSceneIds = useMemo(() => new Set(
-    Object.values(propagations).flatMap((item) => item.affected_scenes.map((scene) => scene.scene_id)),
-  ), [propagations])
-  const rewrittenSceneIds = useMemo(() => [...new Set(
-    lastApply?.applied.flatMap((item) => item.rewritten_scene_ids) ?? [],
-  )], [lastApply])
-  const affectedIds = useMemo(() => {
-    const ids = new Set<string>()
-    selectedMechanismIds.forEach((id) => ids.add(id))
-    Object.values(propagations).forEach((propagation) => {
-      propagation.affected_scenes.forEach((scene) => {
-        ids.add(scene.scene_id)
-        scene.reason_path.forEach((id) => ids.add(id))
-      })
-      propagation.related_commitment_ids.forEach((id) => ids.add(id))
-    })
-    return ids
-  }, [propagations, selectedMechanismIds])
-
-  useEffect(() => {
-    const controller = new AbortController()
-    controllerRef.current = controller
-    api.getRuntimePolicy(controller.signal).then(setRuntimePolicy).catch(() => undefined)
-    api.listProjects(controller.signal).then((items) => {
-      setProjects(items)
-      const recoverId = recoveryProjectId()
-      if (recoverId && items.some((item) => item.id === recoverId)) {
-        void restoreProject(recoverId, controller)
-      }
-    }).catch(() => undefined)
-    return () => {
-      controller.abort()
-      controllerRef.current?.abort()
+  function commit(next: Progress) {
+    current.current = next
+    if (owner) {
+      const saved = save(owner, 'active', next)
+      if (next.projectId) save(owner, `story.${next.projectId}`, next)
+      if (!saved) setStorageNote('浏览器未允许保存草稿，请保持页面打开，并及时复制结果。')
     }
-  }, [])
-
-  const analyzeBusy = ['creating', 'analyzing', 'loading-state'].includes(phase)
-  const actionBusy = action !== 'idle'
-  const currentPhaseIndex = phaseIndex[phase]
-  const adaptationStep = lastApply ? 5 : selectionsReady ? 3 : plans.length > 0 ? 2 : selectedMechanisms.length > 0 ? 1 : 0
-
-  function nextController() {
-    controllerRef.current?.abort()
-    const controller = new AbortController()
-    controllerRef.current = controller
-    return controller
+    setProgress(next)
   }
-
-  function trackAnalyzeJob(job: Job) {
-    setAnalyzeJob(job)
-    persistJob(job.status === 'queued' || job.status === 'running' ? job.id : null)
+  function edit(values: Partial<Draft>) { setDraft(previous => ({ ...previous, ...values, createKey: crypto.randomUUID() })) }
+  async function reloadArtifacts(projectId: string, signal?: AbortSignal) {
+    const [data, verification] = await Promise.all([api.exportProject(projectId, signal), api.verification(projectId, signal)])
+    if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
+    setArtifacts(data); setReport(verification)
+    return data
   }
-
-  function trackActiveJob(job: Job) {
-    setActiveJob(job)
-    persistJob(job.status === 'queued' || job.status === 'running' ? job.id : null)
-  }
-
-  function resetAdaptation() {
-    setSelectedMechanismIds([])
-    setPlans([])
-    setSelectedOptionLabels({})
-    setPropagations({})
-    setGraph(null)
-    setAction('idle')
-    setActionMessage('')
-    setActionError('')
-    setActiveJob(null)
-    setLastApply(null)
-    setVerifyReport(null)
-    setDiffs([])
-    setRevisions([])
-    setTargetScript(null)
-  }
-
-  function startNewProject() {
-    if (analyzeBusy || actionBusy) return
-    controllerRef.current?.abort()
-    controllerRef.current = null
-    setName('跨文化分析 Demo')
-    setScript('')
-    setMarket('United States')
-    setAudience('18–30')
-    setFormat('Short drama')
-    setGenre('Urban drama')
-    setTargetLanguage('English')
-    setTargetLocale('en-US')
-    setSftOptIn(false)
-    setContentSource('')
-    setContentLicense('')
-    setConsentNote('')
-    setProject(null)
-    setAnalyzeJob(null)
-    setStoryState(null)
-    setError('')
-    setPhase('idle')
-    resetAdaptation()
-    persistJob(null)
-    clearProjectRecovery()
-    setProjectSidebarOpen(false)
-    window.requestAnimationFrame(() => document.getElementById('analyze')?.scrollIntoView())
-  }
-
-  function openHistoricalProject(projectId: string) {
-    setProjectSidebarOpen(false)
-    void restoreProject(projectId)
-  }
-
-  async function restoreProject(projectId: string, providedController?: AbortController) {
-    const controller = providedController ?? nextController()
-    setError('')
-    setActionError('')
-    setPhase('loading-state')
-    resetAdaptation()
-    try {
-      const detail = await api.getProject(projectId, controller.signal)
-      setProject({ id: detail.id, name: detail.name })
-      setName(detail.name)
-      setMarket(detail.market.market)
-      setAudience(detail.market.audience)
-      setFormat(detail.market.format)
-      setGenre(detail.market.genre)
-      setTargetLanguage(detail.market.target_language ?? 'English')
-      setTargetLocale(detail.market.target_locale ?? 'en-US')
-      setSftOptIn(detail.data_policy.sft_opt_in)
-      setContentSource(detail.data_policy.content_source)
-      setContentLicense(detail.data_policy.license)
-      setConsentNote(detail.data_policy.consent_note)
-      persistProject(projectId)
-
-      let jobs = await api.listJobs(projectId, controller.signal)
-      const rememberedJobId = recoveryJobId()
-      const active = jobs.find((job) => job.id === rememberedJobId && (job.status === 'queued' || job.status === 'running'))
-        ?? [...jobs].reverse().find((job) => job.status === 'queued' || job.status === 'running')
-      if (active) {
-        persistJob(active.id)
-        if (active.kind === 'analyze') {
-          setPhase('analyzing')
-          await pollJob(active.id, { signal: controller.signal, timeoutMs: 15 * 60_000, onUpdate: trackAnalyzeJob })
-        } else {
-          setAction(active.kind === 'apply' || active.kind === 'apply_batch' ? 'applying' : active.kind === 'verify' ? 'verifying' : active.kind === 'render' ? 'rendering' : 'planning')
-          await pollJob(active.id, { signal: controller.signal, timeoutMs: 30 * 60_000, onUpdate: trackActiveJob })
-          setAction('idle')
+  useEffect(() => {
+    let disposed = false
+    const abort = new AbortController()
+    async function init() {
+      try {
+        const session = await initializeSession()
+        if (disposed) return
+        const visitor = session.visitor_id
+        const restored = readSaved<Progress>(visitor, 'active') || emptyProgress()
+        setOwner(visitor); setDraft(readSaved<Draft>(visitor, 'draft') || newDraft())
+        current.current = restored; setProgress(restored)
+        const [nextPolicy, nextProjects] = await Promise.all([api.getRuntimePolicy(abort.signal), api.listProjects(abort.signal)])
+        if (disposed) return
+        setPolicy(nextPolicy); setProjects(nextProjects)
+        if (restored.projectId) {
+          if (nextProjects.some(p => p.id === restored.projectId)) await reloadArtifacts(restored.projectId, abort.signal)
+          else { const empty = emptyProgress(); current.current = empty; setProgress(empty); save(visitor, 'active', empty) }
         }
-        jobs = await api.listJobs(projectId, controller.signal)
-      }
-      persistJob(null)
-
-      const state = await api.getStoryState(projectId, controller.signal)
-      const [nextRevisions, nextDiffs, restoredTarget, restoredGraph] = await Promise.all([
-        api.getRevisions(projectId, controller.signal),
-        api.getDiff(projectId, controller.signal).catch(() => [] as SceneDiff[]),
-        api.getTargetScript(projectId, controller.signal).catch(() => null),
-        api.getGraph(projectId, undefined, 4, controller.signal),
-      ])
-      const completedApply = [...jobs].reverse().find(
-        (job) => ['apply', 'apply_batch'].includes(job.kind) && job.status === 'done',
-      )
-      let restoredApply: BatchApplyResult | null = null
-      if (completedApply?.kind === 'apply_batch') {
-        restoredApply = (
-          await api.getJob<BatchApplyResult>(completedApply.id, controller.signal)
-        ).result
-      } else if (completedApply) {
-        const legacy = (await api.getJob<ApplyResult>(completedApply.id, controller.signal)).result
-        if (legacy) {
-          restoredApply = {
-            applied: [legacy.applied],
-            report: legacy.report,
-            repair_rounds: legacy.repair_rounds,
-            repaired_scene_ids: legacy.repaired_scene_ids,
-            from_version: Math.max(0, state.version - 1),
-            to_version: state.version,
+        if (!disposed) setReady(true)
+      } catch (caught) { if (!disposed) setError(readable(caught)) }
+    }
+    void init()
+    return () => { disposed = true; abort.abort() }
+  }, [])
+  useEffect(() => {
+    if (owner && ready && !save(owner, 'draft', draft)) setStorageNote('浏览器存储已满，请复制你的草稿后继续。')
+  }, [owner, ready, draft])
+  useEffect(() => {
+    if (!ready) return
+    const refresh = () => {
+      if (!document.hidden && navigator.onLine) api.getRuntimePolicy().then(setPolicy).catch(() => undefined)
+    }
+    const timer = window.setInterval(refresh, 30000)
+    document.addEventListener('visibilitychange', refresh)
+    window.addEventListener('online', refresh)
+    window.addEventListener('focus', refresh)
+    return () => {
+      clearInterval(timer); document.removeEventListener('visibilitychange', refresh)
+      window.removeEventListener('online', refresh); window.removeEventListener('focus', refresh)
+    }
+  }, [ready])
+  const selectedKey = progress.selected.join('|')
+  useEffect(() => {
+    if (!progress.projectId || !plans.length) return
+    const abort = new AbortController()
+    Promise.all(selectedKey.split('|').filter(Boolean).map(id => api.getPropagation(progress.projectId!, id, abort.signal)))
+      .then(setImpacts).catch(() => { if (!abort.signal.aborted) setDetailsError('影响范围暂未读取成功，展开详情可重试。') })
+    return () => abort.abort()
+  }, [progress.projectId, state?.version, plans.length, selectedKey])
+  useEffect(() => {
+    if (!ready || !progress.projectId || task?.status !== 'running') return
+    const abort = new AbortController(); controller.current = abort
+    const projectId = progress.projectId
+    const active = { ...task }
+    async function run() {
+      try {
+        // Persisted request keys make uncertain submission safe to repeat.
+        if (!active.jobId) {
+          while (true) {
+            try {
+              const submitted = await api.submitJob(projectId, active.request, abort.signal)
+              active.jobId = submitted.job_id
+              if (abort.signal.aborted) return
+              commit({ ...current.current, task: active }); break
+            } catch (caught) {
+              if (abort.signal.aborted || (caught instanceof ApiError && caught.status < 500)) throw caught
+              setPause('连接暂时中断，正在恢复提交。不会重复生成。')
+              await wait(2000, abort.signal)
+            }
           }
         }
+        const completed = await pollJob(active.jobId!, { signal: abort.signal, onPause: setPause })
+        let data: Artifacts
+        while (true) {
+          try { data = await reloadArtifacts(projectId, abort.signal); break }
+          catch (caught) {
+            if (abort.signal.aborted || (caught instanceof ApiError && caught.status < 500)) throw caught
+            setPause('这一步已完成，正在恢复连接以读取结果。'); await wait(2000, abort.signal)
+          }
+        }
+        if (abort.signal.aborted) return
+        setPause(''); setError('')
+        const next = { ...current.current }
+        if (active.stage === 'analyze') next.selected = defaultSelection(data)
+        if (active.stage === 'verify') {
+          const checked = completed.result as VerifyReport
+          setReport(checked)
+          if (checked.overall_status === 'fail' || checked.overall_status === 'not_run' || checked.issues.some(i => i.severity === 'error')) {
+            next.task = { ...active, status: 'blocked', error: '检查发现阻塞问题，已暂停目标语言生成。请查看下方检查详情，重新选择方案或再次检查。' }
+            commit(next); return
+          }
+        }
+        if (active.chain && active.stage === 'apply_batch') next.task = newTask('verify', {}, true, `${active.key}:verify`)
+        else if (active.chain && active.stage === 'verify') next.task = newTask('render', {}, true, `${active.key}:render`)
+        else next.task = { ...active, status: 'done' }
+        commit(next)
+        api.getRuntimePolicy().then(setPolicy).catch(() => undefined)
+      } catch (caught) {
+        if (abort.signal.aborted) return
+        // A process can stop after committing rewritten scenes but before
+        // persisting the task result. Reconcile that narrow window before retry.
+        if (active.stage === 'apply_batch' && active.chain) {
+          try {
+            const recovered = await reloadArtifacts(projectId, abort.signal)
+            if (recovered.adaptations.some(item => item.operation_id === active.key)) {
+              commit({ ...current.current, task: newTask('verify', {}, true, `${active.key}:verify`) })
+              return
+            }
+          } catch { /* The saved stage remains available for a later retry. */ }
+        }
+        if (abort.signal.aborted) return
+        const cancelled = caught instanceof JobFailure && caught.job.status === 'cancelled'
+        commit({ ...current.current, task: { ...active, status: cancelled ? 'cancelled' : 'failed', error: readable(caught), resetsAt: caught instanceof ApiError ? caught.resetsAt : undefined } })
+        api.getRuntimePolicy().then(setPolicy).catch(() => undefined)
       }
-      const completedPlan = [...jobs].reverse().find(
-        (job) => ['plan', 'plan_batch'].includes(job.kind) && job.status === 'done',
-      )
-      let restoredPlans: AdaptationPlan[] = []
-      if (completedPlan?.kind === 'plan_batch') {
-        restoredPlans = (
-          await api.getJob<AdaptationPlan[]>(completedPlan.id, controller.signal)
-        ).result ?? []
-      } else if (completedPlan) {
-        const legacy = (await api.getJob<AdaptationPlan>(completedPlan.id, controller.signal)).result
-        if (legacy) restoredPlans = [legacy]
-      }
-
-      setStoryState(state)
-      setRevisions(nextRevisions)
-      setDiffs(nextDiffs)
-      setTargetScript(restoredTarget)
-      setGraph(restoredGraph)
-      if (restoredApply) {
-        setLastApply(restoredApply)
-        setVerifyReport(restoredApply.report)
-        setSelectedOptionLabels(Object.fromEntries(
-          restoredApply.applied.map((item) => [
-            item.plan_culture_mechanism_id,
-            item.chosen_option.option_label,
-          ]),
-        ))
-        setPropagations(Object.fromEntries(
-          restoredApply.applied.map((item) => [
-            item.plan_culture_mechanism_id,
-            item.propagation,
-          ]),
-        ))
-      }
-      const currentPlans = restoredPlans.filter((item) => item.based_on_version === state.version)
-      if (currentPlans.length > 0) {
-        setPlans(currentPlans)
-      }
-      const restoredMechanismIds = restoredApply?.applied.map(
-        (item) => item.plan_culture_mechanism_id,
-      ) ?? currentPlans.map((item) => item.culture_mechanism_id)
-      setSelectedMechanismIds(
-        restoredMechanismIds.length > 0
-          ? restoredMechanismIds
-          : sortMechanisms(state.culture_mechanisms).slice(0, 1).map((item) => item.id),
-      )
-      setPhase('done')
-    } catch (caught) {
-      const message = readableError(caught)
-      if (!message) return
-      setError(`恢复项目失败：${message}`)
-      setPhase('error')
-      setAction('idle')
     }
-  }
+    void run()
+    return () => { abort.abort() }
+    // A key identifies one durable stage. Recording its server id does not restart it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, progress.projectId, task?.key, task?.status])
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function analyze(event: FormEvent) {
     event.preventDefault()
-    if (!script.trim() || analyzeBusy || actionBusy) return
-    const controller = nextController()
-    setError('')
-    setStoryState(null)
-    setProject(null)
-    setAnalyzeJob(null)
-    resetAdaptation()
-
+    if (busy || !ready || !draft.script.trim()) return
+    setLoading(true); setError('')
     try {
-      setPhase('creating')
-      const created = await api.createProject({
-        name: name.trim(), script: script.trim(),
-        market: {
-          market: market.trim(), audience: audience.trim(), format: format.trim(), genre: genre.trim(),
-          source_language: 'zh-CN', target_language: targetLanguage.trim(), target_locale: targetLocale.trim(),
-          style_guide: '',
-        },
-        data_policy: {
-          sft_opt_in: sftOptIn,
-          content_source: sftOptIn ? contentSource.trim() : '',
-          license: sftOptIn ? contentLicense.trim() : '',
-          consent_note: sftOptIn ? consentNote.trim() : '',
-          retention_days: runtimePolicy?.sft_retention_days ?? 30,
-        },
-      }, controller.signal)
-      setProject(created)
-      persistProject(created.id)
-      setProjects((items) => [
-        { id: created.id, name: created.name, created_at: new Date().toISOString() },
-        ...items.filter((item) => item.id !== created.id),
-      ])
-      setPhase('analyzing')
-      const submitted = await api.submitJob(created.id, { kind: 'analyze', idempotency_key: crypto.randomUUID() }, controller.signal)
-      persistJob(submitted.job_id)
-      await pollJob(submitted.job_id, { signal: controller.signal, timeoutMs: 15 * 60_000, onUpdate: trackAnalyzeJob })
-      setPhase('loading-state')
-      const state = await api.getStoryState(created.id, controller.signal)
-      setStoryState(state)
-      setSelectedMechanismIds(
-        sortMechanisms(state.culture_mechanisms).slice(0, 1).map((item) => item.id),
-      )
-      setRevisions(await api.getRevisions(created.id, controller.signal))
-      setPhase('done')
-      persistJob(null)
-    } catch (caught) {
-      const message = readableError(caught)
-      if (!message) return
-      setError(message)
-      setPhase('error')
-      persistJob(null)
-    }
-  }
-
-  function handleSelectMechanism(mechanismId: string) {
-    if (actionBusy) return
-    setSelectedMechanismIds((ids) => ids.includes(mechanismId)
-      ? ids.filter((id) => id !== mechanismId)
-      : [...ids, mechanismId])
-    setPlans([])
-    setSelectedOptionLabels({})
-    setPropagations({})
-    setGraph(null)
-    setLastApply(null)
-    setVerifyReport(null)
-    setDiffs([])
-    setTargetScript(null)
-    setActionMessage('')
-    setActionError('')
-  }
-
-  async function handlePlan() {
-    if (!project || selectedMechanismIds.length === 0 || actionBusy) return
-    const controller = nextController()
-    setAction('planning')
-    setActionError('')
-    setActionMessage('')
-    setActiveJob(null)
-    setPlans([])
-    setSelectedOptionLabels({})
-    setPropagations({})
-    setGraph(null)
-    setLastApply(null)
-    setVerifyReport(null)
-    setDiffs([])
-    try {
-      const submitted = await api.submitJob(project.id, {
-        kind: 'plan_batch',
-        culture_mechanism_ids: selectedMechanismIds,
-        idempotency_key: crypto.randomUUID(),
-      }, controller.signal)
-      persistJob(submitted.job_id)
-      const completed = await pollJob<AdaptationPlan[]>(submitted.job_id, { signal: controller.signal, timeoutMs: 15 * 60_000, onUpdate: trackActiveJob })
-      if (!completed.result) throw new Error('Plan job 已完成，但没有返回 Adaptation Plan。')
-      setPlans(completed.result)
-      setActionMessage(`已为 ${completed.result.length} 个文化点分别生成 A / B / C 方案。`)
-      persistJob(null)
-    } catch (caught) {
-      const message = readableError(caught)
-      if (message) setActionError(message)
-    } finally {
-      setAction('idle')
-      persistJob(null)
-    }
-  }
-
-  async function handleSelectOption(mechanismId: string, optionLabel: string) {
-    if (!project || !selectedMechanismIdSet.has(mechanismId) || actionBusy) return
-    const controller = nextController()
-    setSelectedOptionLabels((labels) => ({ ...labels, [mechanismId]: optionLabel }))
-    setAction('loading-impact')
-    setActionError('')
-    setActionMessage('')
-    try {
-      const [nextPropagation, nextGraph] = await Promise.all([
-        api.getPropagation(project.id, mechanismId, controller.signal),
-        api.getGraph(project.id, undefined, 4, controller.signal),
-      ])
-      setPropagations((items) => ({ ...items, [mechanismId]: nextPropagation }))
-      setGraph(nextGraph)
-      setActionMessage(`${mechanismId} 的方案 ${optionLabel} 已选定；传播范围已加入批次。`)
-    } catch (caught) {
-      const message = readableError(caught)
-      if (message) setActionError(message)
-    } finally {
-      setAction('idle')
-      persistJob(null)
-    }
-  }
-
-  async function handleApply() {
-    if (!project || !selectionsReady || actionBusy) return
-    const basedOnVersion = plans[0]?.based_on_version
-    if (!basedOnVersion || plans.some((item) => item.based_on_version !== basedOnVersion)) {
-      setActionError('批量方案不是基于同一个 Story State 版本，请重新生成方案。')
-      return
-    }
-    const controller = nextController()
-    setAction('applying')
-    setActionError('')
-    setActionMessage('')
-    setActiveJob(null)
-    setLastApply(null)
-    setVerifyReport(null)
-    try {
-      const submitted = await api.submitJob(project.id, {
-        kind: 'apply_batch',
-        adaptations: selectedMechanismIds.map((cultureMechanismId) => ({
-          culture_mechanism_id: cultureMechanismId,
-          option_label: selectedOptionLabels[cultureMechanismId] as 'A' | 'B' | 'C',
-        })),
-        based_on_version: basedOnVersion,
-        idempotency_key: crypto.randomUUID(),
-      }, controller.signal)
-      persistJob(submitted.job_id)
-      const completed = await pollJob<BatchApplyResult>(submitted.job_id, { signal: controller.signal, timeoutMs: 30 * 60_000, onUpdate: trackActiveJob })
-      if (!completed.result) throw new Error('Apply job 已完成，但没有返回改写与验证结果。')
-      const [nextState, nextDiffs, nextRevisions, nextGraph] = await Promise.all([
-        api.getStoryState(project.id, controller.signal),
-        api.getDiff(project.id, controller.signal),
-        api.getRevisions(project.id, controller.signal),
-        api.getGraph(project.id, undefined, 4, controller.signal),
-      ])
-      setStoryState(nextState)
-      setDiffs(nextDiffs)
-      setRevisions(nextRevisions)
-      setGraph(nextGraph)
-      setLastApply(completed.result)
-      setVerifyReport(completed.result.report)
-      setTargetScript(null)
-      const rewrittenCount = new Set(
-        completed.result.applied.flatMap((item) => item.rewritten_scene_ids),
-      ).size
-      setActionMessage(`批量 Apply 完成：${completed.result.applied.length} 个文化点共同改写 ${rewrittenCount} 个场景，自动修复 ${completed.result.repair_rounds} 轮。`)
-      persistJob(null)
-    } catch (caught) {
-      const message = readableError(caught)
-      if (message) setActionError(message)
-    } finally {
-      setAction('idle')
-      persistJob(null)
-    }
-  }
-
-  async function handleVerify() {
-    if (!project || actionBusy) return
-    const controller = nextController()
-    setAction('verifying')
-    setActionError('')
-    setActionMessage('')
-    setActiveJob(null)
-    try {
-      const submitted = await api.submitJob(project.id, { kind: 'verify', idempotency_key: crypto.randomUUID() }, controller.signal)
-      persistJob(submitted.job_id)
-      const completed = await pollJob<VerifyReport>(submitted.job_id, { signal: controller.signal, timeoutMs: 15 * 60_000, onUpdate: trackActiveJob })
-      if (!completed.result) throw new Error('Verify job 已完成，但没有返回 Verify Report。')
-      setVerifyReport(completed.result)
-      setActionMessage('最新 Story State 已重新验证。')
-      persistJob(null)
-    } catch (caught) {
-      const message = readableError(caught)
-      if (message) setActionError(message)
-    } finally {
-      setAction('idle')
-      persistJob(null)
-    }
-  }
-
-  async function handleRenderTarget() {
-    if (!project || !storyState || actionBusy) return
-    const controller = nextController()
-    setAction('rendering')
-    setActionError('')
-    setActionMessage('')
-    setActiveJob(null)
-    try {
-      const submitted = await api.submitJob(project.id, {
-        kind: 'render', idempotency_key: `render-v${storyState.version}`,
-      }, controller.signal)
-      persistJob(submitted.job_id)
-      await pollJob<TargetScript>(submitted.job_id, {
-        signal: controller.signal, timeoutMs: 15 * 60_000, onUpdate: trackActiveJob,
+      save(owner, 'draft', draft)
+      const project = await api.createProject({
+        name: draft.name.trim() || draft.script.trim().split('\n')[0].slice(0, 32) || '新的故事',
+        script: draft.script, idempotency_key: draft.createKey,
+        market: { market: draft.market, audience: draft.audience, genre: draft.genre, format: draft.format,
+          target_language: draft.language, target_locale: draft.locale, source_language: 'zh-CN', style_guide: '' },
       })
-      const rendered = await api.getTargetScript(project.id, controller.signal)
-      setTargetScript(rendered)
-      setActionMessage(`目标语言剧本已生成，并绑定 Story State v${rendered.source_state_version}。`)
-      persistJob(null)
-    } catch (caught) {
-      const message = readableError(caught)
-      if (message) setActionError(message)
-    } finally {
-      setAction('idle')
-      persistJob(null)
-    }
+      commit({ ...emptyProgress(), projectId: project.id, task: newTask('analyze') })
+      setProjects(await api.listProjects())
+    } catch (caught) { setError(readable(caught)) }
+    finally { setLoading(false) }
   }
-
-  async function handleCancelJob() {
-    const job = activeJob?.status === 'queued' || activeJob?.status === 'running'
-      ? activeJob
-      : analyzeJob?.status === 'queued' || analyzeJob?.status === 'running'
-        ? analyzeJob
-        : null
-    if (!job) return
-    const cancelled = await api.cancelJob(job.id).catch(() => null)
-    controllerRef.current?.abort()
-    persistJob(null)
-    if (cancelled) {
-      if (cancelled.kind === 'analyze') setAnalyzeJob(cancelled)
-      else setActiveJob(cancelled)
-    }
-    setAction('idle')
-    setPhase(storyState ? 'done' : 'idle')
-    setActionMessage(`Job ${job.id} 已取消。`)
+  function begin(stage: Stage) {
+    if (!state || busy) return
+    const request = stage === 'plan_batch' ? { culture_mechanism_ids: progress.selected }
+      : stage === 'apply_batch' ? { based_on_version: state.version, auto_verify_and_repair: false,
+        adaptations: progress.selected.map(id => ({ culture_mechanism_id: id, option_label: progress.labels[id] as 'A' | 'B' | 'C' })) } : {}
+    setError(''); commit({ ...progress, view: stage === 'plan_batch' ? 'choose' : 'result', task: newTask(stage, request, ['apply_batch', 'verify', 'render'].includes(stage)) })
   }
-
-  return (
-    <div className="app-shell">
-      <header className="topbar">
-        <a className="brand" href="#top" aria-label="StoryBridge 首页"><span className="brand__mark">SB</span><span><strong>StoryBridge</strong><small>跨文化故事改编智能体</small></span></a>
-        <nav className="topbar__nav" aria-label="页面导航"><a href="#analyze">故事分析</a><a href="#adapt">改编工作台</a><a href="#final-script">完整剧本</a></nav>
-        <div className="topbar__actions">
-          <div className="connection-note"><span className="connection-note__dot" />数据来自当前后端 /api</div>
-          <button aria-controls="project-sidebar" aria-expanded={projectSidebarOpen} className="project-sidebar-trigger" onClick={() => setProjectSidebarOpen(true)} type="button"><span aria-hidden="true">☰</span>项目{projects.length > 0 && <small>{projects.length}</small>}</button>
-        </div>
-      </header>
-
-      <ProjectSwitcher activeProjectId={project?.id ?? null} busy={analyzeBusy || actionBusy} onClose={() => setProjectSidebarOpen(false)} onNew={startNewProject} onOpen={openHistoricalProject} open={projectSidebarOpen} projects={projects} />
-
-      <main id="top">
-        <section className="hero-copy">
-          <div><p className="eyebrow">STORY → STATE → ADAPTATION → VERIFICATION</p><h1>保住故事的作用，<br />再跨越文化的边界。</h1></div>
-          <p className="hero-copy__intro">从真实 Story State 出发，沿 Dependency Graph 找到受影响场景，选择改编策略，自动改写并验证叙事承诺，最后得到可直接查看的完整改编剧本。</p>
-        </section>
-
-        <section className="workspace" id="analyze" aria-label="剧本分析工作区">
-          <form className="script-form" onSubmit={handleSubmit}>
-            <div className="section-heading"><span>01</span><div><p className="eyebrow">SOURCE SCRIPT</p><h2>输入剧本</h2></div></div>
-            <label><span>项目名称</span><input value={name} onChange={(event) => setName(event.target.value)} /></label>
-            <label className="script-field"><span>中文剧本</span><textarea value={script} onChange={(event) => setScript(event.target.value)} placeholder="粘贴完整剧本或试演片段。前端不会填入隐藏的 mock 结果。" rows={15} required /><small>{script.length.toLocaleString('zh-CN')} 字符</small></label>
-            <fieldset><legend>目标市场画像</legend><div className="field-grid">
-              <label><span>市场</span><input value={market} onChange={(event) => setMarket(event.target.value)} /></label>
-              <label><span>受众</span><input value={audience} onChange={(event) => setAudience(event.target.value)} /></label>
-              <label><span>形式</span><input value={format} onChange={(event) => setFormat(event.target.value)} /></label>
-              <label><span>类型</span><input value={genre} onChange={(event) => setGenre(event.target.value)} /></label>
-              <label><span>目标语言</span><input required value={targetLanguage} onChange={(event) => setTargetLanguage(event.target.value)} /></label>
-              <label><span>目标 locale</span><input required value={targetLocale} onChange={(event) => setTargetLocale(event.target.value)} /></label>
-            </div></fieldset>
-            <fieldset><legend>数据与 SFT 政策</legend><div className="field-grid">
-              <label><span>运行时模型</span><input readOnly value={runtimePolicy ? `${runtimePolicy.model} · ${runtimePolicy.provider_endpoint}` : '正在读取后端政策…'} /></label>
-              <label><span>服务端采集状态</span><input readOnly value={runtimePolicy?.sft_collection_enabled ? `可选开启 · 脱敏 ${runtimePolicy.sft_redaction_enabled ? '开' : '关'} · ${runtimePolicy.sft_retention_days} 天` : '关闭（不保存 SFT 全文）'} /></label>
-              <label><span>项目模型额度</span><input readOnly value={runtimePolicy ? (runtimePolicy.max_project_llm_tokens ? `${runtimePolicy.max_project_llm_tokens.toLocaleString('zh-CN')} tokens` : '未设置上限') : '正在读取后端政策…'} /></label>
-              <label><span>授权 SFT 采集</span><input checked={sftOptIn} disabled={!runtimePolicy?.sft_collection_enabled} onChange={(event) => setSftOptIn(event.target.checked)} type="checkbox" /></label>
-              {sftOptIn && <>
-                <label><span>内容来源</span><input required value={contentSource} onChange={(event) => setContentSource(event.target.value)} /></label>
-                <label><span>授权 / License</span><input required value={contentLicense} onChange={(event) => setContentLicense(event.target.value)} /></label>
-                <label><span>明确同意说明</span><input required value={consentNote} onChange={(event) => setConsentNote(event.target.value)} /></label>
-              </>}
-            </div><p className="mock-disclosure">未勾选时不会把完整 prompt 或 completion 写入 SFT 数据；运行日志仅记录 BLAKE2b 摘要、耗时和 token metadata。</p></fieldset>
-            <button className="primary-action" type="submit" disabled={!script.trim() || analyzeBusy || actionBusy}><span>{analyzeBusy ? '分析进行中' : '创建项目并分析'}</span><span aria-hidden="true">→</span></button>
-            <p className="mock-disclosure">页面不内置分析结果。mock 模式仅替换 LLM 响应；项目、HTTP、job、Graph、Propagation、Diff 与 revisions 均走真实后端代码。</p>
-          </form>
-
-          <div className="analysis-panel">
-            <div className="section-heading"><span>02</span><div><p className="eyebrow">FRICTION MAP</p><h2>文化摩擦与叙事功能</h2></div></div>
-            <ol className="pipeline" aria-label="分析进度" aria-live="polite">
-              {['创建项目', 'Analyze job', '读取 Story State'].map((label, index) => {
-                const step = index + 1
-                const isComplete = currentPhaseIndex > step
-                const isActive = currentPhaseIndex === step
-                return <li className={isComplete ? 'is-complete' : isActive ? 'is-active' : ''} key={label}><span>{isComplete ? '✓' : step}</span>{label}</li>
-              })}
-            </ol>
-            <div className={`status-line status-line--${phase}`} aria-live="polite"><span className="status-line__pulse" /><div><strong>{phaseCopy[phase]}</strong>{project && <small>Project {project.id}</small>}{analyzeJob && <small>Job {analyzeJob.id} · {analyzeJob.status}</small>}</div>{analyzeJob && (analyzeJob.status === 'queued' || analyzeJob.status === 'running') && <button className="secondary-action" onClick={() => void handleCancelJob()} type="button">取消任务</button>}</div>
-            {error && <div className="error-message" role="alert"><strong>没有得到 Story State</strong><p>{error}</p><span>请确认 FastAPI 已在 localhost:8000 启动，并查看后端日志。</span></div>}
-            {!storyState && !error && <div className="empty-state"><div className="empty-state__orb"><span>故事</span><i /><span>文化</span></div><h3>{analyzeBusy ? 'Agent 正在搭建故事的结构地图' : '分析结果将在这里展开'}</h3><p>完成后可点击真实 Culture Friction，继续生成方案、传播分析、改写和验证。</p></div>}
-            {storyState && <div className="results">
-              <div className="result-summary"><div><strong>{storyState.scenes.length}</strong><span>场景</span></div><div><strong>{storyState.characters.length}</strong><span>角色</span></div><div><strong>{storyState.culture_mechanisms.length}</strong><span>文化机制</span></div><div><strong>{storyState.dependencies.length}</strong><span>依赖关系</span></div></div>
-              <div className="result-context"><span>目标市场与语言</span><strong>{storyState.target_market || market}</strong>{(storyState.audience || audience) && <small>{storyState.audience || audience} · {storyState.target_language} ({storyState.target_locale})</small>}</div>
-              {sortedMechanisms.length > 0 ? <div className="friction-list">{sortedMechanisms.map((mechanism, index) => <FrictionCard disabled={actionBusy} key={mechanism.id} mechanism={mechanism} onSelect={() => handleSelectMechanism(mechanism.id)} order={index} selected={selectedMechanismIdSet.has(mechanism.id)} />)}</div> : <div className="no-frictions">当前 Story State 没有保留下来的文化摩擦点。</div>}
-            </div>}
-          </div>
-        </section>
-
-        {storyState && selectedMechanisms.length > 0 && <section className="adaptation-workbench" id="adapt" aria-label="改编工作台">
-          <div className="workbench-heading"><div className="section-heading"><span>03</span><div><p className="eyebrow">ADAPTATION WORKBENCH</p><h2>从文化机制到完整改编</h2></div></div><p>本次批次 <strong>{selectedMechanisms.length} 个文化点</strong></p></div>
-          <ol className="adaptation-pipeline" aria-label="改编进度">{['选择机制', '生成方案', '传播与图谱', '改写场景', '验证完成'].map((label, index) => <li className={adaptationStep > index ? 'is-complete' : adaptationStep === index ? 'is-active' : ''} key={label}><span>{adaptationStep > index ? '✓' : index + 1}</span><strong>{label}</strong></li>)}</ol>
-          {(action !== 'idle' || actionMessage || activeJob) && <div className={`action-status${action !== 'idle' ? ' is-running' : ''}`} aria-live="polite"><span className="status-line__pulse" /><div><strong>{action !== 'idle' ? actionCopy[action] : actionMessage}</strong>{activeJob && <small>Job {activeJob.id} · {activeJob.kind} · {activeJob.status}</small>}</div>{activeJob && (activeJob.status === 'queued' || activeJob.status === 'running') && <button className="secondary-action" onClick={() => void handleCancelJob()} type="button">取消任务</button>}</div>}
-          {actionError && <div className="error-message action-error" role="alert"><strong>改编流程暂未完成</strong><p>{actionError}</p></div>}
-
-          <div className="selected-mechanism-panel">
-            <div><span className="detail-label">SELECTED CULTURE MECHANISMS</span><h3>{selectedMechanisms.length} 个改编点</h3><p>Agent 会按下列顺序在同一份候选剧本上反复迭代，最后一次性提交。</p></div>
-            <ol className="batch-selection-list">{selectedMechanisms.map((mechanism, index) => <li key={mechanism.id}><span>{index + 1}</span><div><strong>{mechanism.name}<code>{mechanism.id}</code></strong><small>{mechanism.description}</small></div></li>)}</ol>
-            <button className="primary-action compact-action" disabled={actionBusy} onClick={handlePlan} type="button"><span>{plans.length > 0 ? '重新生成批量方案' : `为 ${selectedMechanisms.length} 个点生成方案`}</span><span>→</span></button>
-          </div>
-
-          {plans.length > 0 && <section className="workbench-section"><div className="subsection-heading"><span>04</span><div><p className="eyebrow">A / B / C OPTIONS</p><h3>为每个文化点选择方案</h3></div><p>{Object.keys(selectedOptionLabels).length} / {plans.length} 已选择</p></div><div className="batch-plan-list">{plans.map((plan, index) => <article className="batch-plan" key={plan.culture_mechanism_id}><header><span>{index + 1}</span><div><code>{plan.culture_mechanism_id}</code><h4>{plan.original_name}</h4></div><small>{selectedOptionLabels[plan.culture_mechanism_id] ? `已选方案 ${selectedOptionLabels[plan.culture_mechanism_id]}` : '尚未选择'}</small></header><PlanOptions disabled={actionBusy} onSelect={(label) => void handleSelectOption(plan.culture_mechanism_id, label)} plan={plan} selectedLabel={selectedOptionLabels[plan.culture_mechanism_id] ?? null} /></article>)}</div></section>}
-
-          {Object.keys(propagations).length > 0 && graph && <>
-            <section className="workbench-section"><div className="subsection-heading"><span>05</span><div><p className="eyebrow">DEPENDENCY PROPAGATION</p><h3>各改编点的影响范围</h3></div><p>合计影响 {affectedSceneIds.size} 个不重复场景</p></div><div className="batch-impact-list">{selectedMechanismIds.map((mechanismId) => propagations[mechanismId] ? <article className="batch-impact" key={mechanismId}><h4><code>{mechanismId}</code>{storyState.culture_mechanisms.find((item) => item.id === mechanismId)?.name}</h4><ImpactPanel propagation={propagations[mechanismId]} /></article> : null)}</div></section>
-            <section className="workbench-section graph-section"><div className="subsection-heading"><span>06</span><div><p className="eyebrow">STORY GRAPH</p><h3>批量依赖图谱</h3></div><p>高亮全部已选机制与传播路径节点</p></div><StoryGraphView affectedIds={affectedIds} focusIds={selectedMechanismIdSet} graph={graph} /></section>
-            {selectionsReady && <section className="apply-gate"><div><span className="detail-label">READY TO APPLY</span><h3>确认同时改编 {selectedMechanismIds.length} 个文化点，覆盖 {affectedSceneIds.size} 个场景</h3><p>Agent 会依次 Rewrite 每个改编点，再统一 Verify / Repair；中途失败不会提交部分结果。</p></div><button className="primary-action compact-action" disabled={actionBusy} onClick={handleApply} type="button"><span>{action === 'applying' ? '批量改写进行中…' : `批量改编 ${selectedMechanismIds.length} 个文化点`}</span><span>→</span></button></section>}
-          </>}
-
-          {lastApply && storyState && verifyReport && <div className="post-apply-results">
-            <section className="workbench-section"><div className="subsection-heading"><span>07</span><div><p className="eyebrow">REWRITE RESULT</p><h3>批量改写后的场景</h3></div><p>{lastApply.applied.length} 个文化点 · {rewrittenSceneIds.length} 个场景已更新</p></div><div className="rewrite-list">{rewrittenSceneIds.map((sceneId) => { const scene = storyState.scenes.find((item) => item.id === sceneId); return scene ? <article key={scene.id}><header><code>{scene.id}</code><div><h4>{scene.title}</h4><p>{scene.summary}</p></div></header><p>{scene.text}</p></article> : null })}</div></section>
-            <section className="workbench-section"><div className="subsection-heading"><span>08</span><div><p className="eyebrow">BEFORE / AFTER</p><h3>场景 Diff</h3></div><p>相对于 initial_parse 基线</p></div><DiffPanel diffs={diffs} /></section>
-            <section className="workbench-section"><div className="subsection-heading"><span>09</span><div><p className="eyebrow">VERIFY / REPAIR</p><h3>一致性验证结果</h3></div><p>批量 Apply 后统一验证与修复</p></div><VerificationPanel applyResult={lastApply} disabled={actionBusy} onVerify={handleVerify} report={verifyReport} /></section>
-            <section className="workbench-section"><div className="subsection-heading"><span>10</span><div><p className="eyebrow">REVISION HISTORY</p><h3>改编修订记录</h3></div><p>{revisions.length} 个已保存版本</p></div><RevisionTimeline revisions={revisions} /></section>
-            <section className="workbench-section" id="final-script"><div className="subsection-heading"><span>11</span><div><p className="eyebrow">FINAL SCRIPT</p><h3>完整演示产物</h3></div><p>由最新 Story State 场景顺序组装</p></div><CompleteScript state={storyState} /></section>
-            <section className="workbench-section"><div className="subsection-heading"><span>12</span><div><p className="eyebrow">TARGET-LANGUAGE ARTIFACT</p><h3>目标语言交付稿</h3></div><button className="secondary-action" disabled={actionBusy} onClick={handleRenderTarget} type="button">{targetScript ? '读取当前版本语言稿' : `生成 ${storyState.target_language} 剧本`}</button></div>{targetScript ? <TargetLanguageScript script={targetScript} /> : <div className="inline-empty">结构改编稿已冻结；点击生成与当前状态版本绑定的目标语言剧本。</div>}</section>
-          </div>}
-        </section>}
-      </main>
-
-      <footer><span>StoryBridge · Full Demo Loop</span><span>Analyze → Plan → Propagate → Graph → Apply → Diff → Verify / Repair</span></footer>
-    </div>
-  )
+  async function cancel() {
+    if (!task?.jobId) return
+    try {
+      const stopped = await api.cancelJob(task.jobId)
+      if (stopped.status === 'done') return
+      controller.current?.abort(); setPause('')
+      commit({ ...current.current, task: { ...task, status: 'cancelled', error: '已取消。之前完成的内容仍然保留。' } })
+    } catch (caught) { setError(readable(caught)) }
+  }
+  function retry() {
+    if (!task || busy) return
+    // Only a known terminal failure receives a new key. A rejected submission
+    // retains its key, so a response lost in transit cannot duplicate work.
+    const next = task.jobId ? newTask(task.stage, task.request, task.chain) : { ...task, status: 'running' as const, error: '' }
+    commit({ ...progress, task: next }); setError('')
+  }
+  function startNew() {
+    if (busy) return
+    commit(emptyProgress()); setDraft(newDraft()); setArtifacts(null); setReport(null)
+    setImpacts([]); setGraph(null); setError(''); setDialog(null)
+  }
+  async function openStory(id: string) {
+    if (busy) return
+    setLoading(true); setError('')
+    try {
+      const data = await reloadArtifacts(id)
+      const saved = readSaved<Progress>(owner, `story.${id}`)
+      commit(saved || { ...emptyProgress(), projectId: id, selected: defaultSelection(data) })
+      setImpacts([]); setGraph(null); setDialog(null)
+    } catch (caught) { setError(readable(caught)) }
+    finally { setLoading(false) }
+  }
+  async function deleteStory(id: string) {
+    if (!window.confirm('删除这个故事和它的生成结果？当日已使用额度不会恢复。')) return
+    try {
+      await api.deleteProject(id)
+      if (progress.projectId === id) startNew()
+      setProjects(await api.listProjects())
+    } catch (caught) { setError(readable(caught)) }
+  }
+  async function loadDetails() {
+    if (!progress.projectId) return
+    setDetailsError('')
+    try {
+      const results = await Promise.all(progress.selected.map(id => api.getPropagation(progress.projectId!, id)))
+      setImpacts(results); setGraph(await api.getGraph(progress.projectId))
+    } catch (caught) { setDetailsError(readable(caught)) }
+  }
+  const fullText = target?.scenes.map(s => `${s.title}\n\n${s.text}`).join('\n\n') || ''
+  return <div className="app-shell">
+    <header className="topbar"><a className="brand" href="#top"><span className="brand-mark">S<span>↗</span></span><span><strong>StoryBridge</strong><small>让好故事走向世界</small></span></a><nav aria-label="主导航"><button type="button" onClick={() => setDialog('stories')} disabled={!ready}>我的故事</button><button type="button" onClick={() => setDialog('share')}>手机扫码体验</button></nav></header>
+    <main id="top">
+      <section className="hero"><div><p className="eyebrow">STORIES WITHOUT BORDERS</p><h1>换一种文化，<br />保留故事的动人之处。</h1><p>读懂中文故事里的文化背景，选择适合当地观众的表达，<br className="desktop-break" />生成情节连贯的目标语言剧本。</p></div><div className="hero-note"><span>从这里，走向那里</span><strong>故事 · 文化 · 共鸣</strong><p>无需注册、安装或填写模型密钥</p><span className="hero-arrow" aria-hidden="true">↗</span></div></section>
+      {policy?.mock_mode && <div className="mock-banner" role="status">开发演示模式：当前使用固定模拟结果，不代表真实模型效果。</div>}
+      <ol className="steps" aria-label="体验步骤">{['输入故事', '选择改编方案', '查看结果'].map((label, index) => <li key={label} aria-current={step === index + 1 ? 'step' : undefined} className={step === index + 1 ? 'active' : step > index + 1 ? 'complete' : ''}><span>{step > index + 1 ? '✓' : `0${index + 1}`}</span><strong>{label}</strong></li>)}</ol>
+      {!ready && !error && <p role="status">正在准备你的故事空间…</p>}
+      {storageNote && <p role="status" className="notice">{storageNote}</p>}
+      {error && <div className="error" role="alert"><p>{error}</p>{!ready && <button type="button" onClick={() => location.reload()}>重新连接</button>}</div>}
+      {policy?.quota && <div className="quota"><span>今日剩余额度 <strong>{Math.max(0, policy.quota.visitor_limit - policy.quota.visitor_used).toLocaleString('zh-CN')}</strong> tokens</span><small>输入与输出合计 · 北京时间每天 00:00 恢复</small>{limited && <p role="alert">今日额度已用完，已有内容仍可查看、复制和下载。恢复时间：{new Date(policy.quota.resets_at).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}（北京时间）</p>}</div>}
+      {ready && !progress.projectId && <section className="input-card panel">
+        <div className="section-heading"><div><p className="eyebrow">YOUR STORY</p><h2>从一个故事开始</h2></div><button type="button" className="text-link" disabled={busy} onClick={() => setDialog('demo')}>试试示例剧本 ↗</button></div>
+        <form onSubmit={analyze}><fieldset className="draft-fields" disabled={busy}>
+          <label className="story-input"><span>中文剧本</span><textarea required rows={12} value={draft.script} onChange={e => edit({ script: e.target.value })} placeholder="粘贴你的故事、短剧或一个片段。也可以先试试示例，再改成你的版本。" maxLength={policy?.max_script_chars || 500000} /><small>{draft.script.length.toLocaleString('zh-CN')} 字符 · 草稿自动保存在当前浏览器</small></label>
+          <div className="fields"><label><span>目标市场</span><input required list="markets" value={draft.market} onChange={e => edit({ market: e.target.value })} /></label><datalist id="markets">{['美国', '英国', '日本', '西班牙', '法国', '韩国'].map(m => <option key={m}>{m}</option>)}</datalist><label><span>目标语言与地区</span><select value={languages.find(l => l.locale === draft.locale && l.language === draft.language)?.locale || 'custom'} onChange={e => { const choice = languages.find(l => l.locale === e.target.value); if (choice) edit({ language: choice.language, locale: choice.locale }); else edit({ locale: '', language: '' }) }}>{languages.map(l => <option value={l.locale} key={l.locale}>{l.label}</option>)}<option value="custom">自定义语言与地区</option></select></label></div>
+          <details className="settings" open={!draft.locale || !draft.language ? true : undefined}><summary>更多设置</summary><div className="fields"><label><span>故事名称（留空自动生成）</span><input maxLength={200} value={draft.name} onChange={e => edit({ name: e.target.value })} /></label><label><span>受众</span><input value={draft.audience} onChange={e => edit({ audience: e.target.value })} /></label><label><span>类型</span><input value={draft.genre} onChange={e => edit({ genre: e.target.value })} /></label><label><span>形式</span><input value={draft.format} onChange={e => edit({ format: e.target.value })} /></label><label><span>语言名称</span><input required value={draft.language} onChange={e => edit({ language: e.target.value })} /></label><label><span>语言地区代码（如 en-US）</span><input required value={draft.locale} onChange={e => { const choice = languages.find(l => l.locale === e.target.value); edit({ locale: e.target.value, ...(choice ? { language: choice.language } : {}) }) }} /></label></div></details>
+          <div className="privacy-note"><strong>{policy?.model_available ? '默认模型已配置，直接开始即可。' : '默认模型暂不可用，请联系组织者。'}</strong><p>提交后，故事会发送给模型服务用于分析和改编。请使用你有权分享的内容。</p><details><summary>查看数据使用说明</summary><p>故事与结果保存在组织者的服务端；你可以在“我的故事”中删除。默认不收集全文训练样本。运行日志记录用量和摘要，不保存模型请求全文。当前模型：{policy?.model}。清除 Cookie 或更换网站地址后，不能自动找回原身份。tokens 额度不等于固定金额的费用上限。</p></details></div>
+          <div className="bottom-action"><span>接下来：看看哪些内容需要调整</span><button type="submit" className="primary" disabled={!ready || busy || limited || !draft.script.trim() || !policy?.model_available}>{loading ? '正在保存故事…' : '开始分析'} <span aria-hidden="true">→</span></button></div>
+        </fieldset></form>
+      </section>}
+      {progress.projectId && <div className="story-heading"><div><p className="eyebrow">MY STORY</p><h2>{artifacts?.project.name || '正在准备故事'}</h2></div><button type="button" disabled={busy} onClick={startNew}>开始新故事</button></div>}
+      {task && task.status !== 'done' && <div className={`task-status ${task.status === 'running' ? 'running' : 'attention'}`} role={task.status === 'running' ? 'status' : 'alert'}>
+        <div><strong>{task.status === 'running' ? stageCopy[task.stage] : '这一步还未完成'}</strong><p>{task.status === 'running' ? pause || '你可以切换应用，回来后会继续显示进度。生成可能需要几分钟。' : task.error}</p></div>
+        {task.status === 'running' ? <button type="button" disabled={!task.jobId} onClick={() => void cancel()}>取消</button> : <button type="button" disabled={busy || limited} onClick={retry}>{task.status === 'blocked' ? '再次检查' : '重试当前步骤'}</button>}
+      </div>}
+      {state && step === 2 && <section className="panel adaptation">
+        <div className="section-heading"><div><p className="eyebrow">MAKE IT RESONATE</p><h2>哪些内容需要调整</h2></div><span className="muted">{state.scenes.length} 个场景 · {state.characters.length} 位角色</span></div>
+        <p className="muted">选择一个或多个文化点，保留关键情节与人物动机。</p>
+        <div className="friction-list">{sorted.map(point => <label className={`friction-card ${progress.selected.includes(point.id) ? 'selected' : ''}`} key={point.id}>
+          <input type="checkbox" checked={progress.selected.includes(point.id)} disabled={busy} onChange={() => { setImpacts([]); setGraph(null); commit({ ...progress, selected: progress.selected.includes(point.id) ? progress.selected.filter(id => id !== point.id) : [...progress.selected, point.id], task: null }) }} />
+          <div><header><h3>{point.name}</h3><span className={`tag ${point.friction_level}`}>{point.friction_level === 'high' ? '优先调整' : point.friction_level === 'medium' ? '建议解释' : '可保留'}</span></header><p>{point.description}</p>{point.surface_text.length > 0 && <blockquote>{point.surface_text.join(' / ')}</blockquote>}<small>影响场景：{point.scene_ids.map(id => state.scenes.find(s => s.id === id)?.title || '关联场景').join('、')}</small></div>
+        </label>)}</div>
+        {sorted.length === 0 ? <div className="notice"><p>未发现需要特别调整的文化点，可以直接检查并生成目标语言剧本。</p><button className="primary" type="button" disabled={busy || limited} onClick={() => begin('verify')}>检查并生成剧本 →</button></div> : <button type="button" className="primary" disabled={busy || limited || !progress.selected.length} onClick={() => begin('plan_batch')}>{plans.length ? '更新方案' : '生成方案'} →</button>}
+        {plans.length > 0 && <div className="plans"><h2>为每个文化点选择方案</h2><p className="muted">你可以保留文化特色，也可以让表达更贴近目标观众。</p>{plans.map(plan => <section className="point-plan" key={plan.culture_mechanism_id}><h3>{plan.original_name}</h3><PlanOptions plan={plan} disabled={busy} selectedLabel={progress.labels[plan.culture_mechanism_id] || null} onSelect={label => commit({ ...progress, labels: { ...progress.labels, [plan.culture_mechanism_id]: label } })} /></section>)}
+          <div className="impact-summary"><strong>改编将联动这些场景</strong><p>{[...new Set(impacts.length ? impacts.flatMap(i => i.affected_scenes.map(s => s.scene_id)) : progress.selected.flatMap(id => state.culture_mechanisms.find(p => p.id === id)?.scene_ids || []))].map(id => state.scenes.find(s => s.id === id)?.title || '关联场景').join('、')}。相关动机和伏笔也会一起检查。</p></div>
+          <details onToggle={e => { if (e.currentTarget.open) void loadDetails() }}><summary>展开关联路径、图谱和详细依据</summary>{detailsError && <p role="alert">{detailsError}</p>}{impacts.map((impact, i) => <div className="relation-list" key={i}><p>{impact.summary}</p><ul>{impact.affected_scenes.map(s => <li key={s.scene_id}><strong>{state.scenes.find(scene => scene.id === s.scene_id)?.title}</strong>：{s.evidence || '与所选文化点存在情节关联'}</li>)}</ul></div>)}{graph && <details><summary>查看关系图</summary><div className="graph-container"><StoryGraphView graph={graph} affectedIds={new Set(impacts.flatMap(i => i.affected_scenes.map(s => s.scene_id)))} focusIds={new Set(progress.selected)} /></div></details>}</details>
+          <div className="bottom-action"><span>接下来：自动改写、检查并生成目标语言</span><button className="primary" type="button" disabled={busy || limited || plans.length !== progress.selected.length || !progress.selected.every(id => progress.labels[id])} onClick={() => begin('apply_batch')}>生成改编剧本 →</button></div>
+        </div>}
+      </section>}
+      {state && step === 3 && <section className="panel results">
+        <div className="section-heading"><div><p className="eyebrow">A STORY, REIMAGINED</p><h2>{target ? `${target.target_language} 完整剧本` : '你的改编正在成形'}</h2></div>{target && <span className="tag">{target.target_locale}</span>}</div>
+        {report?.overall_status === 'needs_review' && <p className="notice" role="status">剧本已生成，但仍有需要人工复核的地方，请查看检查详情。</p>}
+        {target ? <><CopyDownload text={fullText} filename={`${artifacts?.project.name || 'StoryBridge'}-${target.target_locale}.txt`} /><div className="script-scenes">{target.scenes.map(scene => <article key={scene.id}><h3>{scene.title}</h3><p>{scene.text}</p></article>)}</div></> : <p className="muted">{task?.stage === 'apply_batch' ? '改写完成后会继续检查故事，再生成目标语言全文。' : '已完成的改编稿保存在下面，目标语言全文将在这里显示。'}</p>}
+        <details><summary>原文对比与中文改编稿</summary><div className="tabs" aria-label="对比内容"><button aria-pressed={compare === 'source'} type="button" onClick={() => setCompare('source')}>原文</button><button aria-pressed={compare === 'adapted'} type="button" onClick={() => setCompare('adapted')}>中文改编稿</button></div><pre className="story-text">{compare === 'source' ? artifacts?.script : state.scenes.map(s => `${s.title}\n${s.text}`).join('\n\n')}</pre></details>
+        <details open={report?.overall_status === 'fail'}><summary>检查详情{report?.overall_status === 'needs_review' ? ' · 需要复核' : report?.overall_status === 'fail' ? ' · 存在阻塞问题' : ''}</summary>{report ? <><p>已检查 {report.scenes_checked} / {report.scenes_total} 个场景，确认 {report.commitments_verified} / {report.commitments_total} 个伏笔与承诺。</p>{!report.issues.length && report.overall_status === 'pass' && <p>未发现未解决的一致性问题。</p>}<ul>{report.issues.map((issue, i) => <li key={i}><strong>{issue.severity === 'error' ? '需要解决：' : '请复核：'}</strong>{issue.description}</li>)}{report.commitment_checks.filter(c => c.status !== 'preserved').map((c, i) => <li key={`check-${i}`}>{c.explanation || '有故事承诺需要复核。'}</li>)}</ul><button type="button" disabled={busy || limited} onClick={() => begin('verify')}>重新检查</button></> : <p>检查尚未完成。</p>}</details>
+        <details><summary>版本历史</summary><ol className="history">{artifacts?.revisions.map(r => <li key={r.revision_id}>版本 {r.state_version} · {r.kind === 'initial_parse' ? '完成故事分析' : '保存改编结果'} · {r.changed_scene_ids?.length || 0} 个场景更新</li>)}</ol></details>
+        <div className="actions"><button type="button" disabled={busy} onClick={() => commit({ ...progress, labels: {}, task: null, view: 'choose' })}>重新选择改编方案</button><button type="button" disabled={busy} onClick={startNew}>开始新故事</button></div>
+      </section>}
+      {ready && progress.projectId && !state && !busy && !task && <button className="primary" type="button" disabled={limited} onClick={() => commit({ ...progress, task: newTask('analyze') })}>继续分析故事</button>}
+    </main>
+    <footer><strong>StoryBridge</strong><span>让故事被理解，让情感有回响。</span></footer>
+    {dialog === 'demo' && !progress.projectId && <DemoPicker hasText={!!draft.script.trim()} onClose={() => setDialog(null)} onImport={(text, title) => { edit({ script: text, name: title }); setDialog(null) }} />}
+    {dialog === 'share' && <ShareDialog url={policy?.public_url || ''} onClose={() => setDialog(null)} />}
+    {dialog === 'stories' && <Modal title="我的故事" onClose={() => setDialog(null)}><p className="muted">这些故事属于当前浏览器。清除 Cookie 或更换网站地址后，不能自动找回。</p><button className="primary" type="button" disabled={busy} onClick={startNew}>开始新故事</button><ul className="story-list">{projects.map(project => <li key={project.id}><button type="button" disabled={busy} onClick={() => void openStory(project.id)}><strong>{project.name || '未命名故事'}</strong><small>{new Date(project.created_at).toLocaleDateString('zh-CN')}</small></button><button type="button" disabled={busy} onClick={() => void deleteStory(project.id)} aria-label={`删除 ${project.name}`}>删除</button></li>)}</ul>{!projects.length && <p>还没有保存的故事，从一个新故事开始吧。</p>}</Modal>}
+  </div>
 }
-
 export default App

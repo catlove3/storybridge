@@ -1,0 +1,1527 @@
+{
+  "version": 1,
+  "target_market": "United States",
+  "audience": "18-35 vertical-drama viewers",
+  "format": "12-scene vertical short drama",
+  "genre": "Rebirth suspense revenge drama",
+  "source_language": "zh-CN",
+  "target_language": "English",
+  "target_locale": "en-US",
+  "style_guide": "把完整十二场重生悬疑短剧改编为美国背景和英语成稿。\n\n硬性要求：\n- 保持 S01-S12 与原顺序，不合并、不拆分。\n- 保留核心爽剧结果：林知夏 669 不变；周雨原 330、换后 487；沈曼原 487、换后 330。周雨与林知夏结盟，周雨最终保住 487。\n- S07 必须保留沈曼抢过周雨手机，看见 487 后脱口而出“你明明只有330”，以及周雨追问“成绩刚出，你怎么知道我原来的分数”。\n- 换分系统是无法由现实技术解释的超自然规则，不设置系统工作人员、技术员、黑客、服务器或后台日志，不加入“前程卡”、仪式、百日用笔等新规则。\n- 系统边界保持清楚：借笔人的成绩与笔原主人的最终公布成绩对调；系统只认笔的原主人；成绩公布后交换锁定，无法撤回。\n- 只有林知夏记得前世。沈曼不得承认或记得前世谋杀；她在本世只承认企图偷走 669，并在天台现实地威胁、袭击林知夏。\n- 庭审不得把前世或超自然系统当成可验证案件。现实定罪只依据本世的死亡威胁、直播/录像、现场证据和实际推人行为；330/487 只用于解释动机与说漏嘴。\n- 清算克制、现实，不写三天破产、股价连跌等夸张连锁。结尾以轻微超自然迹象保留悬念，不大段解释系统。\n- 教育、学校和司法机构均使用虚构名称；美国背景对目标观众清楚可信。\n- 台词简短、动作可拍，类型为 rebirth suspense revenge vertical drama。",
+  "terminology_map": {
+    "林知夏": "Lin Zhixia",
+    "沈曼": "Shen Man",
+    "周雨": "Zhou Yu"
+  },
+  "characters": [
+    {
+      "id": "C01",
+      "name": "林知夏",
+      "role": "protagonist",
+      "description": "前世高考被好友沈曼借笔换分，成绩从669变为487，最终被推下天台身亡。重生回到高考第一天，决定改变命运并录下证据。",
+      "goals": [
+        "不借笔给沈曼，阻止换分",
+        "录下沈曼推她下天台的证据",
+        "查明换分真相并复仇",
+        "揭露沈曼换分真相",
+        "保护周雨",
+        "让沈曼为前世与今生的行为付出代价",
+        "保住自己的669分与升学资格",
+        "开启大学生活"
+      ]
+    },
+    {
+      "id": "C02",
+      "name": "沈曼",
+      "role": "antagonist",
+      "description": "豪门出身，前世通过借林知夏的笔换分，从330变为669登上全校榜首，并买通复核，最终将林知夏推下天台。重生后再次借笔，但换分失败。",
+      "goals": [
+        "借笔换分，获得高分",
+        "掩盖换分真相",
+        "阻止林知夏举报",
+        "夺回487分",
+        "除掉林知夏",
+        "窃取林知夏的669分",
+        "逃避法律与校纪制裁"
+      ]
+    },
+    {
+      "id": "C03",
+      "name": "母亲",
+      "role": "supporting",
+      "description": "林知夏的母亲，前世看到487分后腿软坐倒，重生后清晨为女儿煮粥。",
+      "goals": [
+        "关心女儿高考成绩"
+      ]
+    },
+    {
+      "id": "C04",
+      "name": "老陈",
+      "role": "supporting",
+      "description": "林知夏的班主任，教龄二十年，前世得知487分后震惊并帮忙申请复核，但复核被驳回。",
+      "goals": [
+        "帮助学生复核成绩"
+      ]
+    },
+    {
+      "id": "C05",
+      "name": "周雨",
+      "role": "supporting",
+      "description": "林知夏的同学，前世将笔落在林知夏桌上。重生后林知夏将周雨的笔放入笔袋最外层借给沈曼。查分后发现自己得到487分，而估分仅330左右。",
+      "goals": [
+        "查清自己成绩异常的原因",
+        "弄清自己分数变化的真相",
+        "与林知夏一起向沈曼讨回公道",
+        "确认录取",
+        "与林知夏维持友谊"
+      ]
+    },
+    {
+      "id": "C06",
+      "name": "林知夏母亲",
+      "role": "minor",
+      "description": "在录取通知书寄到那天，把信封擦了三遍才敢拆，体现对女儿升学的珍视。",
+      "goals": [
+        "见证女儿录取"
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "id": "S01",
+      "title": "前世·借笔",
+      "summary": "高考最后一科开考前，沈曼向林知夏借笔，林知夏随手借出，沈曼还笔时指尖在笔杆上停了半秒。",
+      "text": "最后一科开考前，考场外。林知夏默背着作文素材，沈曼迎上来：\"知夏，笔借我用一下，我那支突然断墨了。\"林知夏随手从笔袋里抽出一支递给她。沈曼接过去，在草稿纸上画了两下，还回来：\"谢啦，你这笔挺好用的。\"林知夏没在意。她没看见，沈曼还笔时，指尖在笔杆上停了半秒。",
+      "character_ids": [
+        "C01",
+        "C02"
+      ],
+      "event_ids": [
+        "E01"
+      ]
+    },
+    {
+      "id": "S02",
+      "title": "前世·出分之夜",
+      "summary": "林知夏查分得到487，复核被驳回；沈曼以669分登上全校榜首，掌心蓝痕褪色。",
+      "text": "深夜查分，屏幕跳出\"487\"。林知夏刷新了十几次，手越来越抖，母亲凑过来看了一眼，腿一软坐在椅子上。班主任老陈在电话里也懵了：\"不可能，我教了二十年书……我马上帮你申请复核。\"三天后复核驳回，答复只有四个字：成绩无误。与此同时，沈曼以\"669分\"登上全校榜首，采访里说\"我只是超常发挥\"——说完眼神空了一秒，低头看了看自己接笔的那只手：掌心一道淡蓝色的痕，正在褪色。评论区都在夸\"豪门还这么努力\"。",
+      "character_ids": [
+        "C01",
+        "C02",
+        "C03",
+        "C04"
+      ],
+      "event_ids": [
+        "E02",
+        "E03",
+        "E04"
+      ]
+    },
+    {
+      "id": "S03",
+      "title": "前世·天台",
+      "summary": "沈曼在天台承认换分并买通复核，将林知夏推下天台，伪装成自杀。",
+      "text": "志愿填报截止那天，匿名短信把她约上天台。沈曼卸下所有伪装：\"你以为我是靠我爸？他那三百万，是买复核的。换分——是我自己换的。\"林知夏：\"你？\"沈曼伸出手，掌心的蓝痕已经淡得看不见了：\"你那支笔，挺好用的。你猜，为什么我非要借你的笔？\"林知夏转身要走——去举报，去报警。身后脚步声逼近，两只手猛地推上她的背。坠落的风声里，沈曼的声音从天台边缘飘下来：\"下辈子，别随便把笔借人。\"世人以为的自杀，从头到尾是一场谋杀。",
+      "character_ids": [
+        "C01",
+        "C02"
+      ],
+      "event_ids": [
+        "E05",
+        "E06"
+      ]
+    },
+    {
+      "id": "S04",
+      "title": "重生·换牌",
+      "summary": "林知夏重生回高考第一天清晨，写下三行计划，并将周雨落下的笔放入笔袋最外层。",
+      "text": "再睁眼，是高考第一天清晨。桌上的准考证、门口母亲的粥、手机上的日期——和记忆分毫不差。林知夏掐了把手背，疼的。她坐在桌前缓了十分钟，在笔记本上写下三行字：\"一，她借笔，是为了换分。笔是锚。二，不借她我的笔。三，天台那一推，这次让她推个空——还要录下来。\"合上本子，她检查笔袋：自己的、备用的，还有一支周雨上周落在她桌上的笔。她把周雨那支，放进了笔袋最外层。",
+      "character_ids": [
+        "C01",
+        "C03",
+        "C05"
+      ],
+      "event_ids": [
+        "E07",
+        "E08"
+      ]
+    },
+    {
+      "id": "S05",
+      "title": "重生·考场",
+      "summary": "最后一科开考前，沈曼再次借笔，林知夏将周雨的笔借给她，沈曼还笔时指尖再次停留半秒。",
+      "text": "最后一科开考前，沈曼果然凑过来：\"知夏，笔借我用一下，我那支断墨了。\"林知夏笑了笑，从最外层抽出那支笔：\"给。\"沈曼接过去，画了两下。林知夏注意到她握笔的姿势很怪，像在感受什么。还笔时，指尖在笔杆上停了半秒——和前世一模一样。林知夏接回来，随手放进笔袋，再没碰过那支笔。",
+      "character_ids": [
+        "C01",
+        "C02"
+      ],
+      "event_ids": [
+        "E09"
+      ]
+    },
+    {
+      "id": "S06",
+      "title": "重演·出分",
+      "summary": "查分夜，林知夏得到669分，周雨得到487分，沈曼只考了330分并在班级群发动态。",
+      "text": "查分夜。林知夏输入准考证号，屏幕跳出：669——和她估的分一模一样。她愣了几秒，刷新一遍，还是669。手机响了，周雨的声音发颤：\"知夏，我查到487。可我估分只有330左右啊！\"她握着手机，慢慢笑了，笑到一半又停住。与此同时，班级群炸了：沈曼发了条动态，配图是查分截图——\"330。怎么会这样？\"评论区沉默了很久，有人小心翼翼地问：\"曼姐，是不是查错了？\"沈曼没有再回。",
+      "character_ids": [
+        "C01",
+        "C02",
+        "C05"
+      ],
+      "event_ids": [
+        "E10",
+        "E11",
+        "E12"
+      ]
+    },
+    {
+      "id": "S07",
+      "title": "周雨的分数",
+      "summary": "周雨复核成绩确认为487分，沈曼闯入说漏嘴暴露自己知道周雨原分，林知夏揭示换分笔真相，周雨决定与林知夏结盟。",
+      "text": "第二天，周雨冲到林知夏家，举着手机：\"复核结果出来了，487，确认无误。可我原来明明只有330！\"林知夏还没开口，沈曼就推门闯了进来。她一把抢过周雨的手机，看见487后脱口而出：\"你明明只有330！\"周雨盯住她：\"成绩刚出，你怎么知道我原来的分数？\"屋里瞬间安静。沈曼脸色一变，摔下手机转身就走。周雨反手关门：\"她知道我的原分。\"林知夏拿出那支笔：\"高考那天她来借笔。我递给她的，是你的笔。\"周雨看看笔，又看看班级群里沈曼的330，忽然明白了：\"她想偷你的669，结果把自己的487送给了我？\"林知夏点头。周雨把手机揣回口袋：\"这分我收下。她的账，我们一起算。\"",
+      "character_ids": [
+        "C01",
+        "C05",
+        "C02"
+      ],
+      "event_ids": [
+        "E13",
+        "E14",
+        "E15",
+        "E16"
+      ]
+    },
+    {
+      "id": "S08",
+      "title": "结盟·设局",
+      "summary": "沈曼打电话威胁林知夏，林知夏录音并约她明晚天台见面，周雨布置直播准备让全校见证。",
+      "text": "当晚，沈曼的电话打进来，声音发抖：\"是你。你借给我的根本不是你的笔。\"林知夏按下录音：\"我从没说那是我的。笔是你自己借的，分也是你自己换的。\"沈曼咬牙：\"把487还给我。\"周雨坐在一旁，无声地指了指天台。林知夏故意笑了一声：\"想拿回去？明晚八点，老地方。你当面告诉我，这分到底是怎么换的。\"电话那头沉默几秒：\"你敢来，我就让你再死一次。\"电话挂断。周雨把另一部手机架到书架上，直播测试亮起绿灯：\"她想要天台，我们就给她一个全校都看得见的天台。\"",
+      "character_ids": [
+        "C01",
+        "C05",
+        "C02"
+      ],
+      "event_ids": [
+        "E17",
+        "E18",
+        "E19"
+      ]
+    },
+    {
+      "id": "S09",
+      "title": "天台·直播",
+      "summary": "沈曼在天台承认换分系统规则和杀人意图，周雨暗中直播，全校观看人数暴涨。",
+      "text": "次日晚八点，林知夏独自站在天台中央，书包带上的运动相机正对着门。周雨藏在楼梯间，用另一部手机同步直播。沈曼推门进来，掌心那道蓝痕忽明忽暗。林知夏：\"我的669没动，周雨变成487，你却只剩330。为什么？\"沈曼终于撕下伪装：\"因为系统只认笔原来的主人！借笔人的成绩，会和笔主人最终公布的成绩对调。我明明要换的是你，谁知道那支笔是周雨的！\"林知夏：\"所以你想拿走我的669。\"沈曼冷笑：\"是。可你让我换错了人。成绩一旦公布，交换就锁死，谁也改不回去。周雨拿着我的487又怎么样？她配吗？\"楼梯间里，直播观看人数疯狂上涨。周雨盯着屏幕：三千、五千、一万。沈曼毫无察觉，朝林知夏一步步逼近：\"你毁了我，我就让你走不下这个天台。\"",
+      "character_ids": [
+        "C01",
+        "C05",
+        "C02"
+      ],
+      "event_ids": [
+        "E20",
+        "E21",
+        "E22"
+      ]
+    },
+    {
+      "id": "S10",
+      "title": "重演·落空与庭审",
+      "summary": "沈曼推人落空，周雨直播揭露，警察逮捕沈曼；数月后庭审，法官以现实证据定罪，沈曼无法解释动机。",
+      "text": "沈曼猛地扑向林知夏。和前世一样的角度，一样的力道。林知夏早有准备，侧身让开。沈曼扑了个空，狼狈撞上护栏。天台门同时被推开，周雨举着正在直播的手机走出来：\"继续啊。全校一万多人都听见了——你想偷谁的分，又想把谁推下去。\"沈曼脸色惨白，扑过去抢手机。楼梯间警笛逼近，保安和警察冲上天台将她按住。她还在尖叫：\"487本来是我的！是她们算计我！\"林知夏看着她：\"借笔的是你，换分的是你，动手的还是你。\"\n\n数月后庭审。检方提交沈曼电话中的死亡威胁、天台直播、运动相机拍下的正面画面和现场勘验结果。法官明确说：\"本案不审理所谓前世，也不需要证明你口中的系统是否存在。法庭审理的是你在现实中发出死亡威胁，并在天台实施推人行为。\"随后，他拿起沈曼发布的330分截图：\"但这可以解释你的动机。成绩刚公布，你为什么知道周雨原来只有330？又为什么坚称她的487属于你？\"沈曼张了张嘴，一个字也答不出来。",
+      "character_ids": [
+        "C01",
+        "C05",
+        "C02"
+      ],
+      "event_ids": [
+        "E23",
+        "E24",
+        "E25",
+        "E26"
+      ]
+    },
+    {
+      "id": "S11",
+      "title": "清算",
+      "summary": "法院认定沈曼故意杀人未遂，教育部门复核后维持三人官方成绩，沈曼升学资格被取消，周雨向林知夏确认录取。",
+      "text": "法院依据死亡威胁、直播画面和现场证据，认定沈曼构成故意杀人未遂。至于换分，教育部门只能按现实程序复核试卷和系统记录：没有发现传统作弊或人工篡改痕迹，三个人的官方成绩仍是林知夏669、周雨487、沈曼330。超自然交换无法成为判决依据，却也没有任何现实手段能够撤销。沈曼的升学资格因刑事案件和校纪处分被取消。通知书寄到那天，周雨拍照发给林知夏：\"487，确认录取。她想偷你的669，最后把自己的分送给了我。\"林知夏回：\"这次她终于算对了一道题。\"",
+      "character_ids": [
+        "C02",
+        "C01",
+        "C05"
+      ],
+      "event_ids": [
+        "E27",
+        "E28",
+        "E29",
+        "E30"
+      ]
+    },
+    {
+      "id": "S12",
+      "title": "尾声",
+      "summary": "林知夏收到录取通知书，周雨带着自己的通知书和奶茶来访，两人将神秘笔压进书桌玻璃板下，笔杆深处闪过一道极淡的蓝光后熄灭。",
+      "text": "林知夏的录取通知寄到那天，母亲把信封擦了三遍才敢拆。门铃响起，周雨抱着自己的通知书站在门外，另一只手拎着两杯奶茶：\"一个669，一个487。都到了。\"林知夏笑着接过奶茶。周雨把那支笔放到两封通知书中间：\"这个怎么办？\"林知夏把它压进书桌玻璃板下：\"留着。不是纪念系统，是纪念她输在自己的贪心上。\"两人转身走出房间。镜头停在那支笔上。安静几秒后，笔杆深处闪过一道极淡的蓝光，随即熄灭。",
+      "character_ids": [
+        "C01",
+        "C05",
+        "C06"
+      ],
+      "event_ids": [
+        "E31",
+        "E32",
+        "E33"
+      ]
+    }
+  ],
+  "events": [
+    {
+      "id": "E01",
+      "description": "沈曼在高考最后一科开考前向林知夏借笔，还笔时指尖在笔杆上停留半秒。",
+      "scene_ids": [
+        "S01"
+      ]
+    },
+    {
+      "id": "E02",
+      "description": "林知夏查分得到487分，刷新多次仍不变。",
+      "scene_ids": [
+        "S02"
+      ]
+    },
+    {
+      "id": "E03",
+      "description": "老陈帮林知夏申请复核，三天后被驳回，答复为成绩无误。",
+      "scene_ids": [
+        "S02"
+      ]
+    },
+    {
+      "id": "E04",
+      "description": "沈曼以669分登上全校榜首，采访中称超常发挥，掌心蓝痕褪色。",
+      "scene_ids": [
+        "S02"
+      ]
+    },
+    {
+      "id": "E05",
+      "description": "沈曼在天台承认换分，并透露其父花三百万买通复核。",
+      "scene_ids": [
+        "S03"
+      ]
+    },
+    {
+      "id": "E06",
+      "description": "沈曼将林知夏推下天台，伪装成自杀。",
+      "scene_ids": [
+        "S03"
+      ]
+    },
+    {
+      "id": "E07",
+      "description": "林知夏重生回高考第一天清晨，确认时间与记忆一致。",
+      "scene_ids": [
+        "S04"
+      ]
+    },
+    {
+      "id": "E08",
+      "description": "林知夏写下三行计划，并将周雨落下的笔放入笔袋最外层。",
+      "scene_ids": [
+        "S04"
+      ]
+    },
+    {
+      "id": "E09",
+      "description": "沈曼再次借笔，林知夏将周雨的笔借给她，沈曼还笔时指尖再次停留半秒。",
+      "scene_ids": [
+        "S05"
+      ]
+    },
+    {
+      "id": "E10",
+      "description": "林知夏查分得到669分，与估分一致。",
+      "scene_ids": [
+        "S06"
+      ]
+    },
+    {
+      "id": "E11",
+      "description": "周雨查分得到487分，但估分仅330左右。",
+      "scene_ids": [
+        "S06"
+      ]
+    },
+    {
+      "id": "E12",
+      "description": "沈曼在班级群发动态，配图查分截图330分，并问怎么会这样，之后不再回复。",
+      "scene_ids": [
+        "S06"
+      ]
+    },
+    {
+      "id": "E13",
+      "description": "周雨复核成绩确认为487分，但自己原本只有330分。",
+      "scene_ids": [
+        "S07"
+      ]
+    },
+    {
+      "id": "E14",
+      "description": "沈曼闯入林知夏家，抢过周雨手机后脱口说出周雨原分330，暴露自己知情。",
+      "scene_ids": [
+        "S07"
+      ]
+    },
+    {
+      "id": "E15",
+      "description": "林知夏拿出换分笔，揭示高考当天沈曼借笔时拿的是周雨的笔。",
+      "scene_ids": [
+        "S07"
+      ]
+    },
+    {
+      "id": "E16",
+      "description": "周雨明白沈曼本想偷林知夏的669分，却误将自己的487分换给了周雨，决定与林知夏结盟算账。",
+      "scene_ids": [
+        "S07"
+      ]
+    },
+    {
+      "id": "E17",
+      "description": "沈曼打电话给林知夏，指责她借出假笔，要求归还487分。",
+      "scene_ids": [
+        "S08"
+      ]
+    },
+    {
+      "id": "E18",
+      "description": "林知夏录音并约沈曼明晚八点在天台见面，要求她当面说出换分真相。",
+      "scene_ids": [
+        "S08"
+      ]
+    },
+    {
+      "id": "E19",
+      "description": "周雨布置直播设备，计划让全校看到天台上的真相。",
+      "scene_ids": [
+        "S08"
+      ]
+    },
+    {
+      "id": "E20",
+      "description": "沈曼在天台承认换分系统规则：借笔人成绩会与笔主人最终公布成绩对调，且成绩公布后交换锁死。",
+      "scene_ids": [
+        "S09"
+      ]
+    },
+    {
+      "id": "E21",
+      "description": "沈曼承认本想偷林知夏的669分，但误拿了周雨的笔。",
+      "scene_ids": [
+        "S09"
+      ]
+    },
+    {
+      "id": "E22",
+      "description": "周雨在楼梯间同步直播，观看人数涨至一万，沈曼毫无察觉并威胁林知夏。",
+      "scene_ids": [
+        "S09"
+      ]
+    },
+    {
+      "id": "E23",
+      "description": "沈曼扑向林知夏试图推她下天台，林知夏侧身躲开，沈曼撞上护栏。",
+      "scene_ids": [
+        "S10"
+      ]
+    },
+    {
+      "id": "E24",
+      "description": "周雨举着直播手机走出，揭露沈曼的言行已被全校一万多人看到。",
+      "scene_ids": [
+        "S10"
+      ]
+    },
+    {
+      "id": "E25",
+      "description": "警察和保安冲上天台逮捕沈曼。",
+      "scene_ids": [
+        "S10"
+      ]
+    },
+    {
+      "id": "E26",
+      "description": "数月后庭审，法官以现实中的死亡威胁和推人行为审理，并用330分截图质问沈曼动机，沈曼无言以对。",
+      "scene_ids": [
+        "S10"
+      ]
+    },
+    {
+      "id": "E27",
+      "description": "法院依据死亡威胁、直播画面和现场证据，认定沈曼构成故意杀人未遂。",
+      "scene_ids": [
+        "S11"
+      ]
+    },
+    {
+      "id": "E28",
+      "description": "教育部门按现实程序复核试卷和系统记录，未发现传统作弊或人工篡改痕迹，三人官方成绩维持林知夏669、周雨487、沈曼330。",
+      "scene_ids": [
+        "S11"
+      ]
+    },
+    {
+      "id": "E29",
+      "description": "沈曼的升学资格因刑事案件和校纪处分被取消。",
+      "scene_ids": [
+        "S11"
+      ]
+    },
+    {
+      "id": "E30",
+      "description": "周雨拍照向林知夏确认487分录取，林知夏回复调侃沈曼终于算对了一道题。",
+      "scene_ids": [
+        "S11"
+      ]
+    },
+    {
+      "id": "E31",
+      "description": "林知夏的录取通知书寄到，母亲把信封擦了三遍才敢拆。",
+      "scene_ids": [
+        "S12"
+      ]
+    },
+    {
+      "id": "E32",
+      "description": "周雨带着自己的通知书和两杯奶茶来访，与林知夏确认一个669、一个487都到了。",
+      "scene_ids": [
+        "S12"
+      ]
+    },
+    {
+      "id": "E33",
+      "description": "林知夏将神秘笔压进书桌玻璃板下作为纪念，笔杆深处闪过一道极淡的蓝光后熄灭。",
+      "scene_ids": [
+        "S12"
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "id": "SET01",
+      "name": "高考",
+      "description": "中国全国普通高等学校招生统一考试，决定学生大学录取，分数至关重要。"
+    },
+    {
+      "id": "SET02",
+      "name": "成绩复核",
+      "description": "考生对成绩有异议可申请复核，但通常只核对分数加总，不重新评卷，且可能被暗箱操作。"
+    },
+    {
+      "id": "SET03",
+      "name": "豪门",
+      "description": "指有钱有势的家族，其子女常被期待成绩优异，社会关注度高。"
+    },
+    {
+      "id": "SET04",
+      "name": "高考成绩公布与复核制度",
+      "description": "中国高考成绩公布后，考生可申请复核分数；成绩一旦公布，通过换分笔进行的交换即锁死，无法更改。"
+    },
+    {
+      "id": "SET05",
+      "name": "换分笔系统",
+      "description": "一支具有超自然能力的笔，借笔人的成绩会与笔主人最终公布的成绩对调，系统只认笔原来的主人。"
+    },
+    {
+      "id": "SET06",
+      "name": "前世记忆与重生",
+      "description": "林知夏拥有前世被沈曼推下天台的记忆，今生利用记忆设局反击。"
+    },
+    {
+      "id": "SET07",
+      "name": "现实司法与教育体系",
+      "description": "故事发生在当代中国，存在法院、教育部门、高考成绩系统、录取通知书等现实制度，但超自然交换无法被现实手段撤销。"
+    }
+  ],
+  "culture_mechanisms": [
+    {
+      "id": "CM01",
+      "name": "高考",
+      "description": "中国全国普通高等学校招生统一考试，是决定学生能否进入大学及进入何种大学的关键考试，分数具有极高社会重要性。",
+      "surface_text": [
+        "高考",
+        "最后一科开考前",
+        "查分",
+        "准考证号",
+        "估分"
+      ],
+      "scene_ids": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07"
+      ],
+      "friction_level": "high",
+      "narrative_importance": "high",
+      "functions": {
+        "plot": [
+          "motivation",
+          "constraint",
+          "conflict",
+          "revelation",
+          "foreshadowing",
+          "payoff"
+        ],
+        "social": [
+          "status",
+          "institutional_access",
+          "economic_security",
+          "reputation"
+        ],
+        "emotional": [
+          "aspiration",
+          "fear",
+          "suspense",
+          "satisfaction"
+        ]
+      },
+      "adapted_to": null,
+      "adapted_strategy": null
+    },
+    {
+      "id": "CM02",
+      "name": "成绩复核",
+      "description": "考生对高考成绩有异议时可申请复核，但复核通常只检查分数加总是否有误，不重新评卷，且可能被权力和金钱干预。",
+      "surface_text": [
+        "复核",
+        "申请复核",
+        "复核驳回",
+        "成绩无误"
+      ],
+      "scene_ids": [
+        "S02",
+        "S03",
+        "S07"
+      ],
+      "friction_level": "high",
+      "narrative_importance": "high",
+      "functions": {
+        "plot": [
+          "motivation",
+          "conflict",
+          "revelation",
+          "payoff"
+        ],
+        "social": [
+          "institutional_access",
+          "power",
+          "reputation"
+        ],
+        "emotional": [
+          "fear",
+          "suspense",
+          "satisfaction"
+        ]
+      },
+      "adapted_to": null,
+      "adapted_strategy": null
+    },
+    {
+      "id": "CM03",
+      "name": "豪门",
+      "description": "指富裕且有社会地位的家族，其子女常被公众关注，成绩优秀会被视为家族荣耀。",
+      "surface_text": [
+        "豪门",
+        "豪门还这么努力"
+      ],
+      "scene_ids": [
+        "S02"
+      ],
+      "friction_level": "medium",
+      "narrative_importance": "low",
+      "functions": {
+        "plot": [
+          "motivation"
+        ],
+        "social": [
+          "status",
+          "reputation"
+        ],
+        "emotional": [
+          "aspiration"
+        ]
+      },
+      "adapted_to": null,
+      "adapted_strategy": null
+    },
+    {
+      "id": "CM04",
+      "name": "志愿填报",
+      "description": "高考后考生根据分数填报大学志愿，是录取的关键步骤，有截止日期。",
+      "surface_text": [
+        "志愿填报截止"
+      ],
+      "scene_ids": [
+        "S03"
+      ],
+      "friction_level": "high",
+      "narrative_importance": "medium",
+      "functions": {
+        "plot": [
+          "motivation",
+          "constraint"
+        ],
+        "social": [
+          "institutional_access"
+        ],
+        "emotional": [
+          "suspense"
+        ]
+      },
+      "adapted_to": null,
+      "adapted_strategy": null
+    },
+    {
+      "id": "CM05",
+      "name": "班级群",
+      "description": "中国学校中常用的即时通讯群组，用于发布通知、成绩等信息，成员包括班级学生和老师。",
+      "surface_text": [
+        "班级群"
+      ],
+      "scene_ids": [
+        "S07"
+      ],
+      "friction_level": "low",
+      "narrative_importance": "low",
+      "functions": {
+        "plot": [
+          "revelation"
+        ],
+        "social": [
+          "reputation"
+        ],
+        "emotional": [
+          "humiliation"
+        ]
+      },
+      "adapted_to": null,
+      "adapted_strategy": null
+    },
+    {
+      "id": "CM06",
+      "name": "天台",
+      "description": "中国校园中常见的建筑顶部平台，常被用作学生私下见面或发生冲突的场所，在故事中也是前世推人事件的地点。",
+      "surface_text": [
+        "天台",
+        "老地方"
+      ],
+      "scene_ids": [
+        "S08",
+        "S09",
+        "S10"
+      ],
+      "friction_level": "low",
+      "narrative_importance": "medium",
+      "functions": {
+        "plot": [
+          "motivation",
+          "conflict",
+          "reversal"
+        ],
+        "social": [],
+        "emotional": [
+          "suspense",
+          "fear"
+        ]
+      },
+      "adapted_to": null,
+      "adapted_strategy": null
+    },
+    {
+      "id": "CM07",
+      "name": "直播",
+      "description": "通过网络平台实时传播视频，观众可同步观看并互动，常用于曝光事件。",
+      "surface_text": [
+        "直播"
+      ],
+      "scene_ids": [
+        "S08",
+        "S09",
+        "S10"
+      ],
+      "friction_level": "low",
+      "narrative_importance": "high",
+      "functions": {
+        "plot": [
+          "revelation",
+          "payoff",
+          "reversal"
+        ],
+        "social": [
+          "reputation",
+          "power"
+        ],
+        "emotional": [
+          "satisfaction",
+          "suspense"
+        ]
+      },
+      "adapted_to": null,
+      "adapted_strategy": null
+    },
+    {
+      "id": "CM08",
+      "name": "庭审",
+      "description": "中国法院对刑事案件进行公开审理的程序，包括检方举证、法官审理等环节。",
+      "surface_text": [
+        "庭审",
+        "检方",
+        "法官"
+      ],
+      "scene_ids": [
+        "S10"
+      ],
+      "friction_level": "medium",
+      "narrative_importance": "high",
+      "functions": {
+        "plot": [
+          "payoff",
+          "revelation"
+        ],
+        "social": [
+          "institutional_access",
+          "power"
+        ],
+        "emotional": [
+          "satisfaction"
+        ]
+      },
+      "adapted_to": null,
+      "adapted_strategy": null
+    },
+    {
+      "id": "CM09",
+      "name": "高考分数与录取",
+      "description": "中国高考以分数决定大学录取，分数具有极高社会意义，录取通知书是升学凭证。",
+      "surface_text": [
+        "669",
+        "487",
+        "330",
+        "录取",
+        "通知书",
+        "升学资格"
+      ],
+      "scene_ids": [
+        "S11",
+        "S12"
+      ],
+      "friction_level": "high",
+      "narrative_importance": "high",
+      "functions": {
+        "plot": [
+          "motivation",
+          "payoff",
+          "revelation"
+        ],
+        "social": [
+          "status",
+          "institutional_access",
+          "economic_security"
+        ],
+        "emotional": [
+          "aspiration",
+          "satisfaction"
+        ]
+      },
+      "adapted_to": null,
+      "adapted_strategy": null
+    },
+    {
+      "id": "CM10",
+      "name": "故意杀人未遂",
+      "description": "中国刑法罪名，指故意非法剥夺他人生命但因意志以外原因未得逞，需承担刑事责任。",
+      "surface_text": [
+        "故意杀人未遂"
+      ],
+      "scene_ids": [
+        "S11"
+      ],
+      "friction_level": "medium",
+      "narrative_importance": "high",
+      "functions": {
+        "plot": [
+          "payoff",
+          "revelation"
+        ],
+        "social": [
+          "institutional_access",
+          "power"
+        ],
+        "emotional": [
+          "satisfaction"
+        ]
+      },
+      "adapted_to": null,
+      "adapted_strategy": null
+    },
+    {
+      "id": "CM11",
+      "name": "校纪处分",
+      "description": "学校依据校规对违纪学生作出的纪律处分，可影响升学资格。",
+      "surface_text": [
+        "校纪处分"
+      ],
+      "scene_ids": [
+        "S11"
+      ],
+      "friction_level": "medium",
+      "narrative_importance": "medium",
+      "functions": {
+        "plot": [
+          "payoff"
+        ],
+        "social": [
+          "institutional_access",
+          "reputation"
+        ],
+        "emotional": [
+          "satisfaction"
+        ]
+      },
+      "adapted_to": null,
+      "adapted_strategy": null
+    }
+  ],
+  "commitments": [
+    {
+      "id": "NC01",
+      "description": "林知夏重生后计划录下沈曼推她下天台的证据，此承诺需在后续场景中兑现。",
+      "established_at_scene_id": "S04",
+      "payoff_scene_id": null,
+      "must_preserve": true
+    },
+    {
+      "id": "NC02",
+      "description": "沈曼借笔是为了换分，笔是锚，此机制需在后续解释或利用。",
+      "established_at_scene_id": "S04",
+      "payoff_scene_id": null,
+      "must_preserve": true
+    },
+    {
+      "id": "NC03",
+      "description": "林知夏将周雨的笔借给沈曼，导致周雨成为换分受害者，此后果需在后续处理。",
+      "established_at_scene_id": "S05",
+      "payoff_scene_id": null,
+      "must_preserve": true
+    },
+    {
+      "id": "NC04",
+      "description": "沈曼在前世将林知夏推下天台，今生林知夏设局让沈曼在相同场景重演并落空，最终受到法律制裁。",
+      "established_at_scene_id": null,
+      "payoff_scene_id": "S10",
+      "must_preserve": true
+    },
+    {
+      "id": "NC05",
+      "description": "换分笔的规则：借笔人成绩与笔主人最终公布成绩对调，且成绩公布后交换锁死。",
+      "established_at_scene_id": "S09",
+      "payoff_scene_id": null,
+      "must_preserve": true
+    },
+    {
+      "id": "NC06",
+      "description": "沈曼知道周雨原分330分，这一信息成为庭审中解释其动机的关键证据。",
+      "established_at_scene_id": "S07",
+      "payoff_scene_id": "S10",
+      "must_preserve": true
+    },
+    {
+      "id": "NC07",
+      "description": "神秘笔在结尾闪过蓝光，暗示超自然力量并未真正消失，为后续故事留下伏笔。",
+      "established_at_scene_id": "S12",
+      "payoff_scene_id": null,
+      "must_preserve": true
+    }
+  ],
+  "dependencies": [
+    {
+      "source_id": "CM01",
+      "target_id": "E01",
+      "relation": "motivates",
+      "evidence": "最后一科开考前，考场外。林知夏默背着作文素材，沈曼迎上来：\"知夏，笔借我用一下，我那支突然断墨了。\"",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "CM01",
+      "target_id": "E02",
+      "relation": "motivates",
+      "evidence": "深夜查分，屏幕跳出\"487\"。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "CM02",
+      "target_id": "E03",
+      "relation": "motivates",
+      "evidence": "班主任老陈在电话里也懵了：\"不可能，我教了二十年书……我马上帮你申请复核。\"三天后复核驳回，答复只有四个字：成绩无误。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "CM03",
+      "target_id": "E04",
+      "relation": "motivates",
+      "evidence": "评论区都在夸\"豪门还这么努力\"。",
+      "confidence": 0.8
+    },
+    {
+      "source_id": "CM04",
+      "target_id": "E05",
+      "relation": "motivates",
+      "evidence": "志愿填报截止那天，匿名短信把她约上天台。",
+      "confidence": 0.8
+    },
+    {
+      "source_id": "E01",
+      "target_id": "E04",
+      "relation": "causes",
+      "evidence": "沈曼以\"669分\"登上全校榜首，采访里说\"我只是超常发挥\"——说完眼神空了一秒，低头看了看自己接笔的那只手：掌心一道淡蓝色的痕，正在褪色。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E01",
+      "target_id": "E02",
+      "relation": "causes",
+      "evidence": "深夜查分，屏幕跳出\"487\"。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E05",
+      "target_id": "E06",
+      "relation": "causes",
+      "evidence": "林知夏转身要走——去举报，去报警。身后脚步声逼近，两只手猛地推上她的背。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E07",
+      "target_id": "E08",
+      "relation": "causes",
+      "evidence": "她坐在桌前缓了十分钟，在笔记本上写下三行字……她把周雨那支，放进了笔袋最外层。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E08",
+      "target_id": "E09",
+      "relation": "causes",
+      "evidence": "林知夏笑了笑，从最外层抽出那支笔：\"给。\"",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E09",
+      "target_id": "E11",
+      "relation": "causes",
+      "evidence": "手机响了，周雨的声音发颤：\"知夏，我查到487。可我估分只有330左右啊！\"",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E09",
+      "target_id": "E12",
+      "relation": "causes",
+      "evidence": "沈曼发了条动态，配图是查分截图——\"330。怎么会这样？\"",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "C01",
+      "target_id": "S01",
+      "relation": "appears_in",
+      "evidence": "林知夏默背着作文素材",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C02",
+      "target_id": "S01",
+      "relation": "appears_in",
+      "evidence": "沈曼迎上来",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C01",
+      "target_id": "S02",
+      "relation": "appears_in",
+      "evidence": "林知夏刷新了十几次",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C02",
+      "target_id": "S02",
+      "relation": "appears_in",
+      "evidence": "沈曼以\"669分\"登上全校榜首",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C03",
+      "target_id": "S02",
+      "relation": "appears_in",
+      "evidence": "母亲凑过来看了一眼",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C04",
+      "target_id": "S02",
+      "relation": "appears_in",
+      "evidence": "班主任老陈在电话里也懵了",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C01",
+      "target_id": "S03",
+      "relation": "appears_in",
+      "evidence": "林知夏：\"你？\"",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C02",
+      "target_id": "S03",
+      "relation": "appears_in",
+      "evidence": "沈曼卸下所有伪装",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C01",
+      "target_id": "S04",
+      "relation": "appears_in",
+      "evidence": "再睁眼，是高考第一天清晨。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C03",
+      "target_id": "S04",
+      "relation": "appears_in",
+      "evidence": "门口母亲的粥",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C05",
+      "target_id": "S04",
+      "relation": "appears_in",
+      "evidence": "还有一支周雨上周落在她桌上的笔",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C01",
+      "target_id": "S05",
+      "relation": "appears_in",
+      "evidence": "林知夏笑了笑",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C02",
+      "target_id": "S05",
+      "relation": "appears_in",
+      "evidence": "沈曼果然凑过来",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C01",
+      "target_id": "S06",
+      "relation": "appears_in",
+      "evidence": "林知夏输入准考证号",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C02",
+      "target_id": "S06",
+      "relation": "appears_in",
+      "evidence": "沈曼发了条动态",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C05",
+      "target_id": "S06",
+      "relation": "appears_in",
+      "evidence": "手机响了，周雨的声音发颤",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E01",
+      "target_id": "S01",
+      "relation": "appears_in",
+      "evidence": "沈曼迎上来：\"知夏，笔借我用一下\"",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E02",
+      "target_id": "S02",
+      "relation": "appears_in",
+      "evidence": "深夜查分，屏幕跳出\"487\"。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E03",
+      "target_id": "S02",
+      "relation": "appears_in",
+      "evidence": "三天后复核驳回，答复只有四个字：成绩无误。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E04",
+      "target_id": "S02",
+      "relation": "appears_in",
+      "evidence": "沈曼以\"669分\"登上全校榜首",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E05",
+      "target_id": "S03",
+      "relation": "appears_in",
+      "evidence": "沈曼卸下所有伪装：\"你以为我是靠我爸？他那三百万，是买复核的。换分——是我自己换的。\"",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E06",
+      "target_id": "S03",
+      "relation": "appears_in",
+      "evidence": "身后脚步声逼近，两只手猛地推上她的背。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E07",
+      "target_id": "S04",
+      "relation": "appears_in",
+      "evidence": "再睁眼，是高考第一天清晨。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E08",
+      "target_id": "S04",
+      "relation": "appears_in",
+      "evidence": "她把周雨那支，放进了笔袋最外层。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E09",
+      "target_id": "S05",
+      "relation": "appears_in",
+      "evidence": "沈曼果然凑过来：\"知夏，笔借我用一下，我那支断墨了。\"",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E10",
+      "target_id": "S06",
+      "relation": "appears_in",
+      "evidence": "查分夜。林知夏输入准考证号，屏幕跳出：669",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E11",
+      "target_id": "S06",
+      "relation": "appears_in",
+      "evidence": "手机响了，周雨的声音发颤：\"知夏，我查到487。可我估分只有330左右啊！\"",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E12",
+      "target_id": "S06",
+      "relation": "appears_in",
+      "evidence": "沈曼发了条动态，配图是查分截图——\"330。怎么会这样？\"",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "NC01",
+      "target_id": "CM01",
+      "relation": "depends_on",
+      "evidence": "她坐在桌前缓了十分钟，在笔记本上写下三行字：\"一，她借笔，是为了换分。笔是锚。二，不借她我的笔。三，天台那一推，这次让她推个空——还要录下来。\"",
+      "confidence": 0.8
+    },
+    {
+      "source_id": "NC02",
+      "target_id": "CM01",
+      "relation": "depends_on",
+      "evidence": "她坐在桌前缓了十分钟，在笔记本上写下三行字：\"一，她借笔，是为了换分。笔是锚。二，不借她我的笔。三，天台那一推，这次让她推个空——还要录下来。\"",
+      "confidence": 0.8
+    },
+    {
+      "source_id": "NC03",
+      "target_id": "CM01",
+      "relation": "depends_on",
+      "evidence": "她把周雨那支，放进了笔袋最外层。",
+      "confidence": 0.8
+    },
+    {
+      "source_id": "CM01",
+      "target_id": "E13",
+      "relation": "motivates",
+      "evidence": "高考成绩公布后，周雨复核成绩。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "CM02",
+      "target_id": "E13",
+      "relation": "causes",
+      "evidence": "复核结果出来了，487，确认无误。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "CM05",
+      "target_id": "E16",
+      "relation": "references",
+      "evidence": "周雨看看笔，又看看班级群里沈曼的330。",
+      "confidence": 0.8
+    },
+    {
+      "source_id": "E14",
+      "target_id": "E15",
+      "relation": "causes",
+      "evidence": "沈曼说漏嘴后，林知夏拿出那支笔揭示真相。",
+      "confidence": 0.8
+    },
+    {
+      "source_id": "E15",
+      "target_id": "E16",
+      "relation": "causes",
+      "evidence": "周雨看看笔，又看看班级群里沈曼的330，忽然明白了。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "CM06",
+      "target_id": "E18",
+      "relation": "motivates",
+      "evidence": "周雨坐在一旁，无声地指了指天台。林知夏约沈曼明晚八点老地方见。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "CM07",
+      "target_id": "E19",
+      "relation": "motivates",
+      "evidence": "周雨把另一部手机架到书架上，直播测试亮起绿灯。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E17",
+      "target_id": "E18",
+      "relation": "causes",
+      "evidence": "沈曼打电话要求还分，林知夏趁机约她天台见面。",
+      "confidence": 0.8
+    },
+    {
+      "source_id": "E18",
+      "target_id": "E20",
+      "relation": "sets_up",
+      "evidence": "林知夏约沈曼当面说出换分真相，沈曼在天台承认系统规则。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "CM06",
+      "target_id": "E20",
+      "relation": "appears_in",
+      "evidence": "次日晚八点，林知夏独自站在天台中央。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "CM07",
+      "target_id": "E22",
+      "relation": "causes",
+      "evidence": "周雨藏在楼梯间，用另一部手机同步直播，观看人数疯狂上涨。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E20",
+      "target_id": "E21",
+      "relation": "causes",
+      "evidence": "沈曼承认系统规则后，进一步承认本想偷林知夏的669分。",
+      "confidence": 0.8
+    },
+    {
+      "source_id": "E22",
+      "target_id": "E24",
+      "relation": "causes",
+      "evidence": "直播观看人数达一万，周雨随后举着直播手机走出揭露。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E23",
+      "target_id": "E25",
+      "relation": "causes",
+      "evidence": "沈曼推人落空后，警察冲上天台将她按住。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "CM08",
+      "target_id": "E26",
+      "relation": "appears_in",
+      "evidence": "数月后庭审，检方提交证据，法官审理。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "NC04",
+      "target_id": "E23",
+      "relation": "depends_on",
+      "evidence": "沈曼猛地扑向林知夏。和前世一样的角度，一样的力道。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "NC05",
+      "target_id": "E20",
+      "relation": "depends_on",
+      "evidence": "沈曼承认系统规则：借笔人成绩会和笔主人最终公布的成绩对调。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "NC06",
+      "target_id": "E26",
+      "relation": "depends_on",
+      "evidence": "法官拿起沈曼发布的330分截图，质问其动机。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "CM09",
+      "target_id": "E28",
+      "relation": "motivates",
+      "evidence": "教育部门只能按现实程序复核试卷和系统记录：没有发现传统作弊或人工篡改痕迹，三个人的官方成绩仍是林知夏669、周雨487、沈曼330。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "CM10",
+      "target_id": "E27",
+      "relation": "motivates",
+      "evidence": "法院依据死亡威胁、直播画面和现场证据，认定沈曼构成故意杀人未遂。",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "CM11",
+      "target_id": "E29",
+      "relation": "causes",
+      "evidence": "沈曼的升学资格因刑事案件和校纪处分被取消。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E27",
+      "target_id": "E29",
+      "relation": "causes",
+      "evidence": "沈曼的升学资格因刑事案件和校纪处分被取消。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E28",
+      "target_id": "E30",
+      "relation": "causes",
+      "evidence": "通知书寄到那天，周雨拍照发给林知夏：\"487，确认录取。\"",
+      "confidence": 0.85
+    },
+    {
+      "source_id": "E31",
+      "target_id": "E32",
+      "relation": "sets_up",
+      "evidence": "林知夏的录取通知寄到那天，母亲把信封擦了三遍才敢拆。门铃响起，周雨抱着自己的通知书站在门外。",
+      "confidence": 0.8
+    },
+    {
+      "source_id": "E32",
+      "target_id": "E33",
+      "relation": "causes",
+      "evidence": "周雨把那支笔放到两封通知书中间：\"这个怎么办？\"林知夏把它压进书桌玻璃板下。",
+      "confidence": 0.85
+    },
+    {
+      "source_id": "NC07",
+      "target_id": "E33",
+      "relation": "depends_on",
+      "evidence": "镜头停在那支笔上。安静几秒后，笔杆深处闪过一道极淡的蓝光，随即熄灭。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "C02",
+      "target_id": "S11",
+      "relation": "appears_in",
+      "evidence": "法院依据死亡威胁、直播画面和现场证据，认定沈曼构成故意杀人未遂。",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "C01",
+      "target_id": "S11",
+      "relation": "appears_in",
+      "evidence": "林知夏回：\"这次她终于算对了一道题。\"",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "C05",
+      "target_id": "S11",
+      "relation": "appears_in",
+      "evidence": "周雨拍照发给林知夏：\"487，确认录取。\"",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "C01",
+      "target_id": "S12",
+      "relation": "appears_in",
+      "evidence": "林知夏的录取通知寄到那天，母亲把信封擦了三遍才敢拆。",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "C05",
+      "target_id": "S12",
+      "relation": "appears_in",
+      "evidence": "周雨抱着自己的通知书站在门外，另一只手拎着两杯奶茶。",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "C06",
+      "target_id": "S12",
+      "relation": "appears_in",
+      "evidence": "母亲把信封擦了三遍才敢拆。",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "E27",
+      "target_id": "S11",
+      "relation": "appears_in",
+      "evidence": "法院依据死亡威胁、直播画面和现场证据，认定沈曼构成故意杀人未遂。",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "E28",
+      "target_id": "S11",
+      "relation": "appears_in",
+      "evidence": "教育部门只能按现实程序复核试卷和系统记录：没有发现传统作弊或人工篡改痕迹。",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "E29",
+      "target_id": "S11",
+      "relation": "appears_in",
+      "evidence": "沈曼的升学资格因刑事案件和校纪处分被取消。",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "E30",
+      "target_id": "S11",
+      "relation": "appears_in",
+      "evidence": "周雨拍照发给林知夏：\"487，确认录取。\"",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "E31",
+      "target_id": "S12",
+      "relation": "appears_in",
+      "evidence": "林知夏的录取通知寄到那天，母亲把信封擦了三遍才敢拆。",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "E32",
+      "target_id": "S12",
+      "relation": "appears_in",
+      "evidence": "周雨抱着自己的通知书站在门外，另一只手拎着两杯奶茶：\"一个669，一个487。都到了。\"",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "E33",
+      "target_id": "S12",
+      "relation": "appears_in",
+      "evidence": "林知夏把它压进书桌玻璃板下：\"留着。不是纪念系统，是纪念她输在自己的贪心上。\"",
+      "confidence": 0.95
+    }
+  ]
+}

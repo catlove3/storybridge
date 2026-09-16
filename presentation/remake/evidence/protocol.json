@@ -1,0 +1,7 @@
+{
+  "source_sha256": "8579747e663f2e9a97251c3d51fefdc29a761c9ac6ef5f47143f77ae15e5b92c",
+  "brief": "把这部短剧搬到美国背景，把高考替考骗局改编为中介伪造赛艇运动员履历、企图借体育招募进入名校的骗局。小宁从未练过赛艇。人物、学校、赛事、俱乐部均为虚构。保留父亲的名校执念、小宁对画画的热爱、朋友先埋线索后带来原始材料、再次索费、主动揭穿、放弃假资格，以及最后凭自己画作申请的父女和解。新骗局的材料和证据必须与赛艇履历对应；不要编造万能的官方查询网站，也不要让一张证书自动保证录取。人物的身份和经历可以随新骗局调整。用能拍出来的动作和简短对白写故事，保留七场顺序。",
+  "model": "deepseek-v4-flash",
+  "comparison": "One paired illustrative case: direct translation, strong whole-script adaptation, StoryBridge. Not a benchmark superiority claim.",
+  "scope": "No output edits. Same selected creative plan also supplied to strong baseline."
+}

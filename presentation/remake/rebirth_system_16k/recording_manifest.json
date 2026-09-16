@@ -1,0 +1,34 @@
+{
+  "raw_video": "/home/zypca/zhili/presentation/remake/rebirth_system_16k/recordings/page@f9c97cf88b0d450d8b488dff68202ede.webm",
+  "segments": [
+    {
+      "name": "查看 EduSwap 系统方案",
+      "start": 1.1925886800017906,
+      "end": 3.050842209999246
+    },
+    {
+      "name": "查看依赖图与影响范围",
+      "start": 5.4662784110005305,
+      "end": 7.668047925002611
+    },
+    {
+      "name": "核对三人分数反转",
+      "start": 9.287473480999324,
+      "end": 11.890865863999352
+    },
+    {
+      "name": "核对法庭场景的 330",
+      "start": 12.819791709000128,
+      "end": 15.022176792001119
+    }
+  ],
+  "description": "Real React UI reading frozen StoryBridge APC/EduSwap outputs. Model waiting omitted; no generated text altered.",
+  "edited_video": "/home/zypca/zhili/presentation/StoryBridge_18秒操作演示.mp4",
+  "duration_seconds": 18,
+  "captions": [
+    "选择系统改法：统分后台 → EduSwap 黑箱模块",
+    "看依赖关系：哪些场景应当联动",
+    "核对结果：669 不变，330 与 487 对调",
+    "人工复核：法庭台词已经同步为 330"
+  ]
+}

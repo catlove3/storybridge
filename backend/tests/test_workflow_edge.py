@@ -88,7 +88,9 @@ async def test_repair_loop_hits_max_rounds(tmp_path):
     client.set_response("verify_consistency", stuck_issue)
 
     wf.max_repair_rounds = 3
-    result = await wf.apply_adaptation(meta.id, "CM01", "B")
+    result = await wf.apply_adaptation(
+        meta.id, "CM01", "B", auto_verify_and_repair=True
+    )
     assert result.repair_rounds == 3
     assert len(result.report.blocking_issues) == 1
     assert result.report.consistency_score < 1.0
@@ -113,9 +115,39 @@ async def test_repair_issue_without_scene_id_noop(tmp_path):
             "commitment_checks": [],
         },
     )
-    result = await wf.apply_adaptation(meta.id, "CM01", "B")
+    result = await wf.apply_adaptation(
+        meta.id, "CM01", "B", auto_verify_and_repair=True
+    )
     assert result.repair_rounds == 0
     assert result.report.blocking_issues
+
+
+async def test_apply_does_not_auto_verify_or_repair_without_explicit_opt_in(tmp_path):
+    wf, client = _wf(tmp_path)
+    meta = await wf.create_project("manual-review", "script", MarketProfile())
+    await wf.analyze(meta.id)
+    client.set_response(
+        "verify_consistency",
+        {
+            "issues": [
+                {
+                    "issue_type": "fact_conflict",
+                    "severity": "error",
+                    "scene_id": "S05",
+                    "description": "需要人工复核的问题",
+                    "evidence": "xxx",
+                }
+            ],
+            "commitment_checks": [],
+        },
+    )
+
+    result = await wf.apply_adaptation(meta.id, "CM01", "B")
+
+    assert result.repair_rounds == 0
+    assert result.repaired_scene_ids == []
+    assert result.report.overall_status == "not_run"
+    assert client.calls["verify_consistency"] == []
 
 
 def test_bible_project_without_state_raises(tmp_path):

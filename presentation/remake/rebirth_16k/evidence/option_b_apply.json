@@ -1,0 +1,261 @@
+{
+  "applied": {
+    "plan_culture_mechanism_id": "CM01",
+    "state_version": 2,
+    "operation_id": null,
+    "chosen_option": {
+      "option_label": "B",
+      "strategy": "functional_replacement",
+      "title": "替换为SAT/ACT+大学申请系统",
+      "replacement_definition": "将高考替换为美国大学录取核心机制：SAT/ACT标准化考试 + 整体申请（GPA、课外活动、文书）。关键场景改为：最后一科SAT考试前借笔；查分夜改为查SAT成绩和大学录取结果；‘复核’改为向College Board申请成绩复核（Score Verification）；‘志愿填报’改为大学申请截止日/决定日。分数关系映射：林知夏SAT 1590（原669），周雨原1200（原330）换后1480（原487），沈曼原1480换后1200。台词示例：‘SAT出分了，我1590，和我估分一模一样。’‘我申请了成绩复核，College Board说我的1480无误，可我明明只估了1200！’",
+      "rationale": "SAT/ACT在美国教育体系中具有类似高考的‘高风险、决定录取’功能，且成绩复核机制真实存在，能自然承载‘换分’悬念。同时，美国大学录取还看GPA和课外活动，可增加‘沈曼父亲花钱买复核’的合理性（如捐赠、律师介入）。",
+      "preserved_functions": [
+        "plot: motivation, constraint, conflict, revelation, foreshadowing, payoff",
+        "social: status, institutional_access, economic_security, reputation",
+        "emotional: fear, aspiration, suspense, satisfaction, humiliation"
+      ],
+      "lost_functions": [
+        "institutional_access: 美国录取非单一考试决定，紧张感可能分散。",
+        "economic_security: 高考直接关联阶层跃迁，美国路径更多元，削弱‘唯一出路’的绝望感。"
+      ],
+      "risks": [
+        "SAT重要性低于高考，观众可能质疑‘换分’动机的强度。",
+        "美国大学录取的复杂性可能让短剧观众困惑，需要额外解释。",
+        "成绩复核流程与高考不同，需调整台词和场景细节。"
+      ]
+    },
+    "propagation": {
+      "changed_node_id": "CM01",
+      "affected_scenes": [
+        {
+          "scene_id": "S01",
+          "impact_kinds": [
+            "motivation"
+          ],
+          "reason_path": [
+            "CM01",
+            "E01",
+            "S01"
+          ],
+          "evidence": "CM01 --motivates--> E01 (\"最后一科开考前，考场外。林知夏默背着作文素材，沈曼迎上来：\"知夏，笔借我用一下，我那支突然断墨了。\"\"); E01 --appears_in--> S01 (\"沈曼迎上来：\"知夏，笔借我用一下\"\")",
+          "path_confidence": 0.81
+        },
+        {
+          "scene_id": "S02",
+          "impact_kinds": [
+            "causal",
+            "motivation"
+          ],
+          "reason_path": [
+            "CM01",
+            "E02",
+            "S02"
+          ],
+          "evidence": "CM01 --motivates--> E02 (\"深夜查分，屏幕跳出\"487\"。\"); E02 --appears_in--> S02 (\"深夜查分，屏幕跳出\"487\"。\")",
+          "path_confidence": 0.81
+        },
+        {
+          "scene_id": "S03",
+          "impact_kinds": [
+            "causal",
+            "motivation"
+          ],
+          "reason_path": [
+            "CM01",
+            "E05",
+            "S03"
+          ],
+          "evidence": "CM01 --motivates--> E05 (\"志愿填报截止那天，匿名短信把她约上天台。\"); E05 --appears_in--> S03 (\"沈曼卸下所有伪装：\"你以为我是靠我爸？\"\")",
+          "path_confidence": 0.81
+        },
+        {
+          "scene_id": "S04",
+          "impact_kinds": [
+            "causal",
+            "motivation"
+          ],
+          "reason_path": [
+            "CM01",
+            "E07",
+            "S04"
+          ],
+          "evidence": "CM01 --motivates--> E07 (\"再睁眼，是高考第一天清晨。\"); E07 --appears_in--> S04 (\"再睁眼，是高考第一天清晨。\")",
+          "path_confidence": 0.81
+        },
+        {
+          "scene_id": "S05",
+          "impact_kinds": [
+            "causal",
+            "motivation"
+          ],
+          "reason_path": [
+            "CM01",
+            "E09",
+            "S05"
+          ],
+          "evidence": "CM01 --motivates--> E09 (\"最后一科开考前，沈曼果然凑过来：\"知夏，笔借我用一下，我那支断墨了。\"\"); E09 --appears_in--> S05 (\"沈曼果然凑过来：\"知夏，笔借我用一下\"\")",
+          "path_confidence": 0.81
+        },
+        {
+          "scene_id": "S06",
+          "impact_kinds": [
+            "causal",
+            "motivation"
+          ],
+          "reason_path": [
+            "CM01",
+            "E10",
+            "S06"
+          ],
+          "evidence": "CM01 --motivates--> E10 (\"查分夜。林知夏输入准考证号，屏幕跳出：669\"); E10 --appears_in--> S06 (\"屏幕跳出：669\")",
+          "path_confidence": 0.81
+        }
+      ],
+      "related_commitment_ids": [
+        "NC01",
+        "NC02",
+        "NC03",
+        "NC04",
+        "NC05"
+      ],
+      "summary": "Changing 'CM01' (高考) affects 6 scene(s): S01, S02, S03, S04, S05, S06"
+    },
+    "rewritten_scene_ids": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06"
+    ],
+    "notes": ""
+  },
+  "report": {
+    "issues": [
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S10",
+        "description": "沈曼实际查到的是1200分，法官却称她查到1480分。",
+        "evidence": "你查到1480分，第一反应为什么是给林知夏打电话"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S02",
+        "description": "前世林知夏被换分后应为487分，场景却写为1200分。",
+        "evidence": "屏幕跳出\"1200\""
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S02",
+        "description": "前世沈曼换分后应为669分，场景却写为1590分。",
+        "evidence": "沈曼以\"1590分\"登上全校榜首"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S06",
+        "description": "重生后沈曼换分失败应得330分，场景却写为1200分。",
+        "evidence": "配图是查分截图——\"1200。怎么会这样？\""
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S07",
+        "description": "沈曼脱口而出的周雨原始分应为330，场景却写为1200。",
+        "evidence": "你明明只有1200！"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S07",
+        "description": "周雨估分应为330左右，场景却写为一千二出头。",
+        "evidence": "可我明明只估了一千二出头！"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S06",
+        "description": "周雨被换分后应得487分，场景却写为1480分。",
+        "evidence": "知夏，我查到1480。可我估分只有1200左右啊！"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S07",
+        "description": "周雨复核的分数应为487，场景却写为1480。",
+        "evidence": "他们说我的1480无误"
+      }
+    ],
+    "commitment_checks": [
+      {
+        "commitment_id": "NC01",
+        "status": "preserved",
+        "explanation": "S08中林知夏书包别运动相机、袖口藏录音笔，天台录音在S10作为证据提交，承诺已回收。"
+      },
+      {
+        "commitment_id": "NC02",
+        "status": "preserved",
+        "explanation": "S04建立笔是换分锚点，S05借笔、S08沈曼质问换笔、S09日志均围绕笔展开，设定一致。"
+      },
+      {
+        "commitment_id": "NC03",
+        "status": "preserved",
+        "explanation": "S02掌心蓝痕正在褪色，S03蓝痕淡得看不见，蓝痕作为换分标志的设定前后一致。"
+      },
+      {
+        "commitment_id": "NC04",
+        "status": "preserved",
+        "explanation": "S11官方通报揭露易分系统与换分真相，沈曼被捕，换分真相已揭露。"
+      },
+      {
+        "commitment_id": "NC05",
+        "status": "preserved",
+        "explanation": "S11周雨分数恢复并发消息'分数回来了。但我们回不去了'，道德亏欠得到清算。"
+      },
+      {
+        "commitment_id": "NC06",
+        "status": "preserved",
+        "explanation": "S11明确'易分系统来源不明，已移交专门机构调查'，悬念保留。"
+      },
+      {
+        "commitment_id": "NC07",
+        "status": "preserved",
+        "explanation": "S12结尾'系统没有消失，它只是换了一种方式，在等下一个借笔的人'，悬念保留。"
+      }
+    ],
+    "checked_scene_ids": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "S08",
+      "S09",
+      "S10",
+      "S11",
+      "S12"
+    ],
+    "static_checks_passed": 3,
+    "static_checks_total": 3,
+    "commitments_verified": 7,
+    "commitments_total": 7,
+    "scenes_checked": 12,
+    "scenes_total": 12,
+    "overall_status": "fail",
+    "consistency_score": 0.0
+  },
+  "repair_rounds": 2,
+  "repaired_scene_ids": [
+    "S07",
+    "S10",
+    "S02",
+    "S06",
+    "S07",
+    "S10"
+  ]
+}

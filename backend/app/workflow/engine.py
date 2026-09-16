@@ -71,6 +71,10 @@ class DuplicateOperation(RuntimeError):
     pass
 
 
+class VerificationBlocked(RuntimeError):
+    pass
+
+
 class StoryBridgeWorkflow:
     def __init__(self, store: ProjectStore, client: LLMClient, max_repair_rounds: int = 2) -> None:
         self.store = store
@@ -119,7 +123,7 @@ class StoryBridgeWorkflow:
             meta = self.store.load_meta(project_id)
             if meta is None:
                 raise KeyError(f"unknown project: {project_id}")
-            with project_data_context(project_id, meta.data_policy):
+            with project_data_context(project_id, meta.data_policy, meta.owner_id):
                 return await self._analyze_locked(project_id)
 
     async def _analyze_locked(self, project_id: str) -> StoryState:
@@ -158,7 +162,7 @@ class StoryBridgeWorkflow:
             meta = self.store.load_meta(project_id)
             if meta is None:
                 raise KeyError(f"unknown project: {project_id}")
-            with project_data_context(project_id, meta.data_policy):
+            with project_data_context(project_id, meta.data_policy, meta.owner_id):
                 return await self._plan_locked(project_id, state, mechanism_id)
 
     async def plan_many(
@@ -177,7 +181,7 @@ class StoryBridgeWorkflow:
             meta = self.store.load_meta(project_id)
             if meta is None:
                 raise KeyError(f"unknown project: {project_id}")
-            with project_data_context(project_id, meta.data_policy):
+            with project_data_context(project_id, meta.data_policy, meta.owner_id):
                 return [
                     await self._plan_locked(project_id, state, mechanism_id)
                     for mechanism_id in unique_ids
@@ -208,7 +212,7 @@ class StoryBridgeWorkflow:
         project_id: str,
         mechanism_id: str,
         option_label: str,
-        auto_verify_and_repair: bool = True,
+        auto_verify_and_repair: bool = False,
         based_on_version: int | None = None,
         operation_id: str | None = None,
     ) -> ApplyResult:
@@ -216,7 +220,7 @@ class StoryBridgeWorkflow:
             meta = self.store.load_meta(project_id)
             if meta is None:
                 raise KeyError(f"unknown project: {project_id}")
-            with project_data_context(project_id, meta.data_policy):
+            with project_data_context(project_id, meta.data_policy, meta.owner_id):
                 return await self._apply_locked(
                     project_id,
                     mechanism_id,
@@ -230,7 +234,7 @@ class StoryBridgeWorkflow:
         self,
         project_id: str,
         adaptations: list[AdaptationSelection],
-        auto_verify_and_repair: bool = True,
+        auto_verify_and_repair: bool = False,
         based_on_version: int | None = None,
         operation_id: str | None = None,
     ) -> BatchApplyResult:
@@ -239,7 +243,7 @@ class StoryBridgeWorkflow:
             meta = self.store.load_meta(project_id)
             if meta is None:
                 raise KeyError(f"unknown project: {project_id}")
-            with project_data_context(project_id, meta.data_policy):
+            with project_data_context(project_id, meta.data_policy, meta.owner_id):
                 return await self._apply_many_locked(
                     project_id,
                     batch.adaptations,
@@ -400,6 +404,8 @@ class StoryBridgeWorkflow:
             },
             applied=applied_items,
         )
+        if auto_verify_and_repair:
+            self._remember_report(project_id, candidate.version, report)
 
         return BatchApplyResult(
             applied=applied_items,
@@ -421,10 +427,35 @@ class StoryBridgeWorkflow:
                 f"{a.plan_culture_mechanism_id} -> {a.chosen_option.replacement_definition}"
                 for a in applied
             )
-            with project_data_context(project_id, meta.data_policy):
-                return await self.verifier.verify(
+            with project_data_context(project_id, meta.data_policy, meta.owner_id):
+                report = await self.verifier.verify(
                     state, applied_adaptations_summary=summary
                 )
+            self._remember_report(project_id, state.version, report)
+            return report
+
+    def _remember_report(self, project_id: str, version: int, report: VerifyReport) -> None:
+        database = getattr(self.store, "database", None)
+        if database is not None:
+            with database.transaction(immediate=True) as connection:
+                connection.execute(
+                    """INSERT INTO verification_reports VALUES(?,?,?)
+                    ON CONFLICT(project_id) DO UPDATE SET state_version=excluded.state_version,
+                    payload_json=excluded.payload_json""",
+                    (project_id, version, report.model_dump_json()),
+                )
+
+    def latest_report(self, project_id: str) -> VerifyReport | None:
+        database = getattr(self.store, "database", None)
+        if database is None:
+            return None
+        with database.transaction() as connection:
+            row = connection.execute(
+                """SELECT v.payload_json FROM verification_reports v JOIN states s
+                ON v.project_id=s.project_id AND v.state_version=s.version WHERE v.project_id=?""",
+                (project_id,),
+            ).fetchone()
+        return VerifyReport.model_validate_json(row[0]) if row else None
 
     async def render_target_script(self, project_id: str) -> TargetScript:
         async with self._project_locks[project_id]:
@@ -432,10 +463,14 @@ class StoryBridgeWorkflow:
             cached = self.store.load_target_script(project_id)
             if cached is not None:
                 return cached
+            if get_config().share.enabled:
+                report = self.latest_report(project_id)
+                if report is None or report.overall_status in {"not_run", "fail"}:
+                    raise VerificationBlocked("当前剧本尚未通过检查，请先完成检查并处理阻塞问题。")
             meta = self.store.load_meta(project_id)
             if meta is None:
                 raise KeyError(f"unknown project: {project_id}")
-            with project_data_context(project_id, meta.data_policy):
+            with project_data_context(project_id, meta.data_policy, meta.owner_id):
                 target_script = await self.renderer.render(state)
             self.store.save_target_script(project_id, target_script)
             return target_script

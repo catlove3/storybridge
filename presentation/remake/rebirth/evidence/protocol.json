@@ -1,0 +1,45 @@
+{
+  "created_at": "2026-09-16T18:34:17.487988+00:00",
+  "source_sha256": "a2e29f9302d3d177bd7ab654026cc454444e4b9b3f23a3f7860e051bd978385a",
+  "requirements": "把这部虚构的十二场中国重生悬疑短剧改编成美国背景、英语成稿。\n\n硬性要求：\n1. 保持 S01-S12 十二场及顺序，不合并、不拆分。\n2. 保留原稿的“易分系统”及系统日志；观众可以相信系统存在，不要另造前程卡、仪式、百日用笔等解释规则。\n3. 笔仍是系统识别借笔人与被借笔人的锚点。林知夏把周雨落下的笔递给沈曼，沈曼误以为换到了林知夏。\n4. 分数关系保持清楚：林知夏 669 不变；周雨原本 330、换后 487；沈曼原本 487、换后 330。\n5. 保留沈曼的说漏嘴：“你明明只有330！”周雨追问她为什么提前知道。\n6. 保留原稿的人物知情顺序、周雨与林知夏的冲突、天台收网、老宋的离线日志、庭审、恢复卷面分与开放式系统尾声。\n7. 改编重点是让美国观众理解教育与录取背景，可替换高考/志愿/复核等文化机制；不得把真实学校、考试机构或司法制度写成事实。所有机构均为虚构。\n8. 台词简短、动作可拍，风格为 rebirth suspense revenge vertical drama。\n",
+  "model": "deepseek-v4-flash",
+  "same_input_policy": "B and C are cloned from this exact state and plan.",
+  "selected_mechanism": {
+    "id": "CM02",
+    "name": "成绩复核",
+    "description": "对高考成绩有异议时可申请复核，但通常只核对分数加总，不重新评卷。",
+    "surface_text": [
+      "复核",
+      "申请复核",
+      "复核驳回"
+    ],
+    "scene_ids": [
+      "S02",
+      "S03",
+      "S07",
+      "S10",
+      "S11"
+    ],
+    "friction_level": "high",
+    "narrative_importance": "high",
+    "functions": {
+      "plot": [
+        "constraint",
+        "conflict",
+        "revelation",
+        "payoff"
+      ],
+      "social": [
+        "institutional_access",
+        "power"
+      ],
+      "emotional": [
+        "fear",
+        "suspense",
+        "satisfaction"
+      ]
+    },
+    "adapted_to": null,
+    "adapted_strategy": null
+  }
+}

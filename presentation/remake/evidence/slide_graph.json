@@ -1,0 +1,210 @@
+{
+  "scope": "Actual induced dependency subgraph for the first three scenes, relaid out for slide readability. Text labels are shortened. Not a screenshot.",
+  "nodes": {
+    "CM01": {
+      "x": 0.76,
+      "y": 2.77,
+      "w": 1.74,
+      "h": 0.84,
+      "label": "高考",
+      "kind": "focus"
+    },
+    "C02": {
+      "x": 0.76,
+      "y": 4.18,
+      "w": 1.74,
+      "h": 0.74,
+      "label": "父亲",
+      "kind": "context"
+    },
+    "C01": {
+      "x": 0.76,
+      "y": 5.37,
+      "w": 1.74,
+      "h": 0.74,
+      "label": "小宁",
+      "kind": "context"
+    },
+    "E02": {
+      "x": 3.12,
+      "y": 2.43,
+      "w": 2.61,
+      "h": 0.64,
+      "label": "住院，错过考试",
+      "kind": "event"
+    },
+    "E03": {
+      "x": 3.12,
+      "y": 3.22,
+      "w": 2.61,
+      "h": 0.64,
+      "label": "父亲向中介交钱",
+      "kind": "event"
+    },
+    "E04": {
+      "x": 3.12,
+      "y": 4.01,
+      "w": 2.61,
+      "h": 0.64,
+      "label": "收到假成绩单",
+      "kind": "event"
+    },
+    "E05": {
+      "x": 3.12,
+      "y": 4.8,
+      "w": 2.61,
+      "h": 0.64,
+      "label": "女儿质疑并留证",
+      "kind": "event"
+    },
+    "E06": {
+      "x": 3.12,
+      "y": 5.59,
+      "w": 2.61,
+      "h": 0.64,
+      "label": "朋友留下座位表",
+      "kind": "event"
+    },
+    "S01": {
+      "x": 6.9,
+      "y": 2.62,
+      "w": 2.38,
+      "h": 0.9,
+      "label": "第一场\n她没去的考试",
+      "kind": "scene"
+    },
+    "S02": {
+      "x": 6.9,
+      "y": 4.03,
+      "w": 2.38,
+      "h": 0.9,
+      "label": "第二场\n不属于她的成绩",
+      "kind": "scene"
+    },
+    "S03": {
+      "x": 6.9,
+      "y": 5.42,
+      "w": 2.38,
+      "h": 0.97,
+      "label": "第三场\n朋友留下的线索",
+      "kind": "destination"
+    }
+  },
+  "highlighted_path": [
+    "CM01",
+    "E02",
+    "E03",
+    "E04",
+    "E05",
+    "E06",
+    "S03"
+  ],
+  "edges": [
+    {
+      "source_id": "C02",
+      "target_id": "S01",
+      "relation": "appears_in",
+      "evidence": "父亲却认定只有名校才有出路",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C02",
+      "target_id": "S02",
+      "relation": "appears_in",
+      "evidence": "父亲反复看着高分，劝她先别问",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C01",
+      "target_id": "S01",
+      "relation": "appears_in",
+      "evidence": "高三学生小宁想学画画",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C01",
+      "target_id": "S02",
+      "relation": "appears_in",
+      "evidence": "小宁说：“可那两天我一直在医院。”",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "C01",
+      "target_id": "S03",
+      "relation": "appears_in",
+      "evidence": "小宁没有立刻下结论，约她把原始材料带来核对",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E02",
+      "target_id": "S01",
+      "relation": "appears_in",
+      "evidence": "高考前小宁摔伤住院，错过考试。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E03",
+      "target_id": "S01",
+      "relation": "appears_in",
+      "evidence": "一个升学中介私下对父亲说：“人不用到，成绩我们安排。”",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E04",
+      "target_id": "S02",
+      "relation": "appears_in",
+      "evidence": "中介发来一份写着小宁名字的高考成绩单",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "E05",
+      "target_id": "S02",
+      "relation": "appears_in",
+      "evidence": "她把成绩单和照片都存进手机。",
+      "confidence": 1.0
+    },
+    {
+      "source_id": "CM01",
+      "target_id": "E02",
+      "relation": "motivates",
+      "evidence": "高考前小宁摔伤住院，错过考试。",
+      "confidence": 0.95
+    },
+    {
+      "source_id": "E02",
+      "target_id": "E03",
+      "relation": "causes",
+      "evidence": "高考前小宁摔伤住院，错过考试。一个升学中介私下对父亲说：“人不用到，成绩我们安排。”",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E03",
+      "target_id": "E04",
+      "relation": "causes",
+      "evidence": "父亲以为有特殊补考名额，交了钱。中介发来一份写着小宁名字的高考成绩单。",
+      "confidence": 0.9
+    },
+    {
+      "source_id": "E04",
+      "target_id": "E05",
+      "relation": "causes",
+      "evidence": "小宁说：“可那两天我一直在医院。”父亲反复看着高分，劝她先别问。",
+      "confidence": 0.85
+    },
+    {
+      "source_id": "E05",
+      "target_id": "E06",
+      "relation": "causes",
+      "evidence": "她把成绩单和照片都存进手机。小岚来还毕业纪念册，留下了一份考场座位表。",
+      "confidence": 0.8
+    },
+    {
+      "source_id": "E06",
+      "target_id": "S03",
+      "relation": "appears_in",
+      "evidence": "小岚来还毕业纪念册，留下了一份考场座位表。",
+      "confidence": 1.0
+    }
+  ],
+  "ui_screenshot": "assets/graph_screen.png"
+}

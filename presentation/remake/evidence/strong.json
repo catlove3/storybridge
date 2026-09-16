@@ -1,0 +1,50 @@
+{
+  "source_state_version": 0,
+  "source_language": "zh-CN",
+  "target_language": "English",
+  "target_locale": "en-US",
+  "scenes": [
+    {
+      "id": "S01",
+      "title": "The Showcase She Missed",
+      "summary": "Xiaoning, a high school junior, dreams of studying art, but her father insists only an Ivy League school will secure her future. She falls and injures herself, missing a rowing recruit showcase. A college admissions consultant privately tells her father, 'She doesn't need to be there—we'll arrange the results.' The father, believing there's a special exception, pays. Xiaoning asks how it works; the consultant avoids the question.",
+      "text": "INT. HOSPITAL ROOM - DAY\n\nXIAONING, 17, lies in a hospital bed, her right arm in a cast. Sketches of hands and faces cover the bedside table. Her father, MR. CHEN, 50s, stands by the window, clutching a brochure for an Ivy League school.\n\nMR. CHEN\n(quietly)\nYou should have been at the rowing showcase today. That was your ticket.\n\nXIAONING\nDad, I've never even been in a boat.\n\nMR. CHEN\nThat's not the point. The point is getting in. You think art school will pay the bills?\n\nA knock. A COLLEGE ADMISSIONS CONSULTANT, 40s, sleek, enters with a leather briefcase.\n\nCONSULTANT\n(to Mr. Chen, low)\nI heard about the accident. Terrible timing. But there's another way. She doesn't need to be there—we'll arrange the results.\n\nMR. CHEN\nWhat do you mean, arrange?\n\nCONSULTANT\nA recruit slot. We handle the paperwork, the club registration, the race history. All she has to do is sign.\n\nXIAONING\nHow does that work? I've never rowed.\n\nThe consultant smiles, says nothing. Mr. Chen pulls out a checkbook.\n\nMR. CHEN\n(whispering)\nIf this gets her in, we'll do it.\n\nXiaoning watches them, uneasy."
+    },
+    {
+      "id": "S02",
+      "title": "A Record That Isn't Hers",
+      "summary": "The consultant sends a rowing athlete profile with Xiaoning's name, including a blurry team photo and a race entry confirmation. He pressures the father to submit college applications. Xiaoning protests that she was in the hospital. The father, dazzled by the fake credentials, tells her not to ask questions. She saves everything on her phone.",
+      "text": "INT. CHEN APARTMENT - NIGHT\n\nMr. Chen's phone buzzes. He opens an email from the consultant. A PDF: 'Xiaoning Chen – Rowing Recruit Profile.' It lists regattas she never rowed, a club she never joined. A blurry photo of a crew team, one face clearly pasted in—Xiaoning's.\n\nMR. CHEN\n(excited)\nLook at this. Regional championship. Club team. This is your future.\n\nXIAONING\nDad, I was in the hospital those days. I've never even held an oar.\n\nMR. CHEN\nDon't ask questions. The consultant says we need to submit the applications now. If we miss this window, it's gone.\n\nXIAONING\nBut it's not true.\n\nMR. CHEN\nIt's a chance. You want to throw it away?\n\nXiaoning takes out her phone, photographs the profile, the photo, the email. She zooms in on the pasted face.\n\nXIAONING\n(softly)\nThis isn't me.\n\nMr. Chen doesn't hear. He's already typing a reply."
+    },
+    {
+      "id": "S03",
+      "title": "The Clue a Friend Left",
+      "summary": "Xiaoning's friend Xiaolan returns a yearbook and mentions she helped organize the rowing team's paperwork. She leaves a real team roster and seating chart. She points to a blurry seat number in the consultant's photo: 'I remember who sat there—it wasn't you.' Xiaoning doesn't jump to conclusions; she asks Xiaolan to bring the original documents. Inside the yearbook is a self-portrait Xiaoning spent weeks drawing.",
+      "text": "INT. SCHOOL HALLWAY - DAY\n\nXIAOLAN, 17, hands Xiaoning a yearbook.\n\nXIAOLAN\nYou left this in the art room. Also—I helped Coach with the rowing team's paperwork last season. I still have the roster and the seating chart for the regional race.\n\nXIAONING\nWhy are you telling me this?\n\nXIAOLAN\nBecause I saw the photo your dad posted. The one with your face on the crew team. I remember that seat. Number four. That wasn't you.\n\nXIAONING\nI don't want to accuse anyone without proof.\n\nXIAOLAN\nThen let's compare. I'll bring the originals tomorrow.\n\nXiaoning opens the yearbook. A folded self-portrait falls out—her own face, drawn in charcoal, detailed and alive.\n\nXIAONING\n(looking at it)\nThis is the only thing that's really mine."
+    },
+    {
+      "id": "S04",
+      "title": "Another Payment",
+      "summary": "The consultant tells the father that the recruit profile needs further verification and asks for another 'coordination fee.' He hints that if anyone questions it, the girl's future is ruined. The father prepares to borrow money. Xiaoning stops him: 'First find out whose record that really is.'",
+      "text": "INT. CHEN APARTMENT - NIGHT\n\nMr. Chen is on the phone with the consultant. Xiaoning listens from the doorway.\n\nCONSULTANT (V.O.)\nThe verification office flagged the profile. We need a coordination fee to push it through. If anyone starts asking questions, the whole thing collapses. Your daughter's future—gone.\n\nMR. CHEN\nHow much?\n\nCONSULTANT (V.O.)\nTen thousand. Wire it tonight.\n\nMr. Chen opens a loan app on his phone. Xiaoning steps in, puts her hand over the screen.\n\nXIAONING\nDad. Stop. Before you pay another cent—find out whose record that really is.\n\nMR. CHEN\nWe're too deep. If we back out now—\n\nXIAONING\nThen we back out. But first, we check."
+    },
+    {
+      "id": "S05",
+      "title": "She Decides to Expose It",
+      "summary": "Xiaolan brings the original seating chart. They compare it with the consultant's photo and Xiaoning's hospital records. The photo shows a different student in seat four; Xiaoning was in a hospital bed that day. Father and daughter confirm: the 'special slot' was someone else taking her place. Xiaoning saves the evidence and says, 'The future you bought me doesn't even have me in it.'",
+      "text": "INT. XIAONING'S BEDROOM - DAY\n\nXiaolan spreads the original seating chart on the desk. Xiaoning pulls up the consultant's photo on her phone. They zoom in.\n\nXIAOLAN\nSeat four. That's Mark. He's six inches taller than you.\n\nXIAONING\nAnd I was here.\n\nShe holds up her hospital discharge summary. Date matches the race day.\n\nXIAOLAN\nSo the consultant put your name on someone else's race. That's fraud.\n\nXIAONING\n(to her father, who stands in the doorway)\nYou bought me a future, but the person in it isn't me.\n\nMr. Chen sinks onto the bed. Xiaoning screenshots everything, saves it to a folder labeled 'Evidence.'\n\nXIAONING\nWe're going to fix this."
+    },
+    {
+      "id": "S06",
+      "title": "Giving Up the Shortcut",
+      "summary": "The father admits he couldn't face his daughter missing the showcase and grabbed at a fake Ivy slot. Together they save the consultant's promises, payment records, and original documents. They proactively inform the schools, stop using the fake record, and offer to cooperate with any review. The father closes the loan app and pushes her sketchbook back to her: 'Then let's start with what you're actually good at.'",
+      "text": "INT. CHEN APARTMENT - NIGHT\n\nMr. Chen sits at the kitchen table, head in his hands.\n\nMR. CHEN\nI couldn't face it. You missed the showcase, and I thought—if I could just buy you a way in—\n\nXIAONING\nBy lying? Dad, that's not a way in. That's a way to lose everything.\n\nShe opens her laptop. They compile the evidence: the consultant's emails, the wire transfer receipts, the fake profile, the original seating chart.\n\nXIAONING\nWe send this to the schools. We tell them we were approached, we paid, and we're backing out. We cooperate.\n\nMR. CHEN\nThey'll blacklist you.\n\nXIAONING\nThen at least it'll be my name on the blacklist. Not someone else's.\n\nMr. Chen nods. He closes the loan app. He picks up her sketchbook and slides it across the table.\n\nMR. CHEN\nThen let's start with what you're actually good at."
+    },
+    {
+      "id": "S07",
+      "title": "Her Own Name",
+      "summary": "Time passes. Xiaoning applies to an art program with her own portfolio and receives an interview invitation. She places the invitation and her self-portrait in front of her father: 'This time, the name and the work are both mine.' For the first time, her father reads her yearbook from cover to cover.",
+      "text": "INT. CHEN APARTMENT - DAY\n\nSunlight fills the room. Xiaoning holds an envelope. She opens it—an invitation to an art program interview.\n\nXIAONING\nDad.\n\nMr. Chen looks up from the kitchen. She places the invitation and the charcoal self-portrait on the table.\n\nXIAONING\nThis time, the name and the work are both mine.\n\nMr. Chen picks up the self-portrait. He studies it—really studies it. Then he opens her yearbook and begins to turn the pages, slowly, from the first to the last.\n\nMR. CHEN\n(quietly)\nI should have started here.\n\nXiaoning smiles. She sits beside him, and they look at the drawings together."
+    }
+  ]
+}

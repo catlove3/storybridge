@@ -4,6 +4,40 @@
  */
 
 export interface paths {
+    "/api/demo-scripts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Demo Scripts */
+        get: operations["demo_scripts_api_demo_scripts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/demo-scripts/{script_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Demo Script */
+        get: operations["demo_script_api_demo_scripts__script_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/jobs/{job_id}": {
         parameters: {
             query?: never;
@@ -314,6 +348,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Verification */
+        get: operations["get_verification_api_projects__project_id__verification_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/{project_id}/verify": {
         parameters: {
             query?: never;
@@ -340,6 +391,40 @@ export interface paths {
         };
         /** Runtime Policy */
         get: operations["runtime_policy_api_runtime_policy_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Session */
+        post: operations["session_api_session_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/share-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Share Code */
+        get: operations["share_code_api_share_code_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -488,7 +573,8 @@ export interface components {
         ApplyBody: {
             /**
              * Auto Verify And Repair
-             * @default true
+             * @description Only run automatic verification and repair when explicitly authorized.
+             * @default false
              */
             auto_verify_and_repair: boolean;
             /** Based On Version */
@@ -518,7 +604,8 @@ export interface components {
             adaptations: components["schemas"]["AdaptationSelection"][];
             /**
              * Auto Verify And Repair
-             * @default true
+             * @description Only run automatic verification and repair when explicitly authorized.
+             * @default false
              */
             auto_verify_and_repair: boolean;
             /** Based On Version */
@@ -611,6 +698,8 @@ export interface components {
         /** CreateProjectBody */
         CreateProjectBody: {
             data_policy?: components["schemas"]["DataPolicy"];
+            /** Idempotency Key */
+            idempotency_key?: string | null;
             market?: components["schemas"]["MarketProfile"];
             /**
              * Name
@@ -653,6 +742,19 @@ export interface components {
              * @description verbatim phrases from the script that reference this mechanism
              */
             surface_text?: string[];
+        };
+        /** DailyQuota */
+        DailyQuota: {
+            /** Resets At */
+            resets_at: string;
+            /** Site Limit */
+            site_limit: number;
+            /** Site Used */
+            site_used: number;
+            /** Visitor Limit */
+            visitor_limit: number;
+            /** Visitor Used */
+            visitor_used: number;
         };
         /** DataExportResponse */
         DataExportResponse: {
@@ -712,6 +814,30 @@ export interface components {
             run_records_deleted: number;
             /** Sft Samples Deleted */
             sft_samples_deleted: number;
+        };
+        /** DemoDetail */
+        DemoDetail: {
+            /** Genre */
+            genre: string;
+            /** Id */
+            id: string;
+            /** Summary */
+            summary: string;
+            /** Text */
+            text: string;
+            /** Title */
+            title: string;
+        };
+        /** DemoSummary */
+        DemoSummary: {
+            /** Genre */
+            genre: string;
+            /** Id */
+            id: string;
+            /** Summary */
+            summary: string;
+            /** Title */
+            title: string;
         };
         /** Dependency */
         Dependency: {
@@ -812,6 +938,8 @@ export interface components {
             created_at: number;
             /** Error */
             error: string | null;
+            /** Error Code */
+            error_code?: string | null;
             /** Finished At */
             finished_at: number | null;
             /** Id */
@@ -823,6 +951,8 @@ export interface components {
             progress: number;
             /** Project Id */
             project_id: string;
+            /** Resets At */
+            resets_at?: string | null;
             /** Result */
             result?: unknown;
             status: components["schemas"]["JobStatus"];
@@ -836,6 +966,12 @@ export interface components {
         JobSubmitBody: {
             /** Adaptations */
             adaptations?: components["schemas"]["AdaptationSelection"][] | null;
+            /**
+             * Auto Verify And Repair
+             * @description Only run automatic verification and repair when explicitly authorized.
+             * @default false
+             */
+            auto_verify_and_repair: boolean;
             /** Based On Version */
             based_on_version?: number | null;
             /** Culture Mechanism Id */
@@ -1004,10 +1140,31 @@ export interface components {
             max_project_llm_tokens: number;
             /** Max Script Chars */
             max_script_chars: number;
+            /**
+             * Mock Mode
+             * @default false
+             */
+            mock_mode: boolean;
             /** Model */
             model: string;
+            /**
+             * Model Available
+             * @default false
+             */
+            model_available: boolean;
             /** Provider Endpoint */
             provider_endpoint: string;
+            /**
+             * Public Mode
+             * @default false
+             */
+            public_mode: boolean;
+            /**
+             * Public Url
+             * @default
+             */
+            public_url: string;
+            quota?: components["schemas"]["DailyQuota"] | null;
             /** Sft Collection Enabled */
             sft_collection_enabled: boolean;
             /** Sft Redaction Enabled */
@@ -1046,6 +1203,15 @@ export interface components {
             diff: string[];
             /** Scene Id */
             scene_id: string;
+        };
+        /** SessionResponse */
+        SessionResponse: {
+            /** Csrf Token */
+            csrf_token: string;
+            /** Expires At */
+            expires_at?: number | null;
+            /** Visitor Id */
+            visitor_id: string;
         };
         /** Setting */
         Setting: {
@@ -1293,6 +1459,57 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    demo_scripts_api_demo_scripts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DemoSummary"][];
+                };
+            };
+        };
+    };
+    demo_script_api_demo_scripts__script_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                script_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DemoDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_job_api_jobs__job_id__get: {
         parameters: {
             query?: never;
@@ -1991,6 +2208,37 @@ export interface operations {
             };
         };
     };
+    get_verification_api_projects__project_id__verification_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerifyReport"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     verify_api_projects__project_id__verify_post: {
         parameters: {
             query?: never;
@@ -2038,6 +2286,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RuntimePolicyResponse"];
+                };
+            };
+        };
+    };
+    session_api_session_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionResponse"];
+                };
+            };
+        };
+    };
+    share_code_api_share_code_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
         };

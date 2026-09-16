@@ -1,0 +1,59 @@
+{
+  "main_comparison": {
+    "stage": "Both final English scripts. Slide 11 shows Chinese excerpt translations; exact originals on slide 5.",
+    "naive_file": "naive_full.md",
+    "naive_scene": "S02",
+    "naive_exact": "Sees what? A photo of someone else's body with my face on it?",
+    "naive_translation": "别人的身体，贴上我的脸？",
+    "storybridge_file": "storybridge.json",
+    "storybridge_scene": "S02",
+    "storybridge_exact": "But I was in the hospital those two days.",
+    "storybridge_translation": "可那两天我一直在医院。",
+    "interpretation": "Explicit face replacement is disclosed earlier in this naive response; this is an editorial observation, not a blind-rated quality result. Both workflows update the rowing clues."
+  },
+  "quotes": [
+    {
+      "file": "state_v2.json",
+      "scene": "S02",
+      "exact": "赛艇区域赛参赛确认函"
+    },
+    {
+      "file": "state_v2.json",
+      "scene": "S03",
+      "exact": "真实队员名单和座位安排表"
+    },
+    {
+      "file": "state_v2.json",
+      "scene": "S03",
+      "exact": "我记得这个位置坐的不是你。"
+    },
+    {
+      "file": "state_v2.json",
+      "scene": "S05",
+      "exact": "你给我买的未来，连里面的人都不是我。"
+    },
+    {
+      "file": "state_v2.json",
+      "scene": "S07",
+      "exact": "这一次，上面的名字和作品，都是我的。"
+    }
+  ],
+  "graph_path": {
+    "scene_id": "S03",
+    "impact_kinds": [
+      "causal",
+      "motivation"
+    ],
+    "reason_path": [
+      "CM01",
+      "E02",
+      "E03",
+      "E04",
+      "E05",
+      "E06",
+      "S03"
+    ],
+    "evidence": "CM01 --motivates--> E02 (\"高考前小宁摔伤住院，错过考试。\"); E02 --causes--> E03 (\"高考前小宁摔伤住院，错过考试。一个升学中介私下对父亲说：“人不用到，成绩我们安排。”\"); E03 --causes--> E04 (\"父亲以为有特殊补考名额，交了钱。中介发来一份写着小宁名字的高考成绩单。\"); E04 --causes--> E05 (\"小宁说：“可那两天我一直在医院。”父亲反复看着高分，劝她先别问。\"); E05 --causes--> E06 (\"她把成绩单和照片都存进手机。小岚来还毕业纪念册，留下了一份考场座位表。\"); E06 --appears_in--> S03 (\"小岚来还毕业纪念册，留下了一份考场座位表。\")",
+    "path_confidence": 0.52326
+  }
+}

@@ -20,16 +20,28 @@ import type {
 const API_KEY = import.meta.env.VITE_STORYBRIDGE_API_KEY as string | undefined
 const client = createClient<paths>({
   baseUrl: '',
+  credentials: 'same-origin',
   headers: API_KEY ? { 'X-API-Key': API_KEY } : {},
+})
+let csrfToken = ''
+client.use({
+  onRequest({ request }) {
+    if (csrfToken && !['GET', 'HEAD'].includes(request.method)) request.headers.set('X-CSRF-Token', csrfToken)
+    return request
+  },
 })
 
 export class ApiError extends Error {
   readonly status: number
+  readonly code: string
+  readonly resetsAt?: string
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, code = '', resetsAt?: string) {
     super(message)
     this.name = 'ApiError'
     this.status = status
+    this.code = code
+    this.resetsAt = resetsAt
   }
 }
 
@@ -50,6 +62,10 @@ function errorDetail(error: unknown, response: Response) {
 
 function unwrap<TResult>(result: ApiResult): TResult {
   if (result.error !== undefined) {
+    const detail = (result.error as { detail?: { message?: string; code?: string; resets_at?: string } }).detail
+    if (detail && typeof detail === 'object' && detail.message) {
+      throw new ApiError(detail.message, result.response.status, detail.code, detail.resets_at)
+    }
     throw new ApiError(errorDetail(result.error, result.response), result.response.status)
   }
   if (result.data === undefined) {
@@ -59,6 +75,41 @@ function unwrap<TResult>(result: ApiResult): TResult {
 }
 
 export const api = {
+  async session(signal?: AbortSignal) {
+    const session = unwrap<import('./generated/schema').components['schemas']['SessionResponse']>(
+      await client.POST('/api/session', { signal }),
+    )
+    csrfToken = session.csrf_token
+    return session
+  },
+  async demoScripts(signal?: AbortSignal) {
+    return unwrap<import('./generated/schema').components['schemas']['DemoSummary'][]>(
+      await client.GET('/api/demo-scripts', { signal }),
+    )
+  },
+  async demoScript(scriptId: string, signal?: AbortSignal) {
+    return unwrap<import('./generated/schema').components['schemas']['DemoDetail']>(
+      await client.GET('/api/demo-scripts/{script_id}', { params: { path: { script_id: scriptId } }, signal }),
+    )
+  },
+  async exportProject(projectId: string, signal?: AbortSignal) {
+    return unwrap<import('./generated/schema').components['schemas']['DataExportResponse']>(
+      await client.GET('/api/projects/{project_id}/data-export', { params: { path: { project_id: projectId } }, signal }),
+    )
+  },
+  async deleteProject(projectId: string) {
+    return unwrap(await client.DELETE('/api/projects/{project_id}', { params: { path: { project_id: projectId } } }))
+  },
+  async verification(projectId: string, signal?: AbortSignal) {
+    return unwrap<import('../types/api').VerifyReport | null>(await client.GET('/api/projects/{project_id}/verification', {
+      params: { path: { project_id: projectId } }, signal,
+    }))
+  },
+  async shareCode() {
+    const response = await fetch('/api/share-code', { headers: API_KEY ? { 'X-API-Key': API_KEY } : {} })
+    if (!response.ok) throw new Error('请使用分享模式启动，再打开二维码。')
+    return response.blob()
+  },
   async getRuntimePolicy(signal?: AbortSignal) {
     return unwrap<RuntimePolicy>(await client.GET('/api/runtime-policy', { signal }))
   },

@@ -73,3 +73,12 @@ OpenSubtitles.*
 # ===== 本地实验产物 =====
 backend/data/baselines/*/
 !backend/data/baselines/*.md
+
+# ===== 演示构建 / 试跑中间产物（正式交付物保留） =====
+presentation/remake/**/runtime/
+presentation/remake/**/recordings/
+presentation/remake/browser_preview/
+presentation/remake/powerpoint_preview/
+presentation/remake/setup_narrow_selection/
+presentation/remake/presentation.pptx
+presentation/remake/preview.pdf

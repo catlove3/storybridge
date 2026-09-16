@@ -7,8 +7,8 @@ import type {
 
 const strategyLabels: Record<AdaptationOption['strategy'], string> = {
   preserve: '保留并解释',
-  functional_replacement: '功能性替换',
-  plot_reconstruction: '情节重构',
+  functional_replacement: '换成当地表达',
+  plot_reconstruction: '重新设计情节',
 }
 
 const impactLabels: Record<ImpactKind, string> = {
@@ -32,10 +32,10 @@ export function PlanOptions({ plan, selectedLabel, disabled, onSelect }: {
             <h4>{option.title}</h4>
             <p className="option-card__definition">{option.replacement_definition}</p>
             <p>{option.rationale}</p>
-            <div className="option-card__facts">
+            <details className="option-card__facts"><summary>查看详细依据与风险</summary>
               <div><span>保留功能</span><p>{option.preserved_functions.join(' · ') || '未列出'}</p></div>
               <div><span>潜在风险</span><p>{option.risks.join(' · ') || '无显著风险'}</p></div>
-            </div>
+            </details>
             <button className="option-card__select" disabled={disabled} onClick={() => onSelect(option.option_label)} type="button">
               {selected ? '已选择此方案' : `选择方案 ${option.option_label}`}
             </button>

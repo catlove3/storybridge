@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import hashlib
 import logging
 from typing import Literal
 from urllib.parse import urlsplit
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field, model_validator
 
 from app.api.contracts import (
@@ -22,10 +23,12 @@ from app.api.contracts import (
     StateSummaryResponse,
     StoryGraphResponse,
 )
-from app.api.security import require_owner, usage_guard
-from app.config import api_key_owners, get_config
+from app.api.security import generation_admission, require_owner, usage_guard
+from app.config import api_key_for, api_key_owners, get_config
+from app.demo_scripts import DemoDetail, DemoSummary, catalog, detail
 from app.graph import StoryGraph
 from app.llm.router import LLMBudgetExceeded
+from app.public_usage import PublicLimitError, public_usage
 from app.schemas import (
     AdaptationPlan,
     DataPolicy,
@@ -43,11 +46,12 @@ from app.workflow.engine import (
     DuplicateOperation,
     StateVersionConflict,
     StoryBridgeWorkflow,
+    VerificationBlocked,
 )
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api", dependencies=[Depends(require_owner)])
+router = APIRouter(prefix="/api", dependencies=[Depends(require_owner), Depends(generation_admission)])
 
 
 def _workflow(request: Request) -> StoryBridgeWorkflow:
@@ -69,6 +73,10 @@ def _project_or_404(workflow: StoryBridgeWorkflow, project_id: str, request: Req
 
 
 def _upstream_failure(operation: str, project_id: str, exc: Exception) -> HTTPException:
+    if isinstance(exc, VerificationBlocked):
+        return HTTPException(409, {"code": "verification_blocked", "message": str(exc)})
+    if isinstance(exc, PublicLimitError):
+        return HTTPException(status_code=429, detail=exc.detail())
     if isinstance(exc, LLMBudgetExceeded):
         return HTTPException(
             status_code=429,
@@ -104,6 +112,8 @@ def _run_logger(workflow: StoryBridgeWorkflow):
 
 
 def _enforce_llm_budget(workflow: StoryBridgeWorkflow, project_id: str) -> None:
+    if get_config().share.enabled:
+        return
     run_logger = _run_logger(workflow)
     if run_logger is None:
         return
@@ -121,6 +131,7 @@ class CreateProjectBody(BaseModel):
     script: str = Field(min_length=1, max_length=500_000)
     market: MarketProfile = Field(default_factory=MarketProfile)
     data_policy: DataPolicy = Field(default_factory=DataPolicy)
+    idempotency_key: str | None = Field(default=None, min_length=1, max_length=200)
 
 
 class PlanBody(BaseModel):
@@ -130,7 +141,10 @@ class PlanBody(BaseModel):
 class ApplyBody(BaseModel):
     culture_mechanism_id: str = Field(pattern=r"^CM\d+$")
     option_label: Literal["A", "B", "C"]
-    auto_verify_and_repair: bool = True
+    auto_verify_and_repair: bool = Field(
+        default=False,
+        description="Only run automatic verification and repair when explicitly authorized.",
+    )
     based_on_version: int | None = Field(default=None, ge=1)
     operation_id: str | None = Field(default=None, min_length=1, max_length=200)
 
@@ -152,7 +166,10 @@ class BatchPlanBody(BaseModel):
 
 class BatchApplyBody(BaseModel):
     adaptations: list[AdaptationSelection] = Field(min_length=1, max_length=20)
-    auto_verify_and_repair: bool = True
+    auto_verify_and_repair: bool = Field(
+        default=False,
+        description="Only run automatic verification and repair when explicitly authorized.",
+    )
     based_on_version: int | None = Field(default=None, ge=1)
     operation_id: str | None = Field(default=None, min_length=1, max_length=200)
 
@@ -165,20 +182,62 @@ class BatchApplyBody(BaseModel):
 
 
 @router.get("/runtime-policy", response_model=RuntimePolicyResponse)
-async def runtime_policy():
+async def runtime_policy(request: Request):
     config = get_config()
     profile = config.llm.profiles[config.llm.default_profile]
     endpoint = urlsplit(profile.base_url)
+    mock = getattr(request.app.state, "mock_mode", False)
+    try:
+        available = mock or bool(api_key_for(profile))
+    except ValueError:
+        available = False
     return {
         "authentication_required": bool(api_key_owners(config)),
-        "provider_endpoint": f"{endpoint.scheme}://{endpoint.netloc}",
+        "provider_endpoint": f"{endpoint.scheme}://{endpoint.hostname}",
         "model": profile.model,
         "sft_collection_enabled": config.logging.sft_log_enabled,
         "sft_redaction_enabled": config.logging.sft_redact_pii,
         "sft_retention_days": config.logging.sft_retention_days,
         "max_script_chars": config.security.max_script_chars,
-        "max_project_llm_tokens": config.security.max_project_llm_tokens,
+        "max_project_llm_tokens": 0 if config.share.enabled else config.security.max_project_llm_tokens,
+        "public_mode": config.share.enabled,
+        "public_url": config.share.public_url,
+        "model_available": available,
+        "mock_mode": mock,
+        "quota": public_usage().status(_owner(request)) if config.share.enabled else None,
     }
+
+
+@router.get("/demo-scripts", response_model=list[DemoSummary])
+async def demo_scripts():
+    return catalog()
+
+
+@router.get("/demo-scripts/{script_id}", response_model=DemoDetail)
+async def demo_script(script_id: str):
+    return detail(script_id)
+
+
+@router.get("/share-code")
+async def share_code():
+    import io
+
+    import qrcode
+    import qrcode.image.svg
+
+    from app.api.sessions import validate_public_url
+
+    url = get_config().share.public_url
+    try:
+        validate_public_url(url)
+    except ValueError:
+        raise HTTPException(409, "请用 ./speed_run.sh --share 启动手机体验。") from None
+    output = io.BytesIO()
+    qrcode.make(url + "/", image_factory=qrcode.image.svg.SvgPathFillImage, border=4).save(output)
+    return Response(output.getvalue(), media_type="image/svg+xml", headers={
+        "Content-Disposition": 'inline; filename="storybridge-qr.svg"',
+        "Cache-Control": "no-store",
+    })
 
 
 @router.post("/projects", response_model=ProjectCreated)
@@ -193,6 +252,18 @@ async def create_project(body: CreateProjectBody, request: Request):
                 "message": f"Script exceeds the configured {max_chars} character limit",
             },
         )
+    if body.idempotency_key:
+        request_hash = hashlib.sha256(body.model_dump_json().encode()).hexdigest()
+        with public_usage().database.transaction() as connection:
+            previous = connection.execute(
+                "SELECT project_id,request_hash FROM project_requests WHERE owner_id=? AND request_key=?",
+                (_owner(request), body.idempotency_key),
+            ).fetchone()
+        if previous:
+            if previous["request_hash"] and previous["request_hash"] != request_hash:
+                raise HTTPException(409, {"code": "idempotency_conflict", "message": "内容已变化，请重新提交。"})
+            meta = _project_or_404(workflow, previous["project_id"], request)
+            return {"id": meta.id, "name": meta.name}
     meta = await workflow.create_project(
         body.name,
         body.script,
@@ -200,6 +271,12 @@ async def create_project(body: CreateProjectBody, request: Request):
         owner_id=_owner(request),
         data_policy=body.data_policy,
     )
+    if body.idempotency_key:
+        with public_usage().database.transaction(immediate=True) as connection:
+            connection.execute(
+                "INSERT INTO project_requests VALUES(?,?,?,?)",
+                (_owner(request), body.idempotency_key, meta.id, request_hash),
+            )
     return {"id": meta.id, "name": meta.name}
 
 
@@ -402,6 +479,13 @@ async def verify(project_id: str, request: Request):
     return report.model_dump()
 
 
+@router.get("/projects/{project_id}/verification", response_model=VerifyReport | None)
+async def get_verification(project_id: str, request: Request):
+    workflow = _workflow(request)
+    _project_or_404(workflow, project_id, request)
+    return workflow.latest_report(project_id)
+
+
 @router.post("/projects/{project_id}/target-script", response_model=TargetScript)
 async def render_target_script(project_id: str, request: Request):
     workflow = _workflow(request)
@@ -528,6 +612,10 @@ class JobSubmitBody(BaseModel):
     )
     based_on_version: int | None = Field(default=None, ge=1)
     idempotency_key: str | None = Field(default=None, min_length=1, max_length=200)
+    auto_verify_and_repair: bool = Field(
+        default=False,
+        description="Only run automatic verification and repair when explicitly authorized.",
+    )
 
     @model_validator(mode="after")
     def _required_fields_for_kind(self) -> JobSubmitBody:
@@ -563,109 +651,54 @@ async def submit_job(project_id: str, body: JobSubmitBody, request: Request):
         if body.idempotency_key
         else None
     )
-    if existing is None:
-        owned_project_ids = {
-            meta.id
-            for meta in workflow.store.list_projects()
-            if meta.owner_id == _owner(request)
-        }
-        usage_guard(request).check_job_submission(
-            _owner(request), owned_project_ids, jobs
-        )
+    request_hash = hashlib.sha256(body.model_dump_json().encode()).hexdigest()
+    if existing is not None:
+        if existing.kind != body.kind or (existing.request_hash and existing.request_hash != request_hash):
+            raise HTTPException(409, {"code": "idempotency_conflict", "message": "请求已用于其他步骤。"})
+        return {"job_id": existing.id, "status": existing.status}
+    if body.kind in {JobKind.APPLY, JobKind.APPLY_BATCH} and body.based_on_version is not None:
+        current_version = workflow.require_state(project_id).version
+        if body.based_on_version != current_version:
+            raise HTTPException(409, "state version conflict: 故事已更新，请刷新后重试。")
 
-    if body.kind == JobKind.ANALYZE:
+    factories = {
+        JobKind.ANALYZE: lambda: workflow.analyze(project_id),
+        JobKind.PLAN: lambda: workflow.plan(project_id, body.culture_mechanism_id),
+        JobKind.PLAN_BATCH: lambda: workflow.plan_many(project_id, body.culture_mechanism_ids or []),
+        JobKind.APPLY: lambda: workflow.apply_adaptation(
+            project_id, body.culture_mechanism_id, body.option_label,
+            auto_verify_and_repair=body.auto_verify_and_repair,
+            based_on_version=body.based_on_version, operation_id=body.idempotency_key,
+        ),
+        JobKind.APPLY_BATCH: lambda: workflow.apply_adaptations(
+            project_id, body.adaptations or [],
+            auto_verify_and_repair=body.auto_verify_and_repair,
+            based_on_version=body.based_on_version, operation_id=body.idempotency_key,
+        ),
+        JobKind.VERIFY: lambda: workflow.verify(project_id),
+        JobKind.RENDER: lambda: workflow.render_target_script(project_id),
+    }
+    slot = None
+    if get_config().share.enabled:
+        try:
+            slot = public_usage().admit(_owner(request))
+        except PublicLimitError as exc:
+            raise HTTPException(429, exc.detail()) from exc
+    else:
+        owned = {m.id for m in workflow.store.list_projects() if m.owner_id == _owner(request)}
+        usage_guard(request).check_job_submission(_owner(request), owned, jobs)
+    try:
         job = _submit(
-            jobs,
-            "analyze",
-            project_id,
-            lambda: workflow.analyze(project_id),
+            jobs, body.kind.value, project_id, factories[body.kind],
             idempotency_key=body.idempotency_key,
+            on_finished=(lambda: public_usage().release(slot)) if slot else None,
+            request_hash=request_hash,
         )
-    elif body.kind == JobKind.APPLY:
-        assert body.culture_mechanism_id and body.option_label
-        if body.based_on_version is not None:
-            current_version = workflow.require_state(project_id).version
-            if body.based_on_version != current_version:
-                raise HTTPException(
-                    status_code=409,
-                    detail=(
-                        f"state version conflict: expected {body.based_on_version}, "
-                        f"current version is {current_version}"
-                    ),
-                )
-        job = _submit(
-            jobs,
-            "apply",
-            project_id,
-            lambda: workflow.apply_adaptation(
-                project_id,
-                body.culture_mechanism_id,
-                body.option_label,
-                based_on_version=body.based_on_version,
-                operation_id=body.idempotency_key,
-            ),
-            idempotency_key=body.idempotency_key,
-        )
-    elif body.kind == JobKind.APPLY_BATCH:
-        assert body.adaptations
-        if body.based_on_version is not None:
-            current_version = workflow.require_state(project_id).version
-            if body.based_on_version != current_version:
-                raise HTTPException(
-                    status_code=409,
-                    detail=(
-                        f"state version conflict: expected {body.based_on_version}, "
-                        f"current version is {current_version}"
-                    ),
-                )
-        job = _submit(
-            jobs,
-            "apply_batch",
-            project_id,
-            lambda: workflow.apply_adaptations(
-                project_id,
-                body.adaptations or [],
-                based_on_version=body.based_on_version,
-                operation_id=body.idempotency_key,
-            ),
-            idempotency_key=body.idempotency_key,
-        )
-    elif body.kind == JobKind.VERIFY:
-        job = _submit(
-            jobs,
-            "verify",
-            project_id,
-            lambda: workflow.verify(project_id),
-            idempotency_key=body.idempotency_key,
-        )
-    elif body.kind == JobKind.PLAN:
-        assert body.culture_mechanism_id
-        job = _submit(
-            jobs,
-            "plan",
-            project_id,
-            lambda: workflow.plan(project_id, body.culture_mechanism_id),
-            idempotency_key=body.idempotency_key,
-        )
-    elif body.kind == JobKind.PLAN_BATCH:
-        assert body.culture_mechanism_ids
-        job = _submit(
-            jobs,
-            "plan_batch",
-            project_id,
-            lambda: workflow.plan_many(project_id, body.culture_mechanism_ids or []),
-            idempotency_key=body.idempotency_key,
-        )
-    elif body.kind == JobKind.RENDER:
-        job = _submit(
-            jobs,
-            "render",
-            project_id,
-            lambda: workflow.render_target_script(project_id),
-            idempotency_key=body.idempotency_key,
-        )
+    except BaseException:
+        if slot:
+            public_usage().release(slot)
+        raise
     return {"job_id": job.id, "status": job.status}
-
 
 @router.get("/jobs/{job_id}", response_model=JobResponse)
 async def get_job(job_id: str, request: Request):

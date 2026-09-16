@@ -1,0 +1,202 @@
+[
+  {
+    "culture_mechanism_id": "CM01",
+    "original_name": "高考",
+    "based_on_version": 1,
+    "friction_level": "high",
+    "options": [
+      {
+        "option_label": "A",
+        "strategy": "preserve",
+        "title": "保留中国高考语境，加注说明",
+        "replacement_definition": "保留‘高考’作为中国全国大学入学考试，在台词中通过角色解释其决定性作用，例如‘高考是中国决定大学录取的唯一标准考试’。所有查分、复核、志愿填报等情节按原样保留，仅增加文化注释。",
+        "rationale": "最小改动，保留原作的异域悬念和真实感，适合对中华文化有好奇心的观众。但目标市场观众可能难以共情，因为美国没有同等单一考试。",
+        "preserved_functions": [
+          "plot: motivation, constraint, conflict, revelation, foreshadowing, payoff",
+          "social: status, institutional_access, economic_security, reputation",
+          "emotional: fear, aspiration, suspense, satisfaction, humiliation"
+        ],
+        "lost_functions": [],
+        "risks": [
+          "美国观众可能不理解高考的绝对权威性，导致紧张感减弱。",
+          "文化隔阂可能让复仇动机显得遥远。",
+          "需要大量解释性对白，拖慢节奏。"
+        ]
+      },
+      {
+        "option_label": "B",
+        "strategy": "functional_replacement",
+        "title": "替换为美国大学录取综合评估系统（虚构）",
+        "replacement_definition": "将‘高考’替换为‘全国大学录取综合评估系统’（National College Admissions Composite, NCAC），这是一个虚构的标准化考试与综合评估平台，由私营教育科技公司‘ScholarTrack’运营。该系统结合一次全国统考（类似SAT但虚构）和高中成绩、课外活动等，但统考分数占70%权重，且系统自动生成最终录取指数。查分即登录ScholarTrack账户查看‘录取指数’。复核即向ScholarTrack提交分数验证请求。志愿填报即通过系统匹配大学。沈曼父亲花三百万买通复核人员，改为花50万美元贿赂ScholarTrack内部人员篡改数据。",
+        "rationale": "美国大学录取虽非单一考试，但存在SAT/ACT等标准化考试，且富裕家庭通过贿赂、作弊等影响录取的丑闻真实存在（如2019年大学招生舞弊案）。用虚构的‘ScholarTrack’系统可以保留考试的决定性、查分紧张感、复核机制和金钱腐败，同时避免使用真实机构。",
+        "preserved_functions": [
+          "plot: motivation, constraint, conflict, revelation, foreshadowing, payoff",
+          "social: status, institutional_access, economic_security, reputation",
+          "emotional: fear, aspiration, suspense, satisfaction, humiliation"
+        ],
+        "lost_functions": [
+          "高考作为全国统一仪式的集体记忆和绝对公平象征"
+        ],
+        "risks": [
+          "美国观众可能认为标准化考试并非唯一决定因素，削弱紧迫感。",
+          "虚构系统需要快速建立可信度，否则显得牵强。",
+          "贿赂金额需调整以符合美国语境（如50万美元）。"
+        ]
+      },
+      {
+        "option_label": "C",
+        "strategy": "plot_reconstruction",
+        "title": "重构为‘学术能力认证系统’（Academic Proficiency Certification, APC）",
+        "replacement_definition": "将冲突机制从考试替换为‘学术能力认证系统’（APC），这是一个由虚构的‘国家教育数据联盟’运营的全国性学术档案系统，记录学生从九年级到十二年级的所有考试、作业、项目成绩，并生成一个最终‘学术能力指数’（API），大学录取完全依赖此指数。每年有一次‘认证考试’，但系统会综合所有数据。查分即查看API。复核即向联盟提交数据审计请求。志愿填报即通过系统匹配大学。沈曼父亲贿赂联盟内部人员，在系统中植入错误数据，将林知夏的API拉低，将沈曼的拉高。换分锚点改为‘借笔’时，笔被系统识别为‘数据输入设备’，沈曼借笔实为用笔上的生物识别器篡改数据。",
+        "rationale": "彻底重构，将考试替换为持续评估系统，更贴近美国教育中GPA、课外活动等综合评估的现实。同时保留‘借笔’作为触发锚点，但赋予其科技功能。这样既避免单一考试的文化隔阂，又保留悬念和复仇逻辑。",
+        "preserved_functions": [
+          "plot: motivation, constraint, conflict, revelation, foreshadowing, payoff",
+          "social: status, institutional_access, economic_security, reputation",
+          "emotional: fear, aspiration, suspense, satisfaction, humiliation"
+        ],
+        "lost_functions": [
+          "高考作为一次性、高 stakes 考试的紧张感和仪式感",
+          "查分夜全家紧张等待的经典场景"
+        ],
+        "risks": [
+          "改动过大，可能偏离原作核心粉丝预期。",
+          "需要更多场景解释系统运作，可能拖慢节奏。",
+          "科技元素可能削弱情感共鸣。"
+        ]
+      }
+    ]
+  },
+  {
+    "culture_mechanism_id": "CM02",
+    "original_name": "换分",
+    "based_on_version": 1,
+    "friction_level": "low",
+    "options": [
+      {
+        "option_label": "A",
+        "strategy": "preserve",
+        "title": "保留中国高考换分设定，仅加注说明",
+        "replacement_definition": "维持原设定：通过借笔触发超自然换分，交换两人高考分数。在台词中通过角色口吻自然解释高考对中国学生的重要性，例如林知夏台词：“高考分数决定你能进哪所大学，改变一生。” 不改变任何情节逻辑。",
+        "rationale": "目标受众为18-35岁美国短剧观众，对中国高考制度可能陌生，但重生复仇题材的观众对异国设定接受度较高。保留原设定可维持文化异域感，且无需重构核心机制，降低改编风险。",
+        "preserved_functions": [
+          "plot: motivation, revelation, foreshadowing, payoff, reversal",
+          "emotional: suspense, satisfaction"
+        ],
+        "lost_functions": [],
+        "risks": [
+          "美国观众可能难以理解高考的绝对重要性，导致情感共鸣减弱。",
+          "借笔作为换分锚点的超自然规则可能显得突兀，缺乏文化铺垫。",
+          "若解释过多，可能拖慢节奏，影响短剧的紧凑感。"
+        ]
+      },
+      {
+        "option_label": "B",
+        "strategy": "functional_replacement",
+        "title": "替换为SAT/ACT分数交换，借笔触发黑箱算法",
+        "replacement_definition": "将高考替换为美国大学入学考试SAT/ACT。设定一个虚构的“分数同步系统”（ScoreSync），由某教育科技公司秘密运营，通过特定物品（如笔）作为生物特征锚点，在考试结束后自动交换两人的标准化考试成绩。借笔行为触发系统识别，交换分数。沈曼借笔后，林知夏的SAT分数（原1580）与沈曼的分数（原1120）互换，但沈曼误借周雨的笔，导致周雨（原980）与沈曼（原1120）交换。掌心蓝痕改为手腕内侧的淡蓝色条形码印记，褪色表示交换完成。系统日志以离线数据形式存储，可被取证。",
+        "rationale": "SAT/ACT是美国高中生申请大学的核心指标，功能上等同于高考，能保留分数交换的动机、悬念和反转。虚构的ScoreSync系统避免使用真实机构，同时符合美国观众对科技黑箱的想象。借笔作为锚点保留原设定，无需添加新规则。",
+        "preserved_functions": [
+          "plot: motivation, revelation, foreshadowing, payoff, reversal",
+          "emotional: suspense, satisfaction"
+        ],
+        "lost_functions": [],
+        "risks": [
+          "SAT/ACT的考试频率和重要性虽高，但不如高考一考定终身，可能削弱紧迫感。",
+          "需要额外解释ScoreSync系统的存在，可能占用剧情时间。",
+          "美国观众可能对标准化考试作弊题材有既定印象，需避免刻板化。"
+        ]
+      },
+      {
+        "option_label": "C",
+        "strategy": "plot_reconstruction",
+        "title": "重构为大学录取资格交换，借笔触发推荐信篡改",
+        "replacement_definition": "将冲突核心从分数交换改为大学录取资格交换。设定一个虚构的“精英录取联盟”（Elite Admission Alliance），通过秘密算法操纵顶尖大学的录取决定。借笔行为触发系统，将两人的录取结果互换：林知夏原本被斯坦福录取，沈曼被州立大学录取，交换后沈曼获得斯坦福录取，林知夏被州立大学录取。沈曼误借周雨的笔，导致周雨（原被社区大学录取）与沈曼（原州立大学）交换。掌心蓝痕改为手机上的匿名通知，显示“录取状态已更新”，随后消失。系统日志以加密邮件形式存在，可被追踪。",
+        "rationale": "美国大学录取过程复杂且充满不确定性，录取资格交换能制造类似的命运逆转和复仇动机。重构后更贴近美国教育竞争的现实，避免直接复制高考设定。借笔作为触发机制保留，但交换对象从分数变为录取结果，增加新鲜感。",
+        "preserved_functions": [
+          "plot: motivation, revelation, foreshadowing, payoff, reversal",
+          "emotional: suspense, satisfaction"
+        ],
+        "lost_functions": [
+          "plot: 分数作为可量化指标的具体性（如669分、330分等数字对比）",
+          "emotional: 对分数精确值的紧张感（如“你明明只有330”的台词冲击力）"
+        ],
+        "risks": [
+          "录取资格交换的逻辑需要更复杂的解释，可能影响节奏。",
+          "失去具体分数后，部分悬念和反转的力度可能减弱。",
+          "美国观众对大学录取丑闻（如Varsity Blues）有认知，可能觉得似曾相识。"
+        ]
+      }
+    ]
+  },
+  {
+    "culture_mechanism_id": "CM10",
+    "original_name": "统分系统",
+    "based_on_version": 1,
+    "friction_level": "high",
+    "options": [
+      {
+        "option_label": "A",
+        "strategy": "preserve",
+        "title": "保留中国统分系统，加注说明",
+        "replacement_definition": "保留“统分系统”作为中国高考分数统计后台，在台词中通过老宋解释其内部权限与数据篡改风险，并在画面或字幕中加注“中国高考分数统计系统”。",
+        "rationale": "完全保留原设定，避免改编成本，但目标受众可能因不熟悉中国高考制度而难以理解其权威性与内部人员可接触数据的设定，情感共鸣减弱。",
+        "preserved_functions": [
+          "revelation",
+          "foreshadowing",
+          "payoff",
+          "institutional_access",
+          "power",
+          "suspense",
+          "satisfaction"
+        ],
+        "lost_functions": [],
+        "risks": [
+          "美国观众可能不理解“统分系统”的权威性，导致悬念和满足感降低。",
+          "可能被误认为科幻设定而非现实背景，削弱代入感。"
+        ]
+      },
+      {
+        "option_label": "B",
+        "strategy": "functional_replacement",
+        "title": "替换为虚构的全国学业评估数据平台（NAAP）",
+        "replacement_definition": "将“统分系统”替换为“National Academic Assessment Platform (NAAP)”，一个虚构的全国性学业评估数据平台，负责汇总和发布标准化考试成绩。内部人员可通过权限接触数据，存在被非法模块“ScoreSwap”篡改的风险。日志字段包括：借笔人ID、被借笔人ID、交换状态、目标错误建议回退。取证方式为离线日志打印件，庭审说法为“NAAP系统被非法模块入侵，数据被篡改”。",
+        "rationale": "NAAP作为全国性学业评估平台，在美国教育背景下具有类似的权威性和 institutional access，能够保留原机制的社会功能和情感效果。虚构平台避免使用真实机构，符合硬性要求。",
+        "preserved_functions": [
+          "revelation",
+          "foreshadowing",
+          "payoff",
+          "institutional_access",
+          "power",
+          "suspense",
+          "satisfaction"
+        ],
+        "lost_functions": [],
+        "risks": [
+          "美国教育体系中没有完全对应的全国统一考试，观众可能需要额外解释来理解NAAP的权威性。",
+          "虚构平台可能被质疑其现实性，但通过细节描写可增强可信度。"
+        ]
+      },
+      {
+        "option_label": "C",
+        "strategy": "plot_reconstruction",
+        "title": "重构为大学录取数据黑箱模块",
+        "replacement_definition": "将冲突机制重构为大学录取数据黑箱模块“EduSwap”，该模块被植入大学申请系统，可篡改学生的标准化考试成绩和GPA。沈曼通过借笔触发模块，交换周雨的成绩。日志显示“目标错误，建议回退”。取证方式为黑客老宋入侵系统获取离线日志。庭审说法为“EduSwap模块被非法利用，篡改录取数据”。",
+        "rationale": "将冲突从考试分数转移到大学录取数据，更贴近美国观众对大学录取丑闻的认知，增强现实感和悬念。同时保留借笔作为触发锚点，维持原设定。",
+        "preserved_functions": [
+          "revelation",
+          "foreshadowing",
+          "payoff",
+          "institutional_access",
+          "power",
+          "suspense",
+          "satisfaction"
+        ],
+        "lost_functions": [],
+        "risks": [
+          "大学录取数据篡改涉及更复杂的系统，可能需要更多解释，影响节奏。",
+          "可能引发对现实大学录取系统的联想，需确保虚构性。"
+        ]
+      }
+    ]
+  }
+]

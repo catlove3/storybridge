@@ -1,0 +1,287 @@
+{
+  "applied": [
+    {
+      "plan_culture_mechanism_id": "CM01",
+      "state_version": 2,
+      "operation_id": null,
+      "chosen_option": {
+        "option_label": "C",
+        "strategy": "plot_reconstruction",
+        "title": "重构为‘学术能力认证系统’（Academic Proficiency Certification, APC）",
+        "replacement_definition": "将冲突机制从考试替换为‘学术能力认证系统’（APC），这是一个由虚构的‘国家教育数据联盟’运营的全国性学术档案系统，记录学生从九年级到十二年级的所有考试、作业、项目成绩，并生成一个最终‘学术能力指数’（API），大学录取完全依赖此指数。每年有一次‘认证考试’，但系统会综合所有数据。查分即查看API。复核即向联盟提交数据审计请求。志愿填报即通过系统匹配大学。沈曼父亲贿赂联盟内部人员，在系统中植入错误数据，将林知夏的API拉低，将沈曼的拉高。换分锚点改为‘借笔’时，笔被系统识别为‘数据输入设备’，沈曼借笔实为用笔上的生物识别器篡改数据。",
+        "rationale": "彻底重构，将考试替换为持续评估系统，更贴近美国教育中GPA、课外活动等综合评估的现实。同时保留‘借笔’作为触发锚点，但赋予其科技功能。这样既避免单一考试的文化隔阂，又保留悬念和复仇逻辑。",
+        "preserved_functions": [
+          "plot: motivation, constraint, conflict, revelation, foreshadowing, payoff",
+          "social: status, institutional_access, economic_security, reputation",
+          "emotional: fear, aspiration, suspense, satisfaction, humiliation"
+        ],
+        "lost_functions": [
+          "高考作为一次性、高 stakes 考试的紧张感和仪式感",
+          "查分夜全家紧张等待的经典场景"
+        ],
+        "risks": [
+          "改动过大，可能偏离原作核心粉丝预期。",
+          "需要更多场景解释系统运作，可能拖慢节奏。",
+          "科技元素可能削弱情感共鸣。"
+        ]
+      },
+      "propagation": {
+        "changed_node_id": "CM01",
+        "affected_scenes": [
+          {
+            "scene_id": "S01",
+            "impact_kinds": [
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E01",
+              "S01"
+            ],
+            "evidence": "CM01 --motivates--> E01 (\"最后一科开考前，考场外。林知夏默背着作文素材，沈曼迎上来：\"知夏，笔借我用一下，我那支突然断墨了。\"\"); E01 --appears_in--> S01 (\"沈曼迎上来：\"知夏，笔借我用一下\"\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S02",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E02",
+              "S02"
+            ],
+            "evidence": "CM01 --motivates--> E02 (\"深夜查分，屏幕跳出\"487\"。\"); E02 --appears_in--> S02 (\"深夜查分，屏幕跳出\"487\"。\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S03",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E05",
+              "S03"
+            ],
+            "evidence": "CM01 --motivates--> E05 (\"志愿填报截止那天，匿名短信把她约上天台。\"); E05 --appears_in--> S03 (\"沈曼卸下所有伪装：\"你以为我是靠我爸？\"\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S04",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E07",
+              "S04"
+            ],
+            "evidence": "CM01 --motivates--> E07 (\"再睁眼，是高考第一天清晨。\"); E07 --appears_in--> S04 (\"再睁眼，是高考第一天清晨。\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S05",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E09",
+              "S05"
+            ],
+            "evidence": "CM01 --motivates--> E09 (\"最后一科开考前，沈曼果然凑过来：\"知夏，笔借我用一下，我那支断墨了。\"\"); E09 --appears_in--> S05 (\"沈曼果然凑过来：\"知夏，笔借我用一下\"\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S06",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E10",
+              "S06"
+            ],
+            "evidence": "CM01 --motivates--> E10 (\"查分夜。林知夏输入准考证号，屏幕跳出：669\"); E10 --appears_in--> S06 (\"屏幕跳出：669\")",
+            "path_confidence": 0.81
+          }
+        ],
+        "related_commitment_ids": [
+          "NC01",
+          "NC02",
+          "NC03",
+          "NC04",
+          "NC05"
+        ],
+        "summary": "Changing 'CM01' (高考) affects 6 scene(s): S01, S02, S03, S04, S05, S06"
+      },
+      "rewritten_scene_ids": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06"
+      ],
+      "notes": ""
+    },
+    {
+      "plan_culture_mechanism_id": "CM10",
+      "state_version": 2,
+      "operation_id": null,
+      "chosen_option": {
+        "option_label": "C",
+        "strategy": "plot_reconstruction",
+        "title": "重构为大学录取数据黑箱模块",
+        "replacement_definition": "将冲突机制重构为大学录取数据黑箱模块“EduSwap”，该模块被植入大学申请系统，可篡改学生的标准化考试成绩和GPA。沈曼通过借笔触发模块，交换周雨的成绩。日志显示“目标错误，建议回退”。取证方式为黑客老宋入侵系统获取离线日志。庭审说法为“EduSwap模块被非法利用，篡改录取数据”。",
+        "rationale": "将冲突从考试分数转移到大学录取数据，更贴近美国观众对大学录取丑闻的认知，增强现实感和悬念。同时保留借笔作为触发锚点，维持原设定。",
+        "preserved_functions": [
+          "revelation",
+          "foreshadowing",
+          "payoff",
+          "institutional_access",
+          "power",
+          "suspense",
+          "satisfaction"
+        ],
+        "lost_functions": [],
+        "risks": [
+          "大学录取数据篡改涉及更复杂的系统，可能需要更多解释，影响节奏。",
+          "可能引发对现实大学录取系统的联想，需确保虚构性。"
+        ]
+      },
+      "propagation": {
+        "changed_node_id": "CM10",
+        "affected_scenes": [],
+        "related_commitment_ids": [
+          "NC06"
+        ],
+        "summary": "No downstream scenes depend on 'CM10'."
+      },
+      "rewritten_scene_ids": [],
+      "notes": ""
+    }
+  ],
+  "report": {
+    "issues": [
+      {
+        "issue_type": "motivation_break",
+        "severity": "warning",
+        "scene_id": null,
+        "description": "重构策略仍保留 CM01 的旧因果依赖边，需要人工确认因果链是否已同步重建",
+        "evidence": "CM01--motivates-->E01, CM01--motivates-->E02, CM01--motivates-->E04, CM01--motivates-->E05, CM01--motivates-->E07"
+      },
+      {
+        "issue_type": "motivation_break",
+        "severity": "warning",
+        "scene_id": null,
+        "description": "重构策略仍保留 CM10 的旧因果依赖边，需要人工确认因果链是否已同步重建",
+        "evidence": "CM10--motivates-->E19, NC06--depends_on-->CM10"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S08",
+        "description": "沈曼称林知夏换了她的笔，但林知夏实际只是未借出自己的笔。",
+        "evidence": "是你。你换了我的笔。"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S08",
+        "description": "林知夏称沈曼借周雨的笔触发EduSwap，但沈曼实际借的是林知夏递出的周雨的笔。",
+        "evidence": "你借周雨的笔触发了一次EduSwap"
+      },
+      {
+        "issue_type": "unresolved_payoff",
+        "severity": "warning",
+        "scene_id": "S08",
+        "description": "林知夏计划录下沈曼推人证据，但沈曼扑来撞上护栏，未发生推人行为。",
+        "evidence": "沈曼扑上来。林知夏侧身让开，沈曼收势不住撞上护栏。"
+      }
+    ],
+    "commitment_checks": [
+      {
+        "commitment_id": "NC01",
+        "status": "violated",
+        "explanation": "林知夏计划录下沈曼推人证据，但沈曼扑来撞上护栏，未发生推人行为，录音未记录到推人证据。"
+      },
+      {
+        "commitment_id": "NC02",
+        "status": "preserved",
+        "explanation": "沈曼借笔是为了换分，笔是换分的锚点，该设定在S04、S05、S08中均有体现。"
+      },
+      {
+        "commitment_id": "NC03",
+        "status": "preserved",
+        "explanation": "沈曼掌心蓝痕是换分成功的标志，蓝痕褪色代表换分完成，在S02、S03中均有体现。"
+      },
+      {
+        "commitment_id": "NC04",
+        "status": "preserved",
+        "explanation": "林知夏前世被沈曼换分导致高考失利，重生后布局复仇，最终在S11揭露换分真相。"
+      },
+      {
+        "commitment_id": "NC05",
+        "status": "preserved",
+        "explanation": "林知夏故意将周雨的笔借给沈曼，导致周雨被换分，这一道德亏欠在S11中得到清算，周雨分数恢复但两人关系回不去。"
+      },
+      {
+        "commitment_id": "NC06",
+        "status": "preserved",
+        "explanation": "易分系统来源不明，已移交专门机构调查，留下未解悬念，在S11中体现。"
+      },
+      {
+        "commitment_id": "NC07",
+        "status": "preserved",
+        "explanation": "系统没有消失，它只是换了一种方式，在等下一个借笔的人，在S12中体现。"
+      }
+    ],
+    "checked_scene_ids": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "S08",
+      "S09",
+      "S10",
+      "S11",
+      "S12"
+    ],
+    "static_checks_passed": 2,
+    "static_checks_total": 3,
+    "commitments_verified": 7,
+    "commitments_total": 7,
+    "scenes_checked": 12,
+    "scenes_total": 12,
+    "overall_status": "fail",
+    "consistency_score": 0.35
+  },
+  "repair_rounds": 2,
+  "repaired_scene_ids": [
+    "S07",
+    "S09",
+    "S10",
+    "S11",
+    "S03",
+    "S10",
+    "S09",
+    "S08",
+    "S06",
+    "S05",
+    "S04",
+    "S02",
+    "S01"
+  ],
+  "from_version": 1,
+  "to_version": 2
+}

@@ -22,7 +22,7 @@ def test_schema_upgrade_and_wal_mode(tmp_path):
     assert first_version.schema_version() == 1
 
     upgraded = SQLiteDatabase(path)
-    assert upgraded.schema_version() == 3
+    assert upgraded.schema_version() == 5
     assert upgraded.journal_mode() == "wal"
     assert upgraded.quick_check() is True
     with upgraded.connect() as connection:

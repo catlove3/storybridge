@@ -305,7 +305,7 @@ class LLMRouter(LLMClient):
 
     async def complete(self, request: LLMRequest) -> LLMResponse:
         context = current_data_context()
-        if self._run_logger is not None and context.project_id:
+        if self._run_logger is not None and context.project_id and not get_config().share.enabled:
             self._run_logger.ensure_budget(context.project_id)
         client = self.client_for_step(request.step)
         response = await client.complete(request)
@@ -349,6 +349,6 @@ def build_router() -> LLMRouter:
     )
     run_logger = RunMetadataLogger(
         log_dir=app_cfg.logging.run_log_dir,
-        max_tokens_per_project=app_cfg.security.max_project_llm_tokens,
+        max_tokens_per_project=0 if app_cfg.share.enabled else app_cfg.security.max_project_llm_tokens,
     )
     return LLMRouter(config=app_cfg.llm, logger=logger, run_logger=run_logger)

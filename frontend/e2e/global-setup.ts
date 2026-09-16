@@ -111,6 +111,9 @@ export default async function globalSetup() {
       cwd: backendRoot,
       env: {
         ...cleanEnv,
+        STORYBRIDGE_SHARE: '1',
+        STORYBRIDGE_SITE_SUBMISSIONS_PER_MINUTE: '1000',
+        STORYBRIDGE_PUBLIC_URL: '',
         STORYBRIDGE_PROJECTS_DIR: join(e2eRoot, 'projects'),
         STORYBRIDGE_JOBS_FILE: join(e2eRoot, 'jobs.json'),
         STORYBRIDGE_SFT_LOG_DIR: join(e2eRoot, 'sft'),

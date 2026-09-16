@@ -1,0 +1,94 @@
+{
+  "preselected": {
+    "id": "CM01",
+    "name": "高考",
+    "description": "中国普通高等学校招生全国统一考试，是决定学生升学的关键性考试，成绩直接影响大学录取。",
+    "surface_text": [
+      "高考",
+      "高考那天"
+    ],
+    "scene_ids": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07"
+    ],
+    "friction_level": "high",
+    "narrative_importance": "high",
+    "functions": {
+      "plot": [
+        "motivation",
+        "constraint",
+        "conflict",
+        "revelation",
+        "foreshadowing",
+        "payoff"
+      ],
+      "social": [
+        "status",
+        "institutional_access",
+        "economic_security",
+        "reputation"
+      ],
+      "emotional": [
+        "fear",
+        "aspiration",
+        "suspense",
+        "satisfaction",
+        "humiliation"
+      ]
+    },
+    "adapted_to": null,
+    "adapted_strategy": null
+  },
+  "selected": {
+    "id": "CM01",
+    "name": "高考",
+    "description": "中国普通高等学校招生全国统一考试，是决定学生升学的关键性考试，成绩直接影响大学录取。",
+    "surface_text": [
+      "高考",
+      "高考那天"
+    ],
+    "scene_ids": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07"
+    ],
+    "friction_level": "high",
+    "narrative_importance": "high",
+    "functions": {
+      "plot": [
+        "motivation",
+        "constraint",
+        "conflict",
+        "revelation",
+        "foreshadowing",
+        "payoff"
+      ],
+      "social": [
+        "status",
+        "institutional_access",
+        "economic_security",
+        "reputation"
+      ],
+      "emotional": [
+        "fear",
+        "aspiration",
+        "suspense",
+        "satisfaction",
+        "humiliation"
+      ]
+    },
+    "adapted_to": null,
+    "adapted_strategy": null
+  },
+  "reason": "The broad gaokao node is the core story mechanism and touches S01-S08; the first score-review node was too narrow for the planned end-to-end demo.",
+  "same_parsed_state": true
+}

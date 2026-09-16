@@ -20,7 +20,10 @@ async def require_owner(
     request: Request, api_key: str | None = Security(_API_KEY_HEADER)
 ) -> str:
     configured = api_key_owners()
-    if not configured:
+    if get_config().share.enabled and api_key is None:
+        from app.api.sessions import session_owner
+        owner_id = session_owner(request)
+    elif not configured and api_key is None:
         owner_id = get_config().security.default_owner
     else:
         owner_id = next(
@@ -72,6 +75,29 @@ def usage_guard(request: Request) -> ApiUsageGuard:
         request.app.state.usage_guard = guard
         request.app.state.usage_guard_jobs = jobs_identity
     return guard
+
+
+async def generation_admission(request: Request):
+    """Synchronous generation endpoints share the same slots as background work."""
+    from app.public_usage import PublicLimitError, public_usage
+
+    slot = None
+    if (get_config().share.enabled and request.method == "POST"
+            and request.url.path.rsplit("/", 1)[-1] in {
+                "analyze", "plan", "plan-batch", "apply", "apply-batch", "verify", "target-script"
+            }):
+        meta = request.app.state.workflow.store.load_meta(request.path_params["project_id"])
+        if meta is None or meta.owner_id != request.state.owner_id:
+            raise _error(404, "project_not_found", "Story not found")
+        try:
+            slot = public_usage().admit(request.state.owner_id)
+        except PublicLimitError as exc:
+            raise HTTPException(429, exc.detail()) from exc
+    try:
+        yield
+    finally:
+        if slot:
+            public_usage().release(slot)
 
 
 __all__ = ["ApiUsageGuard", "require_owner", "usage_guard"]

@@ -1,0 +1,482 @@
+{
+  "applied": [
+    {
+      "plan_culture_mechanism_id": "CM01",
+      "state_version": 2,
+      "operation_id": null,
+      "chosen_option": {
+        "option_label": "C",
+        "strategy": "plot_reconstruction",
+        "title": "重构为‘学术能力认证系统’（Academic Proficiency Certification, APC）",
+        "replacement_definition": "将冲突机制从考试替换为‘学术能力认证系统’（APC），这是一个由虚构的‘国家教育数据联盟’运营的全国性学术档案系统，记录学生从九年级到十二年级的所有考试、作业、项目成绩，并生成一个最终‘学术能力指数’（API），大学录取完全依赖此指数。每年有一次‘认证考试’，但系统会综合所有数据。查分即查看API。复核即向联盟提交数据审计请求。志愿填报即通过系统匹配大学。沈曼父亲贿赂联盟内部人员，在系统中植入错误数据，将林知夏的API拉低，将沈曼的拉高。换分锚点改为‘借笔’时，笔被系统识别为‘数据输入设备’，沈曼借笔实为用笔上的生物识别器篡改数据。",
+        "rationale": "彻底重构，将考试替换为持续评估系统，更贴近美国教育中GPA、课外活动等综合评估的现实。同时保留‘借笔’作为触发锚点，但赋予其科技功能。这样既避免单一考试的文化隔阂，又保留悬念和复仇逻辑。",
+        "preserved_functions": [
+          "plot: motivation, constraint, conflict, revelation, foreshadowing, payoff",
+          "social: status, institutional_access, economic_security, reputation",
+          "emotional: fear, aspiration, suspense, satisfaction, humiliation"
+        ],
+        "lost_functions": [
+          "高考作为一次性、高 stakes 考试的紧张感和仪式感",
+          "查分夜全家紧张等待的经典场景"
+        ],
+        "risks": [
+          "改动过大，可能偏离原作核心粉丝预期。",
+          "需要更多场景解释系统运作，可能拖慢节奏。",
+          "科技元素可能削弱情感共鸣。"
+        ]
+      },
+      "propagation": {
+        "changed_node_id": "CM01",
+        "affected_scenes": [
+          {
+            "scene_id": "S01",
+            "impact_kinds": [
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E01",
+              "S01"
+            ],
+            "evidence": "CM01 --motivates--> E01 (\"最后一科开考前，考场外。林知夏默背着作文素材，沈曼迎上来：\"知夏，笔借我用一下，我那支突然断墨了。\"\"); E01 --appears_in--> S01 (\"沈曼迎上来：\"知夏，笔借我用一下\"\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S02",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E02",
+              "S02"
+            ],
+            "evidence": "CM01 --motivates--> E02 (\"深夜查分，屏幕跳出\"487\"。\"); E02 --appears_in--> S02 (\"深夜查分，屏幕跳出\"487\"。\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S03",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E05",
+              "S03"
+            ],
+            "evidence": "CM01 --motivates--> E05 (\"志愿填报截止那天，匿名短信把她约上天台。\"); E05 --appears_in--> S03 (\"沈曼卸下所有伪装：\"你以为我是靠我爸？\"\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S04",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E07",
+              "S04"
+            ],
+            "evidence": "CM01 --motivates--> E07 (\"再睁眼，是高考第一天清晨。\"); E07 --appears_in--> S04 (\"再睁眼，是高考第一天清晨。\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S05",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E09",
+              "S05"
+            ],
+            "evidence": "CM01 --motivates--> E09 (\"最后一科开考前，沈曼果然凑过来：\"知夏，笔借我用一下，我那支断墨了。\"\"); E09 --appears_in--> S05 (\"沈曼果然凑过来：\"知夏，笔借我用一下\"\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S06",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E10",
+              "S06"
+            ],
+            "evidence": "CM01 --motivates--> E10 (\"查分夜。林知夏输入准考证号，屏幕跳出：669\"); E10 --appears_in--> S06 (\"屏幕跳出：669\")",
+            "path_confidence": 0.81
+          }
+        ],
+        "related_commitment_ids": [
+          "NC01",
+          "NC02",
+          "NC03",
+          "NC04",
+          "NC05"
+        ],
+        "summary": "Changing 'CM01' (高考) affects 6 scene(s): S01, S02, S03, S04, S05, S06"
+      },
+      "rewritten_scene_ids": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06"
+      ],
+      "notes": ""
+    },
+    {
+      "plan_culture_mechanism_id": "CM02",
+      "state_version": 2,
+      "operation_id": null,
+      "chosen_option": {
+        "option_label": "C",
+        "strategy": "plot_reconstruction",
+        "title": "重构为大学录取资格交换，借笔触发推荐信篡改",
+        "replacement_definition": "将冲突核心从分数交换改为大学录取资格交换。设定一个虚构的“精英录取联盟”（Elite Admission Alliance），通过秘密算法操纵顶尖大学的录取决定。借笔行为触发系统，将两人的录取结果互换：林知夏原本被斯坦福录取，沈曼被州立大学录取，交换后沈曼获得斯坦福录取，林知夏被州立大学录取。沈曼误借周雨的笔，导致周雨（原被社区大学录取）与沈曼（原州立大学）交换。掌心蓝痕改为手机上的匿名通知，显示“录取状态已更新”，随后消失。系统日志以加密邮件形式存在，可被追踪。",
+        "rationale": "美国大学录取过程复杂且充满不确定性，录取资格交换能制造类似的命运逆转和复仇动机。重构后更贴近美国教育竞争的现实，避免直接复制高考设定。借笔作为触发机制保留，但交换对象从分数变为录取结果，增加新鲜感。",
+        "preserved_functions": [
+          "plot: motivation, revelation, foreshadowing, payoff, reversal",
+          "emotional: suspense, satisfaction"
+        ],
+        "lost_functions": [
+          "plot: 分数作为可量化指标的具体性（如669分、330分等数字对比）",
+          "emotional: 对分数精确值的紧张感（如“你明明只有330”的台词冲击力）"
+        ],
+        "risks": [
+          "录取资格交换的逻辑需要更复杂的解释，可能影响节奏。",
+          "失去具体分数后，部分悬念和反转的力度可能减弱。",
+          "美国观众对大学录取丑闻（如Varsity Blues）有认知，可能觉得似曾相识。"
+        ]
+      },
+      "propagation": {
+        "changed_node_id": "CM02",
+        "affected_scenes": [
+          {
+            "scene_id": "S01",
+            "impact_kinds": [
+              "motivation"
+            ],
+            "reason_path": [
+              "CM02",
+              "E01",
+              "S01"
+            ],
+            "evidence": "CM02 --motivates--> E01 (\"沈曼迎上来：\"知夏，笔借我用一下，我那支突然断墨了。\"\"); E01 --appears_in--> S01 (\"沈曼迎上来：\"知夏，笔借我用一下\"\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S02",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM02",
+              "E04",
+              "S02"
+            ],
+            "evidence": "CM02 --causes--> E04 (\"沈曼以\"669分\"登上全校榜首\"); E04 --appears_in--> S02 (\"沈曼以\"669分\"登上全校榜首\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S05",
+            "impact_kinds": [
+              "motivation"
+            ],
+            "reason_path": [
+              "CM02",
+              "E09",
+              "S05"
+            ],
+            "evidence": "CM02 --motivates--> E09 (\"沈曼果然凑过来：\"知夏，笔借我用一下，我那支断墨了。\"\"); E09 --appears_in--> S05 (\"沈曼果然凑过来：\"知夏，笔借我用一下\"\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S06",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM02",
+              "E09",
+              "E11",
+              "S06"
+            ],
+            "evidence": "CM02 --motivates--> E09 (\"沈曼果然凑过来：\"知夏，笔借我用一下，我那支断墨了。\"\"); E09 --causes--> E11 (\"周雨的声音发颤：\"知夏，我查到487。可我估分只有330左右啊！\"\"); E11 --appears_in--> S06 (\"周雨的声音发颤：\"知夏，我查到487。\"\")",
+            "path_confidence": 0.7290000000000001
+          }
+        ],
+        "related_commitment_ids": [
+          "NC01",
+          "NC02",
+          "NC03"
+        ],
+        "summary": "Changing 'CM02' (换分) affects 4 scene(s): S01, S02, S05, S06"
+      },
+      "rewritten_scene_ids": [
+        "S01",
+        "S02",
+        "S05",
+        "S06"
+      ],
+      "notes": ""
+    },
+    {
+      "plan_culture_mechanism_id": "CM10",
+      "state_version": 2,
+      "operation_id": null,
+      "chosen_option": {
+        "option_label": "C",
+        "strategy": "plot_reconstruction",
+        "title": "重构为大学录取数据黑箱模块",
+        "replacement_definition": "将冲突机制重构为大学录取数据黑箱模块“EduSwap”，该模块被植入大学申请系统，可篡改学生的标准化考试成绩和GPA。沈曼通过借笔触发模块，交换周雨的成绩。日志显示“目标错误，建议回退”。取证方式为黑客老宋入侵系统获取离线日志。庭审说法为“EduSwap模块被非法利用，篡改录取数据”。",
+        "rationale": "将冲突从考试分数转移到大学录取数据，更贴近美国观众对大学录取丑闻的认知，增强现实感和悬念。同时保留借笔作为触发锚点，维持原设定。",
+        "preserved_functions": [
+          "revelation",
+          "foreshadowing",
+          "payoff",
+          "institutional_access",
+          "power",
+          "suspense",
+          "satisfaction"
+        ],
+        "lost_functions": [],
+        "risks": [
+          "大学录取数据篡改涉及更复杂的系统，可能需要更多解释，影响节奏。",
+          "可能引发对现实大学录取系统的联想，需确保虚构性。"
+        ]
+      },
+      "propagation": {
+        "changed_node_id": "CM10",
+        "affected_scenes": [],
+        "related_commitment_ids": [
+          "NC06"
+        ],
+        "summary": "No downstream scenes depend on 'CM10'."
+      },
+      "rewritten_scene_ids": [],
+      "notes": ""
+    }
+  ],
+  "report": {
+    "issues": [
+      {
+        "issue_type": "motivation_break",
+        "severity": "warning",
+        "scene_id": null,
+        "description": "重构策略仍保留 CM01 的旧因果依赖边，需要人工确认因果链是否已同步重建",
+        "evidence": "CM01--motivates-->E01, CM01--motivates-->E02, CM01--motivates-->E04, CM01--motivates-->E05, CM01--motivates-->E07"
+      },
+      {
+        "issue_type": "motivation_break",
+        "severity": "warning",
+        "scene_id": null,
+        "description": "重构策略仍保留 CM02 的旧因果依赖边，需要人工确认因果链是否已同步重建",
+        "evidence": "CM02--motivates-->E01, CM02--causes-->E04, CM02--motivates-->E09, NC01--depends_on-->CM02, NC02--depends_on-->CM02"
+      },
+      {
+        "issue_type": "motivation_break",
+        "severity": "warning",
+        "scene_id": null,
+        "description": "重构策略仍保留 CM10 的旧因果依赖边，需要人工确认因果链是否已同步重建",
+        "evidence": "CM10--motivates-->E19, NC06--depends_on-->CM10"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S02",
+        "description": "S02中林知夏被州立大学录取，但S06中林知夏被斯坦福大学录取，前后矛盾。",
+        "evidence": "屏幕上的结果始终停在“州立大学”"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S06",
+        "description": "S06中林知夏被斯坦福大学录取，但S02中林知夏被州立大学录取，前后矛盾。",
+        "evidence": "斯坦福大学——录取"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S06",
+        "description": "S06中周雨被州立大学录取，但S02中周雨未被提及录取结果，且S11中周雨录取资格恢复为州立大学，与S06一致，但S02中林知夏被州立大学录取，导致周雨与林知夏录取结果冲突。",
+        "evidence": "我查到州立大学录取"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S07",
+        "description": "S07中沈曼说'你明明只有330'，但S06中沈曼被社区大学录取，未提及330分，且改编后分数已改为录取资格，此处出现旧分数表述。",
+        "evidence": "你明明只有330"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S07",
+        "description": "S07中周雨说'我明明只估了三百多'，但改编后已无分数概念，应为录取资格。",
+        "evidence": "我明明只估了三百多"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S07",
+        "description": "S07中周雨说'说我的API无误'，但改编后API为学术能力指数，与录取资格交换机制不符。",
+        "evidence": "说我的API无误"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S09",
+        "description": "S09中老宋展示的日志显示'借笔人：沈曼。被借笔人：周雨。录取数据交换结果：成功。'，但改编后EduSwap模块应篡改标准化考试成绩和GPA，而非录取数据交换。",
+        "evidence": "录取数据交换结果：成功"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S09",
+        "description": "S09中周雨说'所以我的录取，是被它判了'建议忽略'？'，但改编后EduSwap模块应篡改成绩，而非录取。",
+        "evidence": "所以我的录取，是被它判了'建议忽略'"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S10",
+        "description": "S10中检方提交'沈曼查分当晚发的那条动态截图'，但改编后查分应为查看API，动态截图内容未明确。",
+        "evidence": "沈曼查分当晚发的那条动态截图"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S11",
+        "description": "S11中官方通报'沈曼利用来源不明的\"EduSwap模块\"非法篡改大学录取数据'，但改编后EduSwap模块应篡改标准化考试成绩和GPA，而非录取数据。",
+        "evidence": "非法篡改大学录取数据"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S11",
+        "description": "S11中'周雨的录取资格按原始数据恢复'，但改编后EduSwap模块应篡改成绩，恢复的应是成绩。",
+        "evidence": "周雨的录取资格按原始数据恢复"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S12",
+        "description": "S12中林知夏说'因为EduSwap还在。总得有人盯着它。'，但改编后EduSwap模块已移交调查，且林知夏报考法学监督系统，与改编后设定一致，但此处提及EduSwap与S11中'来源不明，已移交专门机构调查'不矛盾，但需确认。",
+        "evidence": "因为EduSwap还在"
+      },
+      {
+        "issue_type": "motivation_break",
+        "severity": "error",
+        "scene_id": "S07",
+        "description": "沈曼闯入林知夏家并脱口而出'你明明只有330'，但改编后沈曼不应知道周雨的原始分数，因为交换的是录取资格而非分数。",
+        "evidence": "你明明只有330"
+      },
+      {
+        "issue_type": "motivation_break",
+        "severity": "error",
+        "scene_id": "S08",
+        "description": "沈曼在天台说'你换了我的笔'，但改编后沈曼误借周雨的笔，导致周雨与沈曼交换，沈曼应不知情或误以为林知夏换笔，此处动机合理，但需确认。",
+        "evidence": "是你。你换了我的笔"
+      },
+      {
+        "issue_type": "commitment_violation",
+        "severity": "error",
+        "scene_id": "S08",
+        "description": "NC01要求林知夏录下沈曼推人证据，但S08中沈曼扑来撞上护栏，林知夏未推人，且林知夏携带运动相机和录音笔，但未明确录下推人证据。",
+        "evidence": "书包带上别着运动相机，袖口藏着录音笔"
+      },
+      {
+        "issue_type": "unresolved_payoff",
+        "severity": "error",
+        "scene_id": "S12",
+        "description": "NC06承诺易分系统来源不明已移交调查，但S12中未提及调查结果，悬念未解。",
+        "evidence": "系统没有消失，它只是换了一种方式，在等下一个借笔的人"
+      }
+    ],
+    "commitment_checks": [
+      {
+        "commitment_id": "NC01",
+        "status": "violated",
+        "explanation": "S04中林知夏计划录下沈曼推人证据，但S08中沈曼扑来撞上护栏，林知夏未推人，且未明确录下推人证据。"
+      },
+      {
+        "commitment_id": "NC02",
+        "status": "preserved",
+        "explanation": "S04中建立借笔是换录取的锚点，S05中沈曼借笔，S08中沈曼承认利用EduSwap篡改录取数据，设定保留。"
+      },
+      {
+        "commitment_id": "NC03",
+        "status": "violated",
+        "explanation": "S02中建立掌心蓝痕是换分成功的标志，但改编后应改为手机匿名通知，S03中仍出现'掌心的蓝痕'，未完全替换。"
+      },
+      {
+        "commitment_id": "NC04",
+        "status": "preserved",
+        "explanation": "S11中官方通报沈曼被捕，其父被查，沈氏集团破产，揭露换分真相，承诺回收。"
+      },
+      {
+        "commitment_id": "NC05",
+        "status": "preserved",
+        "explanation": "S07中林知夏承认故意借周雨的笔，S11中周雨录取资格恢复但两人关系回不去，道德亏欠得到清算。"
+      },
+      {
+        "commitment_id": "NC06",
+        "status": "needs_review",
+        "explanation": "S11中易分系统来源不明已移交调查，但S12中未提及调查结果，悬念未解。"
+      },
+      {
+        "commitment_id": "NC07",
+        "status": "preserved",
+        "explanation": "S12中系统没有消失，它只是换了一种方式，在等下一个借笔的人，承诺保留。"
+      }
+    ],
+    "checked_scene_ids": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "S08",
+      "S09",
+      "S10",
+      "S11",
+      "S12"
+    ],
+    "static_checks_passed": 2,
+    "static_checks_total": 3,
+    "commitments_verified": 6,
+    "commitments_total": 7,
+    "scenes_checked": 12,
+    "scenes_total": 12,
+    "overall_status": "fail",
+    "consistency_score": 0.0
+  },
+  "repair_rounds": 2,
+  "repaired_scene_ids": [
+    "S07",
+    "S04",
+    "S08",
+    "S09",
+    "S03",
+    "S06",
+    "S10",
+    "S11",
+    "S12",
+    "S03",
+    "S10",
+    "S11"
+  ],
+  "from_version": 1,
+  "to_version": 2
+}

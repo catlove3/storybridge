@@ -90,6 +90,8 @@ class JobResponse(BaseModel):
     finished_at: float | None
     result: Any = None
     error: str | None
+    error_code: str | None = None
+    resets_at: str | None = None
     idempotency_key: str | None
     progress: float
     cancel_requested: bool
@@ -124,6 +126,14 @@ class DeleteProjectResponse(BaseModel):
     run_records_deleted: int
 
 
+class DailyQuota(BaseModel):
+    visitor_used: int
+    visitor_limit: int
+    site_used: int
+    site_limit: int
+    resets_at: str
+
+
 class RuntimePolicyResponse(BaseModel):
     authentication_required: bool
     provider_endpoint: str
@@ -133,6 +143,11 @@ class RuntimePolicyResponse(BaseModel):
     sft_retention_days: int
     max_script_chars: int
     max_project_llm_tokens: int
+    public_mode: bool = False
+    public_url: str = ""
+    model_available: bool = False
+    mock_mode: bool = False
+    quota: DailyQuota | None = None
 
 
 class StateSummaryResponse(BaseModel):

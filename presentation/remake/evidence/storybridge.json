@@ -1,0 +1,50 @@
+{
+  "source_state_version": 2,
+  "source_language": "zh-CN",
+  "target_language": "English",
+  "target_locale": "en-US",
+  "scenes": [
+    {
+      "id": "S01",
+      "title": "The Showcase She Never Attended",
+      "summary": "Xiaoning wants to study art, but her father is convinced only an Ivy League school offers a future. Before the college rowing recruit showcase, Xiaoning is injured in a fall and hospitalized, missing the event. A recruiter privately promises her father he can arrange a recruit slot.",
+      "text": "XIAONING, a high school senior, wants to study art. Her FATHER is convinced that only an Ivy League school offers a future.\n\nBefore the college rowing recruit showcase, Xiaoning falls and is hospitalized. She misses the showcase.\n\nA college admissions RECRUITER speaks to the Father in private.\n\nRECRUITER\nShe doesn't have to be there. We'll arrange the recruit slot.\n\nThe Father believes there's a special channel and pays.\n\nXIAONING\nHow exactly do I join the recruiting?\n\nThe Recruiter doesn't answer."
+    },
+    {
+      "id": "S02",
+      "title": "A Recruiting Record That Isn't Hers",
+      "summary": "The recruiter sends a regional regatta entry confirmation with Xiaoning's name and a blurry crew photo, pressing the father to file the athletic recruiting materials. Xiaoning questions it—she was in the hospital those days. Her father tells her not to ask. She saves the materials to her phone.",
+      "text": "The Recruiter sends a regional regatta entry confirmation with Xiaoning's name on it, plus a blurry crew photo. He presses the Father to file the athletic recruiting materials fast.\n\nXIAONING\nBut I was in the hospital those two days.\n\nThe Father keeps staring at the name on the confirmation.\n\nFATHER\nDon't ask. If we miss this, there's no second chance.\n\nShe saves the confirmation and the photo to her phone."
+    },
+    {
+      "id": "S03",
+      "title": "The Clue a Friend Left Behind",
+      "summary": "Xiaolan returns the yearbook and leaves behind the real rowing club roster and seating chart, pointing out that the blurry seat number in the photo isn't Xiaoning's. Xiaoning asks her to bring the original materials to compare. Tucked in the yearbook is Xiaoning's self-portrait.",
+      "text": "XIAOLAN comes by to return the yearbook. She used to help rowing club classmates organize recruiting materials, and she leaves behind a real roster and seating chart.\n\nShe points at a blurry seat number in the photo.\n\nXIAOLAN\nI remember this seat. It wasn't you.\n\nXiaoning doesn't jump to conclusions.\n\nXIAONING\nBring me the original materials. Let's compare.\n\nTucked inside the yearbook is a self-portrait Xiaoning spent a long time drawing."
+    },
+    {
+      "id": "S04",
+      "title": "Another Payment",
+      "summary": "The recruiter claims the rowing recruiting materials need further verification and asks the father for another coordination fee, hinting that if anyone starts asking questions, the child's future is over. The father is about to borrow money; Xiaoning stops his phone and demands they first find out whose recruiting record this really is.",
+      "text": "The Recruiter says the rowing recruiting materials need further verification. He asks the Father for another \"coordination fee.\"\n\nRECRUITER\nIf anyone starts asking questions, your kid's future is over.\n\nThe Father is about to borrow money. Xiaoning puts her hand on his phone.\n\nXIAONING\nFirst find out whose recruiting record this really is."
+    },
+    {
+      "id": "S05",
+      "title": "She Decides to Expose It",
+      "summary": "Xiaolan brings the real rowing club roster and seating chart. They compare them with the crew photo the recruiter provided and find Xiaoning was never on the boat. Xiaoning tells her father, \"The future you bought me—the person in it isn't even me.\"",
+      "text": "Xiaolan brings the rowing club's original roster and seating chart. The two spread the recruiter's crew photo on the table and compare.\n\nThe girl whose face was pasted with Xiaoning's is sitting in another rower's seat. Xiaoning's name isn't on the roster at all.\n\nXiaoning pulls up the \"regional regatta entry confirmation\" the recruiter sent, saved on her phone. The date is the day she fell and was hospitalized—lying in a hospital bed, she couldn't have been on a boat.\n\nFather and daughter finally confirm it: the so-called athletic recruit slot was the recruiter faking a record, Photoshopping a photo, and putting a person who never existed in her place.\n\nXiaoning saves the evidence and turns to her father.\n\nXIAONING\nThe future you bought me—the person in it isn't even me."
+    },
+    {
+      "id": "S06",
+      "title": "Giving Up the Shortcut",
+      "summary": "The father admits he couldn't face his daughter missing the rowing recruit showcase and just wanted to grab an Ivy League slot. Father and daughter save the evidence, proactively explain the situation to the schools, stop using the fake record, and the father pushes the sketchbook back to her.",
+      "text": "The Father admits it: he couldn't face his daughter missing the rowing recruit showcase. He just wanted to grab an Ivy League slot.\n\nFather and daughter save the recruiter's promises, the payment records, and the original materials. They proactively explain the situation to the schools involved, stop using the fake record, and offer to cooperate with any review.\n\nThe Father closes the loan page. He pushes the sketchbook back to her.\n\nFATHER\nThen let's start with what you can actually do."
+    },
+    {
+      "id": "S07",
+      "title": "Her Own Name",
+      "summary": "Some time later, Xiaoning applies to an art program with her own drawings and receives a portfolio interview invitation. She places the invitation and her self-portrait in front of her father. For the first time, he reads through her yearbook carefully.",
+      "text": "Some time later, Xiaoning applies to an art program with her own drawings. She gets a portfolio interview invitation.\n\nShe places the invitation and the self-portrait in front of her father.\n\nXIAONING\nThis time, the name and the work—they're both mine.\n\nFor the first time, the Father reads through her yearbook, page by page."
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "culture_mechanism_id": "CM01",
+  "original_name": "高考",
+  "based_on_version": 1,
+  "friction_level": "high",
+  "options": [
+    {
+      "option_label": "A",
+      "strategy": "preserve",
+      "title": "保留高考，加注解释",
+      "replacement_definition": "保留‘高考’作为中国全国大学入学考试，在台词或视觉上通过简短字幕/旁白解释其决定大学录取、影响人生轨迹的性质。例如，角色可以说：‘高考——中国的大学入学考试，一考定终身。’",
+      "rationale": "保留原文化机制，通过注释降低理解门槛，适合对中国文化有一定好奇心的观众，但可能因陌生感削弱代入感。",
+      "preserved_functions": [
+        "plot: motivation, constraint, conflict, revelation, foreshadowing, payoff",
+        "social: status, institutional_access, economic_security, reputation",
+        "emotional: fear, aspiration, suspense, satisfaction, humiliation"
+      ],
+      "lost_functions": [],
+      "risks": [
+        "美国观众可能难以共情‘一考定终身’的紧迫感，导致悬念和情绪张力下降。",
+        "解释性台词可能显得生硬，破坏短剧节奏。",
+        "文化距离可能让观众觉得故事‘ exotic ’而非‘ relatable ’。"
+      ]
+    },
+    {
+      "option_label": "B",
+      "strategy": "functional_replacement",
+      "title": "替换为SAT/ACT+大学申请系统",
+      "replacement_definition": "将高考替换为美国大学录取核心机制：SAT/ACT标准化考试 + 整体申请（GPA、课外活动、文书）。关键场景改为：最后一科SAT考试前借笔；查分夜改为查SAT成绩和大学录取结果；‘复核’改为向College Board申请成绩复核（Score Verification）；‘志愿填报’改为大学申请截止日/决定日。分数关系映射：林知夏SAT 1590（原669），周雨原1200（原330）换后1480（原487），沈曼原1480换后1200。台词示例：‘SAT出分了，我1590，和我估分一模一样。’‘我申请了成绩复核，College Board说我的1480无误，可我明明只估了1200！’",
+      "rationale": "SAT/ACT在美国教育体系中具有类似高考的‘高风险、决定录取’功能，且成绩复核机制真实存在，能自然承载‘换分’悬念。同时，美国大学录取还看GPA和课外活动，可增加‘沈曼父亲花钱买复核’的合理性（如捐赠、律师介入）。",
+      "preserved_functions": [
+        "plot: motivation, constraint, conflict, revelation, foreshadowing, payoff",
+        "social: status, institutional_access, economic_security, reputation",
+        "emotional: fear, aspiration, suspense, satisfaction, humiliation"
+      ],
+      "lost_functions": [
+        "institutional_access: 美国录取非单一考试决定，紧张感可能分散。",
+        "economic_security: 高考直接关联阶层跃迁，美国路径更多元，削弱‘唯一出路’的绝望感。"
+      ],
+      "risks": [
+        "SAT重要性低于高考，观众可能质疑‘换分’动机的强度。",
+        "美国大学录取的复杂性可能让短剧观众困惑，需要额外解释。",
+        "成绩复核流程与高考不同，需调整台词和场景细节。"
+      ]
+    },
+    {
+      "option_label": "C",
+      "strategy": "plot_reconstruction",
+      "title": "重构为‘全国学术锦标赛’（虚构）",
+      "replacement_definition": "创造一个虚构的美国全国性学术竞赛‘National Academic Championship (NAC)’，其决赛成绩直接决定顶尖大学录取和全额奖学金。决赛为一场持续数日的综合考试，最后一场为‘综合能力测试’。借笔发生在最后一场考试前；查分夜改为NAC官网公布成绩；复核改为向NAC委员会申请成绩审查；志愿填报改为‘大学承诺日’（Commitment Day），学生需在当日确认接受哪所大学的录取。分数映射：林知夏NAC 669（满分700），周雨原330换后487，沈曼原487换后330。台词示例：‘NAC成绩出来了，我669，和模拟考一样。’‘我申请了成绩审查，委员会说我的487无误，可我明明只考了330！’",
+      "rationale": "通过虚构机制，完全控制规则，避免真实考试机构带来的事实核查风险，同时保留‘一考定终身’的极端压力。NAC可以设计为类似‘学术奥运会’，增加戏剧性和美国观众熟悉的竞赛叙事（如拼字比赛、科学碗）。",
+      "preserved_functions": [
+        "plot: motivation, constraint, conflict, revelation, foreshadowing, payoff",
+        "social: status, institutional_access, economic_security, reputation",
+        "emotional: fear, aspiration, suspense, satisfaction, humiliation"
+      ],
+      "lost_functions": [
+        "institutional_access: 虚构机制可能缺乏真实感，观众难以完全投入。",
+        "reputation: 真实考试的社会认可度更高，虚构竞赛需要建立可信度。"
+      ],
+      "risks": [
+        "观众可能觉得虚构设定过于人为，降低代入感。",
+        "需要额外场景建立NAC的权威性和重要性，可能挤占主线时间。",
+        "与‘易分系统’的科幻元素叠加，可能让世界观过于复杂。"
+      ]
+    }
+  ]
+}

@@ -63,6 +63,17 @@ class StorageConfig(BaseModel):
     jobs_file: Path = BACKEND_ROOT / "data" / "jobs.json"
 
 
+class ShareConfig(BaseModel):
+    enabled: bool = False
+    public_url: str = ""
+    visitor_daily_tokens: int = Field(default=300_000, ge=1)
+    site_daily_tokens: int = Field(default=100_000_000, ge=1)
+    visitor_concurrency: int = Field(default=1, ge=1)
+    site_concurrency: int = Field(default=32, ge=1)
+    visitor_submissions_per_minute: int = Field(default=6, ge=1)
+    site_submissions_per_minute: int = Field(default=120, ge=1)
+
+
 class LongTextConfig(BaseModel):
     chunk_threshold_chars: int = Field(default=24_000, ge=1_000, le=500_000)
     chunk_chars: int = Field(default=16_000, ge=500, le=100_000)
@@ -75,6 +86,7 @@ class AppConfig(BaseModel):
     storage: StorageConfig = Field(default_factory=StorageConfig)
     long_text: LongTextConfig = Field(default_factory=LongTextConfig)
     security: SecurityConfig = Field(default_factory=SecurityConfig)
+    share: ShareConfig = Field(default_factory=ShareConfig)
 
 
 @lru_cache
@@ -84,6 +96,19 @@ def get_config() -> AppConfig:
     if config_path.exists():
         raw = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
     config = AppConfig.model_validate(raw)
+    if "STORYBRIDGE_SHARE" in os.environ:
+        config.share.enabled = os.environ["STORYBRIDGE_SHARE"] == "1"
+    config.share.public_url = os.environ.get(
+        "STORYBRIDGE_PUBLIC_URL", config.share.public_url
+    ).rstrip("/")
+    share_overrides = {
+        field: os.environ[f"STORYBRIDGE_{field.upper()}"]
+        for field in (
+            "visitor_daily_tokens", "site_daily_tokens", "visitor_concurrency", "site_concurrency",
+            "visitor_submissions_per_minute", "site_submissions_per_minute",
+        ) if f"STORYBRIDGE_{field.upper()}" in os.environ
+    }
+    config.share = ShareConfig.model_validate({**config.share.model_dump(), **share_overrides})
 
     for section, field_name in (
         (config.logging, "sft_log_dir"),
@@ -132,6 +157,13 @@ def get_config() -> AppConfig:
 
 
 def api_key_for(profile: ProfileConfig) -> str:
+    from app.secrets import decrypt_api_key
+
+    encrypted = os.environ.get(f"{profile.api_key_env}_ENCRYPTED", "")
+    if encrypted:
+        return decrypt_api_key(encrypted)
+    if get_config().share.enabled:
+        raise ValueError("公开模式需要加密的模型密钥，请先运行密钥迁移。")
     return os.environ.get(profile.api_key_env, "")
 
 

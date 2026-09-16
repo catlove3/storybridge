@@ -26,6 +26,9 @@ class Job(BaseModel):
     finished_at: float | None = None
     result: Any = None
     error: str | None = None
+    error_code: str | None = None
+    resets_at: str | None = None
+    request_hash: str | None = None
     idempotency_key: str | None = None
     progress: float = Field(default=0.0, ge=0.0, le=1.0)
     cancel_requested: bool = False
@@ -95,6 +98,9 @@ class SQLiteJobPersistence:
                     else None
                 ),
                 "error": row["error"],
+                "error_code": row["error_code"],
+                "resets_at": row["resets_at"],
+                "request_hash": row["request_hash"],
                 "idempotency_key": row["idempotency_key"],
                 "progress": row["progress"],
                 "cancel_requested": bool(row["cancel_requested"]),
@@ -109,8 +115,8 @@ class SQLiteJobPersistence:
             """
             INSERT INTO jobs(
                 id, kind, project_id, status, created_at, finished_at, result_json,
-                error, idempotency_key, progress, cancel_requested
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                error, idempotency_key, progress, cancel_requested, error_code, resets_at, request_hash
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 kind = excluded.kind,
                 project_id = excluded.project_id,
@@ -121,7 +127,10 @@ class SQLiteJobPersistence:
                 error = excluded.error,
                 idempotency_key = excluded.idempotency_key,
                 progress = excluded.progress,
-                cancel_requested = excluded.cancel_requested
+                cancel_requested = excluded.cancel_requested,
+                error_code = excluded.error_code,
+                resets_at = excluded.resets_at,
+                request_hash = excluded.request_hash
             """,
             (
                 job.id,
@@ -135,6 +144,9 @@ class SQLiteJobPersistence:
                 job.idempotency_key,
                 job.progress,
                 int(job.cancel_requested),
+                job.error_code,
+                job.resets_at,
+                job.request_hash,
             ),
         )
 
@@ -188,6 +200,7 @@ class JobManager:
             if job.status in {"queued", "running"}:
                 job.status = "failed"
                 job.error = "Interrupted: service restarted before the job completed"
+                job.error_code = "service_restarted"
                 job.finished_at = now
                 job.progress = 1.0
             if job.finished_at and now - job.finished_at > self._ttl_seconds:
@@ -260,6 +273,8 @@ class JobManager:
         project_id: str,
         coro_factory: Callable[[], Coroutine[Any, Any, Any]],
         idempotency_key: str | None = None,
+        on_finished: Callable[[], None] | None = None,
+        request_hash: str | None = None,
     ) -> Job:
         self._prune_expired()
         if idempotency_key:
@@ -276,6 +291,7 @@ class JobManager:
             project_id=project_id,
             created_at=time.time(),
             idempotency_key=idempotency_key,
+            request_hash=request_hash,
         )
         self._jobs[job.id] = job
         if idempotency_key:
@@ -300,6 +316,8 @@ class JobManager:
                 job.error = None
                 job.progress = 1.0
             except Exception as exc:
+                from app.public_usage import PublicLimitError
+                from app.workflow.engine import VerificationBlocked
                 logger.error(
                     "job failed: id=%s kind=%s project_id=%s exception_type=%s",
                     job.id,
@@ -309,6 +327,13 @@ class JobManager:
                 )
                 job.status = "failed"
                 job.error = "job_execution_failed"
+                if isinstance(exc, PublicLimitError):
+                    job.error = str(exc)
+                    job.error_code = exc.code
+                    job.resets_at = exc.resets_at
+                elif isinstance(exc, VerificationBlocked):
+                    job.error = str(exc)
+                    job.error_code = "verification_blocked"
                 job.progress = 1.0
             finally:
                 job.finished_at = job.finished_at or time.time()
@@ -318,6 +343,8 @@ class JobManager:
         task = asyncio.get_running_loop().create_task(runner())
         self._tasks[job.id] = task
         task.add_done_callback(lambda _: self._tasks.pop(job.id, None))
+        if on_finished:
+            task.add_done_callback(lambda _: on_finished())
         return job
 
     async def shutdown(self) -> None:

@@ -1,0 +1,59 @@
+{
+  "storybridge_quote": {
+    "file": "evidence/option_d_target.json",
+    "scene": "S10",
+    "text": "You saw 330. Your first reaction was to call Lin Zhixia — not to file a data audit with the Alliance. Why?"
+  },
+  "baseline_quote": {
+    "file": "evidence/baseline_first_response.md",
+    "scene": "S10",
+    "text": "When you saw your score was 487, why did you call Lydia Chen instead of filing an audit request?"
+  },
+  "graph": {
+    "file": "evidence/option_d_apply.json",
+    "actual_initial_propagation": {
+      "CM01": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06"
+      ],
+      "CM10": []
+    },
+    "slide_annotation": "Dashed S10 gap is explicitly human review, not an automatic edge."
+  },
+  "call_stats": {
+    "system_b": {
+      "calls": 26,
+      "prompt_tokens": 74166,
+      "completion_tokens": 13679,
+      "seconds": 59.2
+    },
+    "system_baseline": {
+      "calls": 1,
+      "prompt_tokens": 2851,
+      "completion_tokens": 3018,
+      "seconds": 13.9
+    },
+    "system_c": {
+      "calls": 26,
+      "prompt_tokens": 74523,
+      "completion_tokens": 13110,
+      "seconds": 56.2
+    },
+    "system_d": {
+      "calls": 23,
+      "prompt_tokens": 67341,
+      "completion_tokens": 10914,
+      "seconds": 47.1
+    },
+    "system_prepare": {
+      "calls": 3,
+      "prompt_tokens": 6739,
+      "completion_tokens": 3101,
+      "seconds": 16.4
+    }
+  }
+}

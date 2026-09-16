@@ -75,3 +75,14 @@ security:
   # Set to 0 to disable. Enforcement uses actual usage when providers return it,
   # otherwise a conservative character-based token estimate.
   max_project_llm_tokens: 1000000
+
+# Public browser sessions: daily usage replaces the lifetime per-project cap.
+share:
+  enabled: false
+  public_url: ""
+  visitor_daily_tokens: 300000
+  site_daily_tokens: 100000000
+  visitor_concurrency: 1
+  site_concurrency: 32
+  visitor_submissions_per_minute: 6
+  site_submissions_per_minute: 120

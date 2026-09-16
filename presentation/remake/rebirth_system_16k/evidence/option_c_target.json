@@ -1,0 +1,80 @@
+{
+  "source_state_version": 2,
+  "source_language": "zh-CN",
+  "target_language": "English",
+  "target_locale": "en-US",
+  "scenes": [
+    {
+      "id": "S01",
+      "title": "Past Life · The Borrowed Pen",
+      "summary": "In her past life, before the final APC certification exam, Shen Man asks Lin Zhixia to lend her a pen. Lin Zhixia hands one over without thinking. When Shen Man returns it, her fingertip lingers on the barrel for half a second.",
+      "text": "Before the final APC certification exam. Outside the testing hall. Lin Zhixia is silently reciting essay points. Shen Man walks up: \"Zhixia, let me borrow your pen. Mine suddenly won't scan.\" Lin Zhixia pulls one from her pencil case and hands it over. Shen Man takes it, scribbles twice on scratch paper, and gives it back: \"Thanks. This one writes nice.\" Lin Zhixia doesn't think twice. She doesn't see it — when Shen Man returns the pen, her fingertip lingers on the barrel for half a second."
+    },
+    {
+      "id": "S02",
+      "title": "Past Life · Results Night",
+      "summary": "In her past life on college decision night, Lin Zhixia sees she's been admitted to State University and her audit appeal is denied. Shen Man gets into Stanford and tops the school, while an anonymous notification on her phone is disappearing.",
+      "text": "Late night. College decisions drop. Lin Zhixia refreshes a dozen times. The screen stays frozen on \"State University.\" Her hands shake harder. Her mother leans over to look, then her legs give out and she sinks into a chair. Her homeroom teacher, Old Chen, is stunned on the phone: \"Impossible. I've taught for twenty years... I'll file a data audit request with the Elite Admission Alliance right now.\" Three days later, the audit is denied. The reply is four words: Data verified. Accurate. Meanwhile, Shen Man's Stanford acceptance tops the school leaderboard. In an interview she says, \"I just performed above my usual\" — then her eyes go blank for a second. She glances down at the hand that took the pen, then pulls out her phone. On the screen, an anonymous notification reads \"Admission status updated\" — and it's auto-deleting. The comments are all praise: \"Rich and still works this hard.\""
+    },
+    {
+      "id": "S03",
+      "title": "Past Life · The Rooftop",
+      "summary": "On college decision deadline day in her past life, Shen Man admits on the rooftop that she used the EduSwap module to tamper with admission data — then pushes Lin Zhixia off, staging it as suicide.",
+      "text": "The day college decisions are due, an anonymous text lures her to the rooftop. Shen Man drops all pretense: \"You think I got in because of my dad? His three million bought the audit denial. The API tampering — I did that myself.\" Lin Zhixia: \"You?\" Shen Man holds out her palm. The blue mark there has faded to almost nothing: \"That pen of yours. It worked really well. Guess why I had to borrow yours?\" Lin Zhixia turns to leave — to report it, to call the police. Footsteps close in behind her. Two hands slam into her back. Through the rushing wind, Shen Man's voice drifts down from the rooftop edge: \"Next life, don't lend your pen to just anyone.\" What the world called a suicide was a murder from start to finish."
+    },
+    {
+      "id": "S04",
+      "title": "Rebirth · Switching the Pen",
+      "summary": "Lin Zhixia wakes up on the first morning of the APC certification exam. She writes three rules and places Zhou Yu's forgotten pen in the outermost pocket of her pencil case.",
+      "text": "She opens her eyes. It's the first morning of the APC certification exam. The admission ticket on the desk, her mother's porridge at the door, the date on her phone — exactly as she remembers. Lin Zhixia pinches the back of her hand. It hurts. She sits for ten minutes, then writes three lines in her notebook: \"One — she borrows the pen to swap admissions. The pen is the anchor. Two — don't lend her my pen. Three — that push on the rooftop, this time she hits air. And I record it.\" She closes the notebook and checks her pencil case: her own pen, a backup, and one Zhou Yu left on her desk last week. She slides Zhou Yu's pen into the outermost pocket."
+    },
+    {
+      "id": "S05",
+      "title": "Rebirth · The Testing Hall",
+      "summary": "Before the final certification exam in her new life, Shen Man borrows a pen again. Lin Zhixia hands over Zhou Yu's pen. When Shen Man returns it, her fingertip lingers for half a second — just like before.",
+      "text": "Before the final certification exam, Shen Man sidles up exactly as expected: \"Zhixia, let me borrow your pen. Mine's out of ink.\" Lin Zhixia smiles and pulls the pen from the outermost pocket: \"Here.\" Shen Man takes it, scribbles twice on scratch paper. Lin Zhixia notices her grip is strange — like she's feeling for something. There's a thin metal ring around the barrel, catching the overhead light. When she returns it, her fingertip lingers on the barrel for half a second — identical to the past life. Lin Zhixia takes it back, drops it in her pencil case, and never touches that pen again."
+    },
+    {
+      "id": "S06",
+      "title": "Replay · Results Night",
+      "summary": "On college decision night in her new life, Lin Zhixia sees she's been admitted to Stanford. Zhou Yu gets into State University. Shen Man only gets Community College and posts about it in the class group chat.",
+      "text": "College decision night. Lin Zhixia logs into the Elite Admission Alliance certification system, enters her student ID. The screen flashes: Stanford University — Admitted. She stares for a few seconds, refreshes. Still Stanford. Her phone rings. Zhou Yu's voice is shaking: \"Zhixia, I got into State University. But I estimated I'd barely make Community College!\" Lin Zhixia grips the phone, slowly smiles — then stops mid-smile. Meanwhile, the class group chat explodes: Shen Man posted a screenshot of her results — \"Community College. How is this possible?\" The comments go silent for a long time. Someone finally asks, carefully: \"Man, is the system glitching?\" Shen Man doesn't reply."
+    },
+    {
+      "id": "S07",
+      "title": "Zhou Yu's Admission",
+      "summary": "Zhou Yu files a data audit with no result and confronts Lin Zhixia. Shen Man barges in and blurts out incriminating knowledge. Lin Zhixia admits she deliberately lent Zhou Yu's pen to Shen Man. Zhou Yu storms out.",
+      "text": "The next day, Zhou Yu rushes to Lin Zhixia's house, eyes red: \"I filed a data audit request with the Alliance. They said my API is accurate. But I estimated barely over three hundred!\" Before Lin Zhixia can speak, Shen Man pushes through the door. She snatches Zhou Yu's phone, sees the API index, and blurts out: \"You only had 330!\" Zhou Yu fires back: \"Results just came out. How do you know what my original index was?\" Shen Man's face shifts. She slams the phone down and walks out. Zhou Yu turns to Lin Zhixia: \"Zhixia, do you know something?\" A long silence. Then Lin Zhixia speaks: \"That pen. The one she borrowed. It was yours.\" Zhou Yu freezes: \"What pen?\" \"On exam day she borrowed a pen. I handed her yours.\" Zhou Yu's face changes slowly: \"You did it on purpose?\" Lin Zhixia doesn't deny it. \"So you protected yourself and pushed me out there?\" Lin Zhixia: \"I didn't think it would go this way. I thought she was swapping—\" \"You thought? That was my admission. What do you mean, you thought?\" The door slams. Lin Zhixia sits in the dark. She doesn't turn on the light for a long time."
+    },
+    {
+      "id": "S08",
+      "title": "The Rooftop · Closing the Trap",
+      "summary": "Lin Zhixia confronts Shen Man on the rooftop, threatening her with offline log backups to force a confession about using EduSwap to tamper with admission data. Shen Man lunges, hits the railing. Police, Zhou Yu, and Old Song arrive.",
+      "text": "That night, Shen Man calls. Her voice trembles: \"It was you. You switched my pen.\" Lin Zhixia: \"I didn't switch anything. I just didn't lend you mine.\" \"Do you know how long I prepared for this?!\" \"Zhou Yu prepared longer.\" Three seconds of silence. \"You're dead.\" Next night, eight p.m. The rooftop. Lin Zhixia goes. A sports camera is clipped to her bag strap. A voice recorder is hidden in her sleeve. Zhou Yu waits in the stairwell — not to help her, but to hear Shen Man admit to using EduSwap to tamper with admission data, and to take back her own admission. Shen Man comes up holding a pen: \"Do you know what this is? The moment I write your name—\" \"Write it.\" Lin Zhixia cuts her off. \"You swapped Zhou Yu once. Swap me again, and the system logs show two entries. Servers can be wiped. Offline logs can't. You have one option left: admit you used EduSwap to tamper with admission data and give Zhou Yu her admission back.\" Shen Man lunges. Lin Zhixia sidesteps. Shen Man can't stop herself and slams into the railing. Footsteps thunder up the stairwell — police, Zhou Yu, and Old Song, the EduSwap module technician fired by the Shen family, holding printed system logs."
+    },
+    {
+      "id": "S09",
+      "title": "The Logs",
+      "summary": "Three days earlier, Lin Zhixia found Old Song. He shows her the EduSwap module's offline logs: borrower Shen Man, pen-holder Zhou Yu, admission data swap successful, and a target-error rollback recommendation. Zhou Yu learns the system marked her as 'recommended ignore.'",
+      "text": "Three days earlier, Lin Zhixia knocked on Old Song's door. In her past life, during results week, a forum post from someone claiming to be inside the college admission data black box was deleted within seconds. She memorized the user ID. This time, she followed the trail. Old Song spreads printouts on the table: an unsigned anomaly module, codename \"EduSwap.\" Only two fields — \"Borrower: Shen Man. Pen-holder: Zhou Yu. Admission data swap result: Success.\" Three days later, a new line appears: \"Target error. Rollback recommended.\" Lin Zhixia: \"The system knows it swapped the wrong person.\" Old Song: \"The system isn't stupid. It just doesn't care.\" Zhou Yu stands in the doorway, voice barely audible: \"So my admission was marked 'recommended ignore'?\" Old Song says nothing. He slides the USB drive across the table."
+    },
+    {
+      "id": "S10",
+      "title": "The Trial",
+      "summary": "Police open a case. Shen Man's lawyer argues the EduSwap module doesn't exist. The prosecution submits three pieces of evidence. The judge asks Shen Man why her first reaction to an API anomaly was to call Lin Zhixia instead of filing a data audit.",
+      "text": "Police open a case. Shen Man's lawyer argues: \"The so-called EduSwap module doesn't exist.\" The prosecution submits three things: Old Song's offline logs, the rooftop recording, and a screenshot of Shen Man's post from results night. In court, the judge asks Shen Man: \"Your academic performance index was flagged at 487. Why was your first reaction to call Lin Zhixia instead of filing a data audit request with the Alliance?\" Shen Man opens her mouth. Nothing comes out. Lin Zhixia sits in the gallery. She doesn't look at her."
+    },
+    {
+      "id": "S11",
+      "title": "The Reckoning",
+      "summary": "Official notice: Shen Man arrested for illegally using the EduSwap module to tamper with admission data; her father investigated for bribery; Shen Group goes bankrupt. The EduSwap module is handed to investigators. Zhou Yu's admission is restored, but the friendship can't be.",
+      "text": "Official notice: Shen Man illegally used an unidentified \"EduSwap module\" to tamper with college admission data, suspected of unauthorized computer system interference and attempted murder. She is arrested. Her father is investigated for paying three million to bribe an insider at the Elite Admission Alliance and planting false data in the academic certification system. The bribery chain is exposed. Shen Group's stock drops for seven straight days, the bank calls in its loans, and the company declares bankruptcy. The \"EduSwap module\" remains unidentified and has been handed to a specialized agency for investigation. Zhou Yu's admission is restored based on her original data. State University's acceptance letter is re-sent to her. The day it arrives, she texts Lin Zhixia: \"My admission is back. But we can't go back.\" Lin Zhixia stares at the screen for a long time. She replies with one word: \"Yeah.\""
+    },
+    {
+      "id": "S12",
+      "title": "Epilogue",
+      "summary": "Lin Zhixia receives her college acceptance. She and Zhou Yu text each other about their majors. She keeps Zhou Yu's pen as a warning.",
+      "text": "The day Lin Zhixia's acceptance letter arrives, her mother wipes the envelope three times before daring to open it. Her phone lights up. A message from Zhou Yu: \"I applied for education. I'm going to be a teacher. No one swaps a student's admission on my watch.\" Lin Zhixia smiles and types back: \"I applied for law.\" \"Why?\" \"Because EduSwap is still out there. Someone has to watch it.\" She places the pen — Zhou Yu's pen — under the glass on her desk. Beside it, a sticky note: \"This time, every point is mine. Next time, no one takes it.\" But she doesn't throw the pen away. The system didn't disappear. It just changed its shape, waiting for the next person who lends a pen."
+    }
+  ]
+}

@@ -147,6 +147,40 @@ MIGRATIONS: tuple[Migration, ...] = (
             """,
         ),
     ),
+    (
+        4,
+        "anonymous sessions and public usage ledger",
+        (
+            """CREATE TABLE visitor_sessions (
+                credential_hash TEXT PRIMARY KEY, owner_id TEXT NOT NULL UNIQUE,
+                expires_at REAL NOT NULL)""",
+            """CREATE TABLE token_reservations (
+                id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, day TEXT NOT NULL,
+                tokens INTEGER NOT NULL CHECK(tokens >= 0), settled INTEGER NOT NULL DEFAULT 0,
+                created_at REAL NOT NULL)""",
+            "CREATE INDEX usage_day_owner ON token_reservations(day, owner_id)",
+            """CREATE TABLE generation_slots (
+                id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, created_at REAL NOT NULL,
+                active INTEGER NOT NULL DEFAULT 1)""",
+            "CREATE INDEX generation_time ON generation_slots(created_at)",
+            "ALTER TABLE jobs ADD COLUMN error_code TEXT",
+            "ALTER TABLE jobs ADD COLUMN resets_at TEXT",
+            """CREATE TABLE project_requests (
+                owner_id TEXT NOT NULL, request_key TEXT NOT NULL, project_id TEXT NOT NULL,
+                PRIMARY KEY(owner_id, request_key))""",
+            """CREATE TABLE verification_reports (
+                project_id TEXT PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE,
+                state_version INTEGER NOT NULL, payload_json TEXT NOT NULL)""",
+        ),
+    ),
+    (
+        5,
+        "bind idempotency keys to request content",
+        (
+            "ALTER TABLE jobs ADD COLUMN request_hash TEXT",
+            "ALTER TABLE project_requests ADD COLUMN request_hash TEXT",
+        ),
+    ),
 )
 
 

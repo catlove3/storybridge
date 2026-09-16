@@ -26,7 +26,9 @@ async def test_full_pipeline(tmp_path, mock_client):
     cached = await workflow.plan(meta.id, "CM01")
     assert cached.model_dump() == plan.model_dump()
 
-    result = await workflow.apply_adaptation(meta.id, "CM01", "B")
+    result = await workflow.apply_adaptation(
+        meta.id, "CM01", "B", auto_verify_and_repair=True
+    )
 
     assert {a.scene_id for a in result.applied.propagation.affected_scenes} == {
         "S01", "S02", "S05", "S06", "S08",

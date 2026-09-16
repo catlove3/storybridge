@@ -7,7 +7,7 @@ import time
 
 import httpx
 
-from app.config import ProfileConfig, api_key_for
+from app.config import ProfileConfig, api_key_for, get_config
 from app.llm.base import LLMRequest, LLMResponse
 
 
@@ -168,6 +168,16 @@ class OpenAICompatClient:
         http_attempts = 0
         while True:
             http_attempts += 1
+            reservation = None
+            data = None
+            if get_config().share.enabled:
+                from app.privacy import current_data_context
+                from app.public_usage import public_usage
+                # UTF-8 bytes plus framing is a conservative input estimate;
+                # output is reserved to the configured maximum on EVERY HTTP try.
+                estimate = len(json.dumps(payload["messages"], ensure_ascii=False).encode())
+                estimate += 1024 + int(payload["max_tokens"])
+                reservation = public_usage().reserve(current_data_context().owner_id, estimate)
             try:
                 if payload.get("stream"):
                     async with self._client.stream(
@@ -217,6 +227,16 @@ class OpenAICompatClient:
                     raise
                 await self._backoff(transient_retries)
                 transient_retries += 1
+            finally:
+                if reservation:
+                    usage = data.get("usage") if isinstance(data, dict) else None
+                    actual = None
+                    if isinstance(usage, dict) and all(
+                        type(usage.get(key)) is int and usage[key] >= 0
+                        for key in ("prompt_tokens", "completion_tokens")
+                    ) and usage["prompt_tokens"] > 0:
+                        actual = usage["prompt_tokens"] + usage["completion_tokens"]
+                    public_usage().settle(reservation, actual)
         latency_ms = int((time.monotonic() - started) * 1000)
 
         usage = data.get("usage") or {}

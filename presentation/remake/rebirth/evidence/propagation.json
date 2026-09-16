@@ -1,0 +1,116 @@
+{
+  "changed_node_id": "CM02",
+  "affected_scenes": [
+    {
+      "scene_id": "S01",
+      "impact_kinds": [
+        "causal",
+        "motivation"
+      ],
+      "reason_path": [
+        "CM02",
+        "E13",
+        "E14",
+        "E15",
+        "CM01",
+        "S01"
+      ],
+      "evidence": "CM02 --motivates--> E13 (\"我申请复核了，说我的487分无误。\"); E13 --causes--> E14 (\"她抢过周雨的手机，看见487后脱口而出：\"你明明只有330！\"\"); E14 --causes--> E15 (\"周雨看向林知夏：\"知夏，你是不是知道什么？\"沉默了很久，林知夏开口：\"那支笔。她借的那支笔，是你的。\"\"); E15 --references--> CM01 (\"高考那天她借笔。我递给她的，是你的笔。\"); CM01 --references--> S01 (\"最后一科开考前\")",
+      "path_confidence": 0.623295
+    },
+    {
+      "scene_id": "S02",
+      "impact_kinds": [
+        "causal",
+        "direct_reference",
+        "motivation"
+      ],
+      "reason_path": [
+        "CM02",
+        "S02"
+      ],
+      "evidence": "CM02 --references--> S02 (\"我马上帮你申请复核\")",
+      "path_confidence": 0.9
+    },
+    {
+      "scene_id": "S03",
+      "impact_kinds": [
+        "causal",
+        "motivation",
+        "payoff"
+      ],
+      "reason_path": [
+        "CM02",
+        "E13",
+        "E14",
+        "E15",
+        "CM01",
+        "S01",
+        "S03"
+      ],
+      "evidence": "CM02 --motivates--> E13 (\"我申请复核了，说我的487分无误。\"); E13 --causes--> E14 (\"她抢过周雨的手机，看见487后脱口而出：\"你明明只有330！\"\"); E14 --causes--> E15 (\"周雨看向林知夏：\"知夏，你是不是知道什么？\"沉默了很久，林知夏开口：\"那支笔。她借的那支笔，是你的。\"\"); E15 --references--> CM01 (\"高考那天她借笔。我递给她的，是你的笔。\"); CM01 --references--> S01 (\"最后一科开考前\"); S01 --sets_up--> S03 (\"沈曼还笔时，指尖在笔杆上停了半秒\")",
+      "path_confidence": 0.5609655
+    },
+    {
+      "scene_id": "S04",
+      "impact_kinds": [
+        "causal",
+        "motivation"
+      ],
+      "reason_path": [
+        "CM02",
+        "E13",
+        "E14",
+        "E15",
+        "CM01",
+        "S04"
+      ],
+      "evidence": "CM02 --motivates--> E13 (\"我申请复核了，说我的487分无误。\"); E13 --causes--> E14 (\"她抢过周雨的手机，看见487后脱口而出：\"你明明只有330！\"\"); E14 --causes--> E15 (\"周雨看向林知夏：\"知夏，你是不是知道什么？\"沉默了很久，林知夏开口：\"那支笔。她借的那支笔，是你的。\"\"); E15 --references--> CM01 (\"高考那天她借笔。我递给她的，是你的笔。\"); CM01 --references--> S04 (\"高考第一天清晨\")",
+      "path_confidence": 0.623295
+    },
+    {
+      "scene_id": "S05",
+      "impact_kinds": [
+        "causal",
+        "motivation",
+        "payoff"
+      ],
+      "reason_path": [
+        "CM02",
+        "E13",
+        "E14",
+        "E15",
+        "CM01",
+        "S05"
+      ],
+      "evidence": "CM02 --motivates--> E13 (\"我申请复核了，说我的487分无误。\"); E13 --causes--> E14 (\"她抢过周雨的手机，看见487后脱口而出：\"你明明只有330！\"\"); E14 --causes--> E15 (\"周雨看向林知夏：\"知夏，你是不是知道什么？\"沉默了很久，林知夏开口：\"那支笔。她借的那支笔，是你的。\"\"); E15 --references--> CM01 (\"高考那天她借笔。我递给她的，是你的笔。\"); CM01 --references--> S05 (\"最后一科开考前\")",
+      "path_confidence": 0.623295
+    },
+    {
+      "scene_id": "S06",
+      "impact_kinds": [
+        "causal",
+        "motivation",
+        "payoff"
+      ],
+      "reason_path": [
+        "CM02",
+        "E13",
+        "E14",
+        "E15",
+        "CM01",
+        "S06"
+      ],
+      "evidence": "CM02 --motivates--> E13 (\"我申请复核了，说我的487分无误。\"); E13 --causes--> E14 (\"她抢过周雨的手机，看见487后脱口而出：\"你明明只有330！\"\"); E14 --causes--> E15 (\"周雨看向林知夏：\"知夏，你是不是知道什么？\"沉默了很久，林知夏开口：\"那支笔。她借的那支笔，是你的。\"\"); E15 --references--> CM01 (\"高考那天她借笔。我递给她的，是你的笔。\"); CM01 --references--> S06 (\"查分夜\")",
+      "path_confidence": 0.623295
+    }
+  ],
+  "related_commitment_ids": [
+    "NC01",
+    "NC02",
+    "NC03",
+    "NC04",
+    "NC05"
+  ],
+  "summary": "Changing 'CM02' (成绩复核) affects 6 scene(s): S01, S02, S03, S04, S05, S06"
+}

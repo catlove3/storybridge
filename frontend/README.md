@@ -1,8 +1,10 @@
 # StoryBridge Frontend
 
-React 工作台已覆盖完整流程：创建与分析项目、多选文化摩擦、为每个点独立选择 A/B/C 方案、合并传播与图关系、批量应用与取消任务、Diff、统一验证、修订历史，以及目标语言剧本生成。
+React 页面采用“输入故事 → 选择方案 → 查看结果”流程，支持动态示例目录、可编辑草稿、多文化点选择、后台改写与检查、完整目标语言稿，以及复制和下载。手机为单列布局，图谱、对比和检查详情按需展开。
 
-当前项目 ID 写入 URL 与 `localStorage`，活动 job ID 写入 `localStorage`。刷新后会恢复项目、Story State、修订、Diff、缓存方案、最新应用结果、目标语言产物，并继续轮询仍在运行的任务。用户取消或轮询中断时，前端会请求服务端取消任务。
+初始化匿名会话后再读取故事和运行政策。草稿、选择和任务链按访客隔离保存；提交前保存幂等键，刷新恢复当前阶段。断网或切后台只暂停查询；只有点击“取消”才取消后台任务。二维码只包含首页地址，不带项目或身份。
+
+分享启动及现场验收说明见 [手机扫码体验](../docs/SHARING.md)。
 
 ## 启动
 
@@ -62,16 +64,15 @@ Playwright 的浏览器用例会启动隔离的 mock API 和 Vite，使用临时
 npm run openapi:generate
 ```
 
-不要手工编辑生成文件。`npm run openapi:check` 会重新生成并检查 Git diff，CI 用它阻止前后端契约漂移。
+不要手工编辑生成文件。`npm run openapi:check` 会重新生成并与运行前的文件内容比较，CI 用它阻止前后端契约漂移。
 
 ## 代码边界
 
 - `App.tsx`：页面状态机与流程编排。
 - `components/AdaptationPanels.tsx`：方案与传播结果。
-- `components/FinalArtifacts.tsx`：Diff、验证、修订与最终产物。
-- `components/ProjectSwitcher.tsx`：项目恢复入口。
+- `components/ExperienceDialogs.tsx`：示例选择、替换确认、二维码与复制下载。
 - `components/StoryGraphView.tsx`：图形和键盘/触屏可读的关系列表。
-- `state/recovery.ts`：URL 与本地恢复标识。
-- `api/`：OpenAPI 类型安全 HTTP client、生成 schema 与可取消 job 轮询。
+- `state/recovery.ts`：访客隔离的草稿、步骤状态与幂等请求。
+- `api/`：OpenAPI 类型安全 HTTP client、生成 schema 与断网与后台恢复的任务轮询。
 
 大图缩放和关系筛选仍属于后续增强项。

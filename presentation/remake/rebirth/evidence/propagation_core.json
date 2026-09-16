@@ -1,0 +1,100 @@
+{
+  "changed_node_id": "CM01",
+  "affected_scenes": [
+    {
+      "scene_id": "S01",
+      "impact_kinds": [
+        "causal",
+        "direct_reference",
+        "motivation"
+      ],
+      "reason_path": [
+        "CM01",
+        "S01"
+      ],
+      "evidence": "CM01 --references--> S01 (\"最后一科开考前\")",
+      "path_confidence": 0.9
+    },
+    {
+      "scene_id": "S02",
+      "impact_kinds": [
+        "causal",
+        "direct_reference",
+        "motivation"
+      ],
+      "reason_path": [
+        "CM01",
+        "S02"
+      ],
+      "evidence": "CM01 --references--> S02 (\"深夜查分\")",
+      "path_confidence": 0.9
+    },
+    {
+      "scene_id": "S03",
+      "impact_kinds": [
+        "causal",
+        "motivation",
+        "payoff"
+      ],
+      "reason_path": [
+        "CM01",
+        "S01",
+        "S03"
+      ],
+      "evidence": "CM01 --references--> S01 (\"最后一科开考前\"); S01 --sets_up--> S03 (\"沈曼还笔时，指尖在笔杆上停了半秒\")",
+      "path_confidence": 0.81
+    },
+    {
+      "scene_id": "S04",
+      "impact_kinds": [
+        "causal",
+        "direct_reference",
+        "motivation",
+        "payoff"
+      ],
+      "reason_path": [
+        "CM01",
+        "S04"
+      ],
+      "evidence": "CM01 --references--> S04 (\"高考第一天清晨\")",
+      "path_confidence": 0.9
+    },
+    {
+      "scene_id": "S05",
+      "impact_kinds": [
+        "causal",
+        "direct_reference",
+        "motivation",
+        "payoff"
+      ],
+      "reason_path": [
+        "CM01",
+        "S05"
+      ],
+      "evidence": "CM01 --references--> S05 (\"最后一科开考前\")",
+      "path_confidence": 0.9
+    },
+    {
+      "scene_id": "S06",
+      "impact_kinds": [
+        "causal",
+        "direct_reference",
+        "motivation",
+        "payoff"
+      ],
+      "reason_path": [
+        "CM01",
+        "S06"
+      ],
+      "evidence": "CM01 --references--> S06 (\"查分夜\")",
+      "path_confidence": 0.9
+    }
+  ],
+  "related_commitment_ids": [
+    "NC01",
+    "NC02",
+    "NC04",
+    "NC05"
+  ],
+  "summary": "Changing 'CM01' (高考) affects 6 scene(s): S01, S02, S03, S04, S05, S06"
+}

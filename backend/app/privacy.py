@@ -11,6 +11,7 @@ from app.schemas.privacy import DataPolicy
 @dataclass(frozen=True, slots=True)
 class ProjectDataContext:
     project_id: str = ""
+    owner_id: str = ""
     policy: DataPolicy = field(default_factory=DataPolicy)
 
 
@@ -25,9 +26,9 @@ def current_data_context() -> ProjectDataContext:
 
 @contextmanager
 def project_data_context(
-    project_id: str, policy: DataPolicy
+    project_id: str, policy: DataPolicy, owner_id: str = ""
 ) -> Iterator[ProjectDataContext]:
-    context = ProjectDataContext(project_id=project_id, policy=policy)
+    context = ProjectDataContext(project_id=project_id, policy=policy, owner_id=owner_id)
     token = _CURRENT_DATA_CONTEXT.set(context)
     try:
         yield context

@@ -1,0 +1,97 @@
+{
+  "culture_mechanism_id": "CM01",
+  "original_name": "高考",
+  "based_on_version": 1,
+  "friction_level": "high",
+  "options": [
+    {
+      "option_label": "A",
+      "strategy": "preserve",
+      "title": "保留中国高考设定，以字幕注释辅助理解",
+      "replacement_definition": "保留“高考”作为中国全国大学入学考试，在首次出现时通过角色台词或屏幕注释说明其决定大学录取、影响人生轨迹的性质；保留准考证号、查分、估分、复核等流程术语，用简短英文注释解释。",
+      "rationale": "对熟悉东亚教育体系的观众或对异国背景好奇的观众，保留原设定可维持异域悬疑感，且无需重构冲突逻辑。但美国主流18-35岁观众对高考缺乏切身经验，可能难以共情其命运决定性。",
+      "preserved_functions": [
+        "plot: motivation",
+        "plot: constraint",
+        "plot: conflict",
+        "plot: revelation",
+        "plot: foreshadowing",
+        "plot: payoff",
+        "social: status",
+        "social: institutional_access",
+        "social: economic_security",
+        "social: reputation",
+        "emotional: aspiration",
+        "emotional: fear",
+        "emotional: suspense",
+        "emotional: satisfaction"
+      ],
+      "lost_functions": [],
+      "risks": [
+        "美国观众可能无法理解高考的绝对重要性，导致动机强度不足",
+        "注释可能打断竖屏短剧的快节奏",
+        "文化距离可能削弱代入感，降低追剧粘性"
+      ]
+    },
+    {
+      "option_label": "B",
+      "strategy": "functional_replacement",
+      "title": "替换为美国大学录取核心机制：SAT/ACT + 精英大学早申",
+      "replacement_definition": "将“高考”替换为“SAT/ACT 考试 + 精英大学提前决定（Early Decision）录取”。设定：林知夏、沈曼、周雨均为高三学生，正在申请顶尖大学。沈曼借笔是为了利用“易分系统”调换 SAT 分数，因为 SAT 分数直接决定 Early Decision 录取结果。查分夜变为 College Board 在线查分夜；复核变为向 College Board 申诉分数异常；准考证号变为 SAT 注册号；估分变为考后自我评估。沈曼父亲花三百万买通 College Board 内部人员篡改分数记录。",
+      "rationale": "SAT/ACT 是美国大学录取的核心量化指标，其分数对18-35岁观众（或其弟妹）有直接或间接的切身压力，能有效传递“一考定终身”的焦虑。Early Decision 的绑定性质增加了 stakes：一旦录取，必须入学，无法反悔。College Board 作为虚构化处理的考试机构，可承载行贿与系统篡改情节。",
+      "preserved_functions": [
+        "plot: motivation",
+        "plot: constraint",
+        "plot: conflict",
+        "plot: revelation",
+        "plot: foreshadowing",
+        "plot: payoff",
+        "social: status",
+        "social: institutional_access",
+        "social: economic_security",
+        "social: reputation",
+        "emotional: aspiration",
+        "emotional: fear",
+        "emotional: suspense",
+        "emotional: satisfaction"
+      ],
+      "lost_functions": [],
+      "risks": [
+        "SAT 的 stakes 虽高，但美国观众可能认为其重要性不及高考，需通过台词强化“这是唯一机会”",
+        "College Board 是真实机构，必须虚构化处理，避免法律风险",
+        "Early Decision 的绑定规则需向不熟悉申请的观众解释清楚"
+      ]
+    },
+    {
+      "option_label": "C",
+      "strategy": "plot_reconstruction",
+      "title": "重构为全美学术竞赛（National Academic Championship）决赛",
+      "replacement_definition": "将“高考”替换为“全美学术竞赛（National Academic Championship，虚构）”。设定：该竞赛每年一次，决赛成绩直接决定顶尖大学的全额奖学金和录取名额。林知夏、沈曼、周雨是决赛选手。沈曼借笔是为了利用“易分系统”在决赛答题卡上交换分数。查分夜变为竞赛官网公布成绩；复核变为向竞赛委员会申诉；准考证号变为选手 ID；估分变为赛后自评。沈曼父亲花三百万买通竞赛委员会内部人员篡改分数。",
+      "rationale": "学术竞赛在美国高中文化中具有高度认可度，且天然带有“一局定胜负”的戏剧性。竞赛的电视转播或直播属性可增加公开羞辱与反转的视觉冲击。全额奖学金直接关联经济安全，能强化动机。",
+      "preserved_functions": [
+        "plot: motivation",
+        "plot: constraint",
+        "plot: conflict",
+        "plot: revelation",
+        "plot: foreshadowing",
+        "plot: payoff",
+        "social: status",
+        "social: institutional_access",
+        "social: economic_security",
+        "social: reputation",
+        "emotional: aspiration",
+        "emotional: fear",
+        "emotional: suspense",
+        "emotional: satisfaction"
+      ],
+      "lost_functions": [
+        "social: institutional_access（竞赛与大学录取的直接绑定需额外解释）"
+      ],
+      "risks": [
+        "竞赛的 stakes 可能被认为不如高考或 SAT 普遍，需通过台词建立其权威性",
+        "虚构竞赛需避免与真实竞赛（如 National Spelling Bee）混淆",
+        "观众可能质疑为何大学录取完全依赖一次竞赛"
+      ]
+    }
+  ]
+}

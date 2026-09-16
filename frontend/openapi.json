@@ -220,7 +220,8 @@
       "ApplyBody": {
         "properties": {
           "auto_verify_and_repair": {
-            "default": true,
+            "default": false,
+            "description": "Only run automatic verification and repair when explicitly authorized.",
             "title": "Auto Verify And Repair",
             "type": "boolean"
           },
@@ -312,7 +313,8 @@
             "type": "array"
           },
           "auto_verify_and_repair": {
-            "default": true,
+            "default": false,
+            "description": "Only run automatic verification and repair when explicitly authorized.",
             "title": "Auto Verify And Repair",
             "type": "boolean"
           },
@@ -545,6 +547,19 @@
           "data_policy": {
             "$ref": "#/components/schemas/DataPolicy"
           },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          },
           "market": {
             "$ref": "#/components/schemas/MarketProfile"
           },
@@ -639,6 +654,39 @@
           "name"
         ],
         "title": "CultureMechanism",
+        "type": "object"
+      },
+      "DailyQuota": {
+        "properties": {
+          "resets_at": {
+            "title": "Resets At",
+            "type": "string"
+          },
+          "site_limit": {
+            "title": "Site Limit",
+            "type": "integer"
+          },
+          "site_used": {
+            "title": "Site Used",
+            "type": "integer"
+          },
+          "visitor_limit": {
+            "title": "Visitor Limit",
+            "type": "integer"
+          },
+          "visitor_used": {
+            "title": "Visitor Used",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "visitor_used",
+          "visitor_limit",
+          "site_used",
+          "site_limit",
+          "resets_at"
+        ],
+        "title": "DailyQuota",
         "type": "object"
       },
       "DataExportResponse": {
@@ -776,6 +824,67 @@
           "run_records_deleted"
         ],
         "title": "DeleteProjectResponse",
+        "type": "object"
+      },
+      "DemoDetail": {
+        "properties": {
+          "genre": {
+            "title": "Genre",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "genre",
+          "summary",
+          "text"
+        ],
+        "title": "DemoDetail",
+        "type": "object"
+      },
+      "DemoSummary": {
+        "properties": {
+          "genre": {
+            "title": "Genre",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "genre",
+          "summary"
+        ],
+        "title": "DemoSummary",
         "type": "object"
       },
       "Dependency": {
@@ -1021,6 +1130,17 @@
             ],
             "title": "Error"
           },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
           "finished_at": {
             "anyOf": [
               {
@@ -1057,6 +1177,17 @@
           "project_id": {
             "title": "Project Id",
             "type": "string"
+          },
+          "resets_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resets At"
           },
           "result": {
             "title": "Result"
@@ -1108,6 +1239,12 @@
               }
             ],
             "title": "Adaptations"
+          },
+          "auto_verify_and_repair": {
+            "default": false,
+            "description": "Only run automatic verification and repair when explicitly authorized.",
+            "title": "Auto Verify And Repair",
+            "type": "boolean"
           },
           "based_on_version": {
             "anyOf": [
@@ -1495,13 +1632,43 @@
             "title": "Max Script Chars",
             "type": "integer"
           },
+          "mock_mode": {
+            "default": false,
+            "title": "Mock Mode",
+            "type": "boolean"
+          },
           "model": {
             "title": "Model",
             "type": "string"
           },
+          "model_available": {
+            "default": false,
+            "title": "Model Available",
+            "type": "boolean"
+          },
           "provider_endpoint": {
             "title": "Provider Endpoint",
             "type": "string"
+          },
+          "public_mode": {
+            "default": false,
+            "title": "Public Mode",
+            "type": "boolean"
+          },
+          "public_url": {
+            "default": "",
+            "title": "Public Url",
+            "type": "string"
+          },
+          "quota": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DailyQuota"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "sft_collection_enabled": {
             "title": "Sft Collection Enabled",
@@ -1602,6 +1769,35 @@
           "diff"
         ],
         "title": "SceneDiffResponse",
+        "type": "object"
+      },
+      "SessionResponse": {
+        "properties": {
+          "csrf_token": {
+            "title": "Csrf Token",
+            "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "visitor_id": {
+            "title": "Visitor Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "visitor_id",
+          "csrf_token"
+        ],
+        "title": "SessionResponse",
         "type": "object"
       },
       "Setting": {
@@ -2090,6 +2286,77 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/demo-scripts": {
+      "get": {
+        "operationId": "demo_scripts_api_demo_scripts_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DemoSummary"
+                  },
+                  "title": "Response Demo Scripts Api Demo Scripts Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Demo Scripts"
+      }
+    },
+    "/api/demo-scripts/{script_id}": {
+      "get": {
+        "operationId": "demo_script_api_demo_scripts__script_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "script_id",
+            "required": true,
+            "schema": {
+              "title": "Script Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Demo Script"
+      }
+    },
     "/api/jobs/{job_id}": {
       "get": {
         "operationId": "get_job_api_jobs__job_id__get",
@@ -3135,6 +3402,58 @@
         "summary": "Render Target Script"
       }
     },
+    "/api/projects/{project_id}/verification": {
+      "get": {
+        "operationId": "get_verification_api_projects__project_id__verification_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/VerifyReport"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Get Verification Api Projects  Project Id  Verification Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Get Verification"
+      }
+    },
     "/api/projects/{project_id}/verify": {
       "post": {
         "operationId": "verify_api_projects__project_id__verify_post",
@@ -3200,6 +3519,45 @@
           }
         ],
         "summary": "Runtime Policy"
+      }
+    },
+    "/api/session": {
+      "post": {
+        "operationId": "session_api_session_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Session"
+      }
+    },
+    "/api/share-code": {
+      "get": {
+        "operationId": "share_code_api_share_code_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Share Code"
       }
     },
     "/healthz": {

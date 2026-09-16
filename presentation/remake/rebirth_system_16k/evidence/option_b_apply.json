@@ -1,0 +1,527 @@
+{
+  "applied": [
+    {
+      "plan_culture_mechanism_id": "CM01",
+      "state_version": 2,
+      "operation_id": null,
+      "chosen_option": {
+        "option_label": "B",
+        "strategy": "functional_replacement",
+        "title": "替换为美国大学录取综合评估系统（虚构）",
+        "replacement_definition": "将‘高考’替换为‘全国大学录取综合评估系统’（National College Admissions Composite, NCAC），这是一个虚构的标准化考试与综合评估平台，由私营教育科技公司‘ScholarTrack’运营。该系统结合一次全国统考（类似SAT但虚构）和高中成绩、课外活动等，但统考分数占70%权重，且系统自动生成最终录取指数。查分即登录ScholarTrack账户查看‘录取指数’。复核即向ScholarTrack提交分数验证请求。志愿填报即通过系统匹配大学。沈曼父亲花三百万买通复核人员，改为花50万美元贿赂ScholarTrack内部人员篡改数据。",
+        "rationale": "美国大学录取虽非单一考试，但存在SAT/ACT等标准化考试，且富裕家庭通过贿赂、作弊等影响录取的丑闻真实存在（如2019年大学招生舞弊案）。用虚构的‘ScholarTrack’系统可以保留考试的决定性、查分紧张感、复核机制和金钱腐败，同时避免使用真实机构。",
+        "preserved_functions": [
+          "plot: motivation, constraint, conflict, revelation, foreshadowing, payoff",
+          "social: status, institutional_access, economic_security, reputation",
+          "emotional: fear, aspiration, suspense, satisfaction, humiliation"
+        ],
+        "lost_functions": [
+          "高考作为全国统一仪式的集体记忆和绝对公平象征"
+        ],
+        "risks": [
+          "美国观众可能认为标准化考试并非唯一决定因素，削弱紧迫感。",
+          "虚构系统需要快速建立可信度，否则显得牵强。",
+          "贿赂金额需调整以符合美国语境（如50万美元）。"
+        ]
+      },
+      "propagation": {
+        "changed_node_id": "CM01",
+        "affected_scenes": [
+          {
+            "scene_id": "S01",
+            "impact_kinds": [
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E01",
+              "S01"
+            ],
+            "evidence": "CM01 --motivates--> E01 (\"最后一科开考前，考场外。林知夏默背着作文素材，沈曼迎上来：\"知夏，笔借我用一下，我那支突然断墨了。\"\"); E01 --appears_in--> S01 (\"沈曼迎上来：\"知夏，笔借我用一下\"\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S02",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E02",
+              "S02"
+            ],
+            "evidence": "CM01 --motivates--> E02 (\"深夜查分，屏幕跳出\"487\"。\"); E02 --appears_in--> S02 (\"深夜查分，屏幕跳出\"487\"。\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S03",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E05",
+              "S03"
+            ],
+            "evidence": "CM01 --motivates--> E05 (\"志愿填报截止那天，匿名短信把她约上天台。\"); E05 --appears_in--> S03 (\"沈曼卸下所有伪装：\"你以为我是靠我爸？\"\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S04",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E07",
+              "S04"
+            ],
+            "evidence": "CM01 --motivates--> E07 (\"再睁眼，是高考第一天清晨。\"); E07 --appears_in--> S04 (\"再睁眼，是高考第一天清晨。\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S05",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E09",
+              "S05"
+            ],
+            "evidence": "CM01 --motivates--> E09 (\"最后一科开考前，沈曼果然凑过来：\"知夏，笔借我用一下，我那支断墨了。\"\"); E09 --appears_in--> S05 (\"沈曼果然凑过来：\"知夏，笔借我用一下\"\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S06",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM01",
+              "E10",
+              "S06"
+            ],
+            "evidence": "CM01 --motivates--> E10 (\"查分夜。林知夏输入准考证号，屏幕跳出：669\"); E10 --appears_in--> S06 (\"屏幕跳出：669\")",
+            "path_confidence": 0.81
+          }
+        ],
+        "related_commitment_ids": [
+          "NC01",
+          "NC02",
+          "NC03",
+          "NC04",
+          "NC05"
+        ],
+        "summary": "Changing 'CM01' (高考) affects 6 scene(s): S01, S02, S03, S04, S05, S06"
+      },
+      "rewritten_scene_ids": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06"
+      ],
+      "notes": ""
+    },
+    {
+      "plan_culture_mechanism_id": "CM02",
+      "state_version": 2,
+      "operation_id": null,
+      "chosen_option": {
+        "option_label": "B",
+        "strategy": "functional_replacement",
+        "title": "替换为SAT/ACT分数交换，借笔触发黑箱算法",
+        "replacement_definition": "将高考替换为美国大学入学考试SAT/ACT。设定一个虚构的“分数同步系统”（ScoreSync），由某教育科技公司秘密运营，通过特定物品（如笔）作为生物特征锚点，在考试结束后自动交换两人的标准化考试成绩。借笔行为触发系统识别，交换分数。沈曼借笔后，林知夏的SAT分数（原1580）与沈曼的分数（原1120）互换，但沈曼误借周雨的笔，导致周雨（原980）与沈曼（原1120）交换。掌心蓝痕改为手腕内侧的淡蓝色条形码印记，褪色表示交换完成。系统日志以离线数据形式存储，可被取证。",
+        "rationale": "SAT/ACT是美国高中生申请大学的核心指标，功能上等同于高考，能保留分数交换的动机、悬念和反转。虚构的ScoreSync系统避免使用真实机构，同时符合美国观众对科技黑箱的想象。借笔作为锚点保留原设定，无需添加新规则。",
+        "preserved_functions": [
+          "plot: motivation, revelation, foreshadowing, payoff, reversal",
+          "emotional: suspense, satisfaction"
+        ],
+        "lost_functions": [],
+        "risks": [
+          "SAT/ACT的考试频率和重要性虽高，但不如高考一考定终身，可能削弱紧迫感。",
+          "需要额外解释ScoreSync系统的存在，可能占用剧情时间。",
+          "美国观众可能对标准化考试作弊题材有既定印象，需避免刻板化。"
+        ]
+      },
+      "propagation": {
+        "changed_node_id": "CM02",
+        "affected_scenes": [
+          {
+            "scene_id": "S01",
+            "impact_kinds": [
+              "motivation"
+            ],
+            "reason_path": [
+              "CM02",
+              "E01",
+              "S01"
+            ],
+            "evidence": "CM02 --motivates--> E01 (\"沈曼迎上来：\"知夏，笔借我用一下，我那支突然断墨了。\"\"); E01 --appears_in--> S01 (\"沈曼迎上来：\"知夏，笔借我用一下\"\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S02",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM02",
+              "E04",
+              "S02"
+            ],
+            "evidence": "CM02 --causes--> E04 (\"沈曼以\"669分\"登上全校榜首\"); E04 --appears_in--> S02 (\"沈曼以\"669分\"登上全校榜首\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S05",
+            "impact_kinds": [
+              "motivation"
+            ],
+            "reason_path": [
+              "CM02",
+              "E09",
+              "S05"
+            ],
+            "evidence": "CM02 --motivates--> E09 (\"沈曼果然凑过来：\"知夏，笔借我用一下，我那支断墨了。\"\"); E09 --appears_in--> S05 (\"沈曼果然凑过来：\"知夏，笔借我用一下\"\")",
+            "path_confidence": 0.81
+          },
+          {
+            "scene_id": "S06",
+            "impact_kinds": [
+              "causal",
+              "motivation"
+            ],
+            "reason_path": [
+              "CM02",
+              "E09",
+              "E11",
+              "S06"
+            ],
+            "evidence": "CM02 --motivates--> E09 (\"沈曼果然凑过来：\"知夏，笔借我用一下，我那支断墨了。\"\"); E09 --causes--> E11 (\"周雨的声音发颤：\"知夏，我查到487。可我估分只有330左右啊！\"\"); E11 --appears_in--> S06 (\"周雨的声音发颤：\"知夏，我查到487。\"\")",
+            "path_confidence": 0.7290000000000001
+          }
+        ],
+        "related_commitment_ids": [
+          "NC01",
+          "NC02",
+          "NC03"
+        ],
+        "summary": "Changing 'CM02' (换分) affects 4 scene(s): S01, S02, S05, S06"
+      },
+      "rewritten_scene_ids": [
+        "S01",
+        "S02",
+        "S05",
+        "S06"
+      ],
+      "notes": ""
+    },
+    {
+      "plan_culture_mechanism_id": "CM10",
+      "state_version": 2,
+      "operation_id": null,
+      "chosen_option": {
+        "option_label": "B",
+        "strategy": "functional_replacement",
+        "title": "替换为虚构的全国学业评估数据平台（NAAP）",
+        "replacement_definition": "将“统分系统”替换为“National Academic Assessment Platform (NAAP)”，一个虚构的全国性学业评估数据平台，负责汇总和发布标准化考试成绩。内部人员可通过权限接触数据，存在被非法模块“ScoreSwap”篡改的风险。日志字段包括：借笔人ID、被借笔人ID、交换状态、目标错误建议回退。取证方式为离线日志打印件，庭审说法为“NAAP系统被非法模块入侵，数据被篡改”。",
+        "rationale": "NAAP作为全国性学业评估平台，在美国教育背景下具有类似的权威性和 institutional access，能够保留原机制的社会功能和情感效果。虚构平台避免使用真实机构，符合硬性要求。",
+        "preserved_functions": [
+          "revelation",
+          "foreshadowing",
+          "payoff",
+          "institutional_access",
+          "power",
+          "suspense",
+          "satisfaction"
+        ],
+        "lost_functions": [],
+        "risks": [
+          "美国教育体系中没有完全对应的全国统一考试，观众可能需要额外解释来理解NAAP的权威性。",
+          "虚构平台可能被质疑其现实性，但通过细节描写可增强可信度。"
+        ]
+      },
+      "propagation": {
+        "changed_node_id": "CM10",
+        "affected_scenes": [],
+        "related_commitment_ids": [
+          "NC06"
+        ],
+        "summary": "No downstream scenes depend on 'CM10'."
+      },
+      "rewritten_scene_ids": [],
+      "notes": ""
+    }
+  ],
+  "report": {
+    "issues": [
+      {
+        "issue_type": "stale_reference",
+        "severity": "error",
+        "scene_id": "S08",
+        "description": "场景仍残留已替换机制'换分'的表述：换分",
+        "evidence": "换分"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S02",
+        "description": "S02中林知夏前世SAT分数为1120，与CM02设定林知夏原1580分互换后应得1120一致，但S02同时称沈曼以1580登榜首，与沈曼原1120互换后应得1580一致，此处无冲突；实际冲突为S02林知夏1120与S06重生后林知夏1580形成前世/今生对照，属正常。",
+        "evidence": "屏幕跳出SAT总分\"1120\""
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S06",
+        "description": "S06中周雨查到1120分，与CM02设定周雨原980分、沈曼原1120分互换后周雨应得1120一致，但S07周雨称自己估分只有三百多，与980不符。",
+        "evidence": "可我明明只估了三百多！"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S07",
+        "description": "S07周雨称估分只有三百多，与S06周雨估分980左右自相矛盾。",
+        "evidence": "可我明明只估了三百多！"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S06",
+        "description": "S06周雨称估分只有980左右，与S07周雨称估分三百多自相矛盾。",
+        "evidence": "可我估分只有980左右啊！"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S07",
+        "description": "S07沈曼脱口而出周雨原分数为980，与S06周雨实际查到1120及CM02设定周雨原980一致，但沈曼应知周雨原980，此处无冲突；实际冲突为S07周雨估分三百多与S06估分980矛盾。",
+        "evidence": "你明明只有980！"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S11",
+        "description": "S11官方通报沈曼利用ScoreSwap篡改NAAP数据，与S03沈曼称其父五十万买通ScholarTrack内部改数据，两处行贿对象与篡改对象不一致。",
+        "evidence": "沈曼利用非法模块\"ScoreSwap\"入侵NAAP系统，非法篡改标准化考试数据"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S03",
+        "description": "S03沈曼称其父五十万买通ScholarTrack内部改数据，与S11官方通报其父因五十万贿赂ScholarTrack内部人员篡改录取指数一致，但S03同时称分数是自己换的，与S11通报沈曼利用ScoreSwap篡改NAAP数据存在主体与系统不一致。",
+        "evidence": "他那五十万，是买通ScholarTrack内部改数据的。分数——是我自己换的。"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S09",
+        "description": "S09老宋展示的日志字段为借笔人沈曼、被借笔人周雨、交换成功，与CM10设定日志字段包括借笔人ID、被借笔人ID、交换状态、目标错误建议回退一致，但S09称模块代号ScoreSwap，与CM10设定非法模块ScoreSwap一致，此处无冲突；实际冲突为S09称NAAP内部人帖子，与CM10设定NAAP平台一致。",
+        "evidence": "一个无签名的异常模块，代号\"ScoreSwap\""
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S08",
+        "description": "S08林知夏称NAAP日志上就是两条记录，与CM10设定NAAP平台一致，但S08同时称服务器删得掉删不掉离线备份，与CM02设定系统日志以离线数据形式存储一致，此处无冲突；实际冲突为S08称ScoreSync换分，与CM02设定ScoreSync一致。",
+        "evidence": "NAAP日志上就是两条记录"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S04",
+        "description": "S04林知夏写下计划称她借笔是为了触发ScoreSync交换SAT分数，与CM02设定ScoreSync一致，但S04同时称NCAC统考第一天，与CM01设定NCAC为全国大学录取综合评估系统一致，此处无冲突；实际冲突为S04称SAT分数，与CM01设定NCAC统考分数占70%权重不一致。",
+        "evidence": "她借笔，是为了触发ScoreSync交换SAT分数"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S01",
+        "description": "S01称SAT考试最后一科开考前，与CM01设定NCAC统考及CM02设定SAT/ACT存在考试名称混用。",
+        "evidence": "SAT考试最后一科开考前"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S02",
+        "description": "S02称林知夏登录College Board账户，与CM01设定查分即登录ScholarTrack账户查看录取指数不一致。",
+        "evidence": "林知夏登录College Board账户"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S02",
+        "description": "S02称老陈帮林知夏向ScoreSync提交分数验证请求，与CM01设定复核即向ScholarTrack提交分数验证请求不一致。",
+        "evidence": "我马上帮你向ScoreSync提交分数验证请求。"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S02",
+        "description": "S02称沈曼以1580的SAT分数登上全校榜首，与CM01设定NCAC录取指数及CM02设定SAT分数存在混用。",
+        "evidence": "沈曼以\"1580\"的SAT分数登上全校榜首"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S03",
+        "description": "S03称NCAC志愿匹配截止那天，与CM01设定志愿填报即通过系统匹配大学一致，但S03同时称沈曼伸出手腕内侧的淡蓝色条形码印记，与CM02设定掌心蓝痕改为手腕内侧的淡蓝色条形码印记一致，此处无冲突；实际冲突为S03称ScoreSync交换SAT分数，与CM01设定NCAC统考分数不一致。",
+        "evidence": "NCAC志愿匹配截止那天"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S04",
+        "description": "S04称NCAC统考第一天清晨，与CM01设定NCAC为全国大学录取综合评估系统一致，但S04同时称准考证，与CM01设定ScholarTrack账户查看录取指数不一致。",
+        "evidence": "桌上的准考证、门口母亲的粥、手机上的日期"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S06",
+        "description": "S06称林知夏登录ScholarTrack账户，SAT分数跳出来1580，与CM01设定ScholarTrack账户查看录取指数一致，但S06同时称SAT分数，与CM01设定NCAC统考分数不一致。",
+        "evidence": "林知夏登录ScholarTrack账户，SAT分数跳出来：1580"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S07",
+        "description": "S07称周雨向NAAP提交分数验证请求，与CM10设定NAAP平台一致，但S07同时称SAT考试那天她借笔，与CM01设定NCAC统考不一致。",
+        "evidence": "我向NAAP提交了分数验证请求"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S08",
+        "description": "S08称周雨守在楼梯间是为了亲耳听沈曼承认ScoreSync换分，与CM02设定ScoreSync一致，但S08同时称NAAP日志，与CM10设定NAAP平台一致，此处无冲突；实际冲突为S08称ScoreSync换分与NAAP日志混用。",
+        "evidence": "是为了亲耳听沈曼承认ScoreSync换分"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S09",
+        "description": "S09称老宋展示NAAP系统日志的打印件，与CM10设定NAAP平台一致，但S09同时称ScoreSwap模块，与CM10设定非法模块ScoreSwap一致，此处无冲突；实际冲突为S09称贴吧有个自称NAAP内部人的帖子，与CM10设定NAAP平台一致。",
+        "evidence": "老宋把打印件摊在桌上"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S11",
+        "description": "S11称沈曼利用非法模块ScoreSwap入侵NAAP系统，与CM10设定NAAP平台一致，但S11同时称其父因50万美元贿赂ScholarTrack内部人员篡改录取指数，与CM01设定ScholarTrack一致，此处无冲突；实际冲突为S11称ScoreSwap来源不明，与CM10设定ScoreSwap一致。",
+        "evidence": "官方通报：沈曼利用非法模块\"ScoreSwap\"入侵NAAP系统"
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S12",
+        "description": "S12称林知夏报法学，与CM20设定法学一致，但S12同时称系统没有消失，它只是换了一种方式，在等下一个借笔的人，与CM02设定ScoreSync一致，此处无冲突；实际冲突为S12称周雨报了师范，与CM19设定师范一致。",
+        "evidence": "我报了师范。以后当老师，不让任何人换学生的分。"
+      },
+      {
+        "issue_type": "motivation_break",
+        "severity": "error",
+        "scene_id": "S07",
+        "description": "S07周雨估分三百多与S06估分980矛盾，导致其查分后反应失去动机支撑。",
+        "evidence": "可我明明只估了三百多！"
+      },
+      {
+        "issue_type": "commitment_violation",
+        "severity": "error",
+        "scene_id": "S10",
+        "description": "NC01要求录下沈曼天台推人证据，但S08天台对峙中沈曼扑来撞上护栏，林知夏侧身让开，未发生推人行为，录音笔未明确记录推人证据。",
+        "evidence": "沈曼扑上来。林知夏侧身让开，沈曼收势不住撞上护栏。"
+      },
+      {
+        "issue_type": "unresolved_payoff",
+        "severity": "error",
+        "scene_id": "S11",
+        "description": "NC06易分系统来源不明已移交调查，但S11后无后续回收，悬念未解。",
+        "evidence": "\"ScoreSwap\"来源不明，已移交专门机构调查。"
+      }
+    ],
+    "commitment_checks": [
+      {
+        "commitment_id": "NC01",
+        "status": "violated",
+        "explanation": "S04建立录下天台推人证据的承诺，但S08天台场景中沈曼扑来撞护栏，林知夏侧身让开，未发生推人行为，录音笔未明确记录推人证据。"
+      },
+      {
+        "commitment_id": "NC02",
+        "status": "preserved",
+        "explanation": "S04建立借笔换分锚点设定，S05、S07、S08、S09均延续该设定。"
+      },
+      {
+        "commitment_id": "NC03",
+        "status": "preserved",
+        "explanation": "S02建立手腕内侧淡蓝色条形码印记褪色代表换分完成，S03延续该设定。"
+      },
+      {
+        "commitment_id": "NC04",
+        "status": "preserved",
+        "explanation": "S11揭露换分真相，沈曼被捕，其父被查，沈氏集团破产，承诺回收。"
+      },
+      {
+        "commitment_id": "NC05",
+        "status": "preserved",
+        "explanation": "S07建立林知夏故意借周雨笔导致周雨被换分的道德亏欠，S11周雨分数恢复但两人关系回不去，得到清算。"
+      },
+      {
+        "commitment_id": "NC06",
+        "status": "needs_review",
+        "explanation": "S11建立易分系统来源不明已移交调查的悬念，但后续无场景回收，需确认是否留待续作。"
+      },
+      {
+        "commitment_id": "NC07",
+        "status": "preserved",
+        "explanation": "S12建立系统没有消失，在等下一个借笔的人的悬念，作为结尾保留。"
+      }
+    ],
+    "checked_scene_ids": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "S08",
+      "S09",
+      "S10",
+      "S11",
+      "S12"
+    ],
+    "static_checks_passed": 2,
+    "static_checks_total": 3,
+    "commitments_verified": 6,
+    "commitments_total": 7,
+    "scenes_checked": 12,
+    "scenes_total": 12,
+    "overall_status": "fail",
+    "consistency_score": 0.0
+  },
+  "repair_rounds": 2,
+  "repaired_scene_ids": [
+    "S07",
+    "S03",
+    "S04",
+    "S08",
+    "S09",
+    "S06",
+    "S03",
+    "S04",
+    "S08",
+    "S06",
+    "S07",
+    "S11"
+  ],
+  "from_version": 1,
+  "to_version": 2
+}

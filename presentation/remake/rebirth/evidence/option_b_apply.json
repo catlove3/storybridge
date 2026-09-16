@@ -1,0 +1,241 @@
+{
+  "applied": {
+    "plan_culture_mechanism_id": "CM01",
+    "state_version": 2,
+    "operation_id": null,
+    "chosen_option": {
+      "option_label": "B",
+      "strategy": "functional_replacement",
+      "title": "替换为美国大学录取核心机制：SAT/ACT + 精英大学早申",
+      "replacement_definition": "将“高考”替换为“SAT/ACT 考试 + 精英大学提前决定（Early Decision）录取”。设定：林知夏、沈曼、周雨均为高三学生，正在申请顶尖大学。沈曼借笔是为了利用“易分系统”调换 SAT 分数，因为 SAT 分数直接决定 Early Decision 录取结果。查分夜变为 College Board 在线查分夜；复核变为向 College Board 申诉分数异常；准考证号变为 SAT 注册号；估分变为考后自我评估。沈曼父亲花三百万买通 College Board 内部人员篡改分数记录。",
+      "rationale": "SAT/ACT 是美国大学录取的核心量化指标，其分数对18-35岁观众（或其弟妹）有直接或间接的切身压力，能有效传递“一考定终身”的焦虑。Early Decision 的绑定性质增加了 stakes：一旦录取，必须入学，无法反悔。College Board 作为虚构化处理的考试机构，可承载行贿与系统篡改情节。",
+      "preserved_functions": [
+        "plot: motivation",
+        "plot: constraint",
+        "plot: conflict",
+        "plot: revelation",
+        "plot: foreshadowing",
+        "plot: payoff",
+        "social: status",
+        "social: institutional_access",
+        "social: economic_security",
+        "social: reputation",
+        "emotional: aspiration",
+        "emotional: fear",
+        "emotional: suspense",
+        "emotional: satisfaction"
+      ],
+      "lost_functions": [],
+      "risks": [
+        "SAT 的 stakes 虽高，但美国观众可能认为其重要性不及高考，需通过台词强化“这是唯一机会”",
+        "College Board 是真实机构，必须虚构化处理，避免法律风险",
+        "Early Decision 的绑定规则需向不熟悉申请的观众解释清楚"
+      ]
+    },
+    "propagation": {
+      "changed_node_id": "CM01",
+      "affected_scenes": [
+        {
+          "scene_id": "S01",
+          "impact_kinds": [
+            "causal",
+            "direct_reference",
+            "motivation"
+          ],
+          "reason_path": [
+            "CM01",
+            "S01"
+          ],
+          "evidence": "CM01 --references--> S01 (\"最后一科开考前\")",
+          "path_confidence": 0.9
+        },
+        {
+          "scene_id": "S02",
+          "impact_kinds": [
+            "causal",
+            "direct_reference",
+            "motivation"
+          ],
+          "reason_path": [
+            "CM01",
+            "S02"
+          ],
+          "evidence": "CM01 --references--> S02 (\"深夜查分\")",
+          "path_confidence": 0.9
+        },
+        {
+          "scene_id": "S03",
+          "impact_kinds": [
+            "causal",
+            "motivation",
+            "payoff"
+          ],
+          "reason_path": [
+            "CM01",
+            "S01",
+            "S03"
+          ],
+          "evidence": "CM01 --references--> S01 (\"最后一科开考前\"); S01 --sets_up--> S03 (\"沈曼还笔时，指尖在笔杆上停了半秒\")",
+          "path_confidence": 0.81
+        },
+        {
+          "scene_id": "S04",
+          "impact_kinds": [
+            "causal",
+            "direct_reference",
+            "motivation",
+            "payoff"
+          ],
+          "reason_path": [
+            "CM01",
+            "S04"
+          ],
+          "evidence": "CM01 --references--> S04 (\"高考第一天清晨\")",
+          "path_confidence": 0.9
+        },
+        {
+          "scene_id": "S05",
+          "impact_kinds": [
+            "causal",
+            "direct_reference",
+            "motivation",
+            "payoff"
+          ],
+          "reason_path": [
+            "CM01",
+            "S05"
+          ],
+          "evidence": "CM01 --references--> S05 (\"最后一科开考前\")",
+          "path_confidence": 0.9
+        },
+        {
+          "scene_id": "S06",
+          "impact_kinds": [
+            "causal",
+            "direct_reference",
+            "motivation",
+            "payoff"
+          ],
+          "reason_path": [
+            "CM01",
+            "S06"
+          ],
+          "evidence": "CM01 --references--> S06 (\"查分夜\")",
+          "path_confidence": 0.9
+        }
+      ],
+      "related_commitment_ids": [
+        "NC01",
+        "NC02",
+        "NC04",
+        "NC05"
+      ],
+      "summary": "Changing 'CM01' (高考) affects 6 scene(s): S01, S02, S03, S04, S05, S06"
+    },
+    "rewritten_scene_ids": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06"
+    ],
+    "notes": ""
+  },
+  "report": {
+    "issues": [
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S06",
+        "description": "S06中周雨称自己考后估分只有980左右，与S07中周雨自称估分980左右一致，但S06中周雨实际得分为1120，而S07中周雨申诉的也是1120分，前后一致；然而S06中沈曼得980分，与周雨估分980相同，造成分数混淆。",
+        "evidence": "周雨的声音发颤：\"知夏，我查到1120。可我考后估分只有980左右啊！\""
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S07",
+        "description": "S07中沈曼脱口而出'你明明只有980'，但S06中周雨实际得分1120、估分980，沈曼若知道周雨原分数应为980，此处与S06周雨估分一致，但沈曼在S06中自己得980分，导致沈曼知道周雨原分数为980与自身分数980混淆。",
+        "evidence": "她抢过周雨的手机，看见1120后脱口而出：\"你明明只有980！\""
+      },
+      {
+        "issue_type": "fact_conflict",
+        "severity": "error",
+        "scene_id": "S06",
+        "description": "S06中沈曼得980分，而S07中沈曼脱口说出周雨原分数为980，两个不同人物的分数均为980，造成事实混淆。",
+        "evidence": "沈曼发了条动态，配图是查分截图——\"980。怎么会这样？\""
+      }
+    ],
+    "commitment_checks": [
+      {
+        "commitment_id": "NC01",
+        "status": "preserved",
+        "explanation": "S01中沈曼借笔，S03中沈曼承认借笔是为了换分，笔是锚点，承诺得到回收。"
+      },
+      {
+        "commitment_id": "NC02",
+        "status": "preserved",
+        "explanation": "S04中林知夏写下计划不借自己的笔并录下天台推人证据，S05中借出周雨的笔，S08中设局录音录像，承诺得到回收。"
+      },
+      {
+        "commitment_id": "NC03",
+        "status": "preserved",
+        "explanation": "S03中沈曼透露父亲花三百万买通College Board复核，S11中其父因三百万买通复核环节被查、行贿链条曝光，承诺得到回收。"
+      },
+      {
+        "commitment_id": "NC04",
+        "status": "preserved",
+        "explanation": "S02中林知夏被换分导致SAT仅487，S11中沈曼被捕、真相揭露，林知夏复仇成功，承诺得到回收。"
+      },
+      {
+        "commitment_id": "NC05",
+        "status": "preserved",
+        "explanation": "S07中林知夏承认故意把周雨的笔借给沈曼，周雨得知真相后与林知夏决裂，S11中周雨发消息'分数回来了。但我们回不去了'，承诺得到回收。"
+      },
+      {
+        "commitment_id": "NC06",
+        "status": "preserved",
+        "explanation": "S09中老宋展示易分系统日志记录，S10中检方提交老宋的离线日志作为证据，承诺得到回收。"
+      },
+      {
+        "commitment_id": "NC07",
+        "status": "preserved",
+        "explanation": "S08中林知夏在天台设局录音录像，S10中检方提交天台录音作为证据，承诺得到回收。"
+      },
+      {
+        "commitment_id": "NC08",
+        "status": "preserved",
+        "explanation": "S12中明确提到系统没有消失，它只是换了一种方式，在等下一个借笔的人，承诺得到保留。"
+      }
+    ],
+    "checked_scene_ids": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "S08",
+      "S09",
+      "S10",
+      "S11",
+      "S12"
+    ],
+    "static_checks_passed": 3,
+    "static_checks_total": 3,
+    "commitments_verified": 8,
+    "commitments_total": 8,
+    "scenes_checked": 12,
+    "scenes_total": 12,
+    "overall_status": "fail",
+    "consistency_score": 0.55
+  },
+  "repair_rounds": 2,
+  "repaired_scene_ids": [
+    "S07",
+    "S10",
+    "S06",
+    "S07"
+  ]
+}
