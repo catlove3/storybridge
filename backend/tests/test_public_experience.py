@@ -447,7 +447,7 @@ async def test_idempotency_rejects_changed_payload(public_server):
         json={
             "kind": "analyze",
             "idempotency_key": "same-job",
-            "auto_verify_and_repair": False,
+            "auto_verify_and_repair": True,
         },
     )
     assert conflict.status_code == 409
