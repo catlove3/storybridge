@@ -4,13 +4,14 @@ import pytest
 
 from app.config import get_config
 from app.llm import MockLLMClient
-from app.schemas import StoryState, TargetScript, VerifyReport
+from app.schemas import CultureRefreshResult, StoryState, TargetScript, VerifyReport
 from app.skills import all_skills, get_skill
 from tests.fixtures import sample_story_state_dict
 
 SKILL_NAMES = [
     "parse_story",
     "detect_frictions",
+    "refresh_culture",
     "plan_adaptation",
     "rewrite_scene",
     "plan_repair",
@@ -31,6 +32,7 @@ def test_get_skill_unknown_raises():
 def test_skill_schemas_bound():
     assert get_skill("parse_story").schema is StoryState
     assert get_skill("verify_consistency").schema is VerifyReport
+    assert get_skill("refresh_culture").schema is CultureRefreshResult
     assert get_skill("render_target_script").schema is TargetScript
     assert get_skill("parse_story").max_tokens is None
     assert get_config().llm.step_max_tokens == {

@@ -51,6 +51,59 @@ def _rewrite_echo_handler(request) -> str:
             payload["original_name"] = mechanism_name.group(1)
         return _json.dumps(payload, ensure_ascii=False)
 
+    if request.step == "refresh_culture":
+        marker = "当前中文结构稿：\n"
+        current = _json.loads(request.user_prompt.split(marker, 1)[1])
+        scenes = [
+            scene
+            for scene in current.get("scenes", [])
+            if "职业稳定性" in (
+                f"{scene.get('title', '')}{scene.get('summary', '')}{scene.get('text', '')}"
+            )
+        ]
+        return _json.dumps(
+            {
+                "culture_mechanisms": (
+                    [
+                        {
+                            "id": "CM01",
+                            "name": "职业稳定性",
+                            "description": "新版故事中以稳定职业衡量婚姻与社会地位的观念",
+                            "surface_text": ["职业稳定性"],
+                            "scene_ids": [scene["id"] for scene in scenes],
+                        }
+                    ]
+                    if scenes
+                    else []
+                )
+            },
+            ensure_ascii=False,
+        )
+
+    if request.step == "detect_frictions":
+        mechanism_ids = list(
+            dict.fromkeys(re.findall(r'"id": "(CM\d+)"', request.user_prompt))
+        )
+        return _json.dumps(
+            {
+                "mechanisms": [
+                    {
+                        "id": mechanism_id,
+                        "friction_level": "high",
+                        "narrative_importance": "high",
+                        "functions": {
+                            "plot": ["conflict"],
+                            "social": ["status"],
+                            "emotional": ["humiliation"],
+                        },
+                        "drop": False,
+                    }
+                    for mechanism_id in mechanism_ids
+                ]
+            },
+            ensure_ascii=False,
+        )
+
     if request.step == "render_target_script":
         scene_ids = list(dict.fromkeys(re.findall(r'"id": "(S\d+)"', request.user_prompt)))
         target_match = re.search(r"目标语言：([^\n]+)", request.user_prompt)
@@ -78,9 +131,9 @@ def _rewrite_echo_handler(request) -> str:
     return _json.dumps(
         {
             "id": scene_id,
-            "title": f"{scene_id} adapted",
-            "summary": f"[REWRITTEN-SUMMARY {scene_id}]",
-            "text": f"[REWRITTEN {scene_id}] localized career-stability version",
+            "title": f"{scene_id} 改编场景",
+            "summary": f"[{scene_id} 改编摘要]",
+            "text": f"[REWRITTEN {scene_id}] 已改为本地化的职业稳定性版本",
         },
         ensure_ascii=False,
     )

@@ -150,7 +150,7 @@ class Verifier:
         report = self.sanitize(state, report)
         static_issues = run_static_checks(state)
         report.issues = merge_reports(static_issues, report.issues)
-        report.static_checks_total = 3
+        report.static_checks_total = 4
         failed_static_kinds = {
             issue.issue_type
             for issue in static_issues
@@ -159,6 +159,7 @@ class Verifier:
                 IssueType.STALE_REFERENCE,
                 IssueType.UNRESOLVED_PAYOFF,
                 IssueType.MOTIVATION_BREAK,
+                IssueType.SOURCE_LANGUAGE_DRIFT,
             )
         }
         report.static_checks_passed = report.static_checks_total - len(failed_static_kinds)

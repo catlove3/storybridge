@@ -12,6 +12,7 @@ class IssueType(str, Enum):
     MOTIVATION_BREAK = "motivation_break"
     COMMITMENT_VIOLATION = "commitment_violation"
     UNRESOLVED_PAYOFF = "unresolved_payoff"
+    SOURCE_LANGUAGE_DRIFT = "source_language_drift"
 
 
 class Severity(str, Enum):

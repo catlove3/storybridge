@@ -4,6 +4,7 @@ import re
 
 from app.schemas import StoryState, VerificationIssue
 from app.schemas.verification import IssueType, Severity
+from app.workflow.language_checks import foreign_language_fragments
 
 
 def _normalize(text: str) -> str:
@@ -98,11 +99,37 @@ def check_reconstructed_dependency_chains(state: StoryState) -> list[Verificatio
     return issues
 
 
+def check_source_language_drift(state: StoryState) -> list[VerificationIssue]:
+    if not state.source_language.lower().startswith("zh"):
+        return []
+    issues: list[VerificationIssue] = []
+    for scene in state.scenes:
+        fragments = foreign_language_fragments(
+            f"{scene.title}\n{scene.summary}\n{scene.text}"
+        )
+        if not fragments:
+            continue
+        issues.append(
+            VerificationIssue(
+                issue_type=IssueType.SOURCE_LANGUAGE_DRIFT,
+                severity=Severity.ERROR,
+                scene_id=scene.id,
+                description=(
+                    "中文改编稿仍包含成段的目标语言文字；请将场景标题、摘要和台词改为"
+                    "简体中文，目标语言只在最终稿阶段生成"
+                ),
+                evidence=" / ".join(fragments[:3]),
+            )
+        )
+    return issues
+
+
 def run_static_checks(state: StoryState) -> list[VerificationIssue]:
     return [
         *check_stale_references(state),
         *check_uncovered_commitments(state),
         *check_reconstructed_dependency_chains(state),
+        *check_source_language_drift(state),
     ]
 
 

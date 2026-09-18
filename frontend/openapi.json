@@ -1119,7 +1119,8 @@
           "fact_conflict",
           "motivation_break",
           "commitment_violation",
-          "unresolved_payoff"
+          "unresolved_payoff",
+          "source_language_drift"
         ],
         "title": "IssueType",
         "type": "string"
@@ -1131,6 +1132,7 @@
           "apply",
           "plan_batch",
           "apply_batch",
+          "refresh_culture",
           "verify",
           "repair",
           "render"
@@ -1741,6 +1743,7 @@
             "enum": [
               "initial_parse",
               "friction_detection",
+              "culture_refresh",
               "adaptation_applied",
               "repair"
             ],

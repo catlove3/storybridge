@@ -7,6 +7,8 @@ from app.prompts import (
     parse_story_user,
     plan_adaptation_system,
     plan_adaptation_user,
+    refresh_culture_system,
+    refresh_culture_user,
     render_target_script_system,
     render_target_script_user,
     rewrite_scene_system,
@@ -17,6 +19,7 @@ from app.prompts import (
 from app.prompts.repair import REPAIR_PLAN_SYSTEM, repair_plan_user
 from app.schemas import (
     AdaptationPlan,
+    CultureRefreshResult,
     FrictionDetectionResult,
     RewrittenScene,
     StoryState,
@@ -39,6 +42,14 @@ DETECT_FRICTIONS = SkillSpec(
     schema=FrictionDetectionResult,
     system_prompt=detect_frictions_system(),
     user_prompt=detect_frictions_user,
+    temperature=0.0,
+)
+
+REFRESH_CULTURE = SkillSpec(
+    name="refresh_culture",
+    schema=CultureRefreshResult,
+    system_prompt=refresh_culture_system(),
+    user_prompt=refresh_culture_user,
     temperature=0.0,
 )
 
@@ -86,6 +97,7 @@ _REGISTRY: dict[str, SkillSpec] = {
     for s in (
         PARSE_STORY,
         DETECT_FRICTIONS,
+        REFRESH_CULTURE,
         PLAN_ADAPTATION,
         REWRITE_SCENE,
         PLAN_REPAIR,

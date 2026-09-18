@@ -729,6 +729,7 @@ async def submit_job(project_id: str, body: JobSubmitBody, request: Request):
             auto_verify_and_repair=body.auto_verify_and_repair,
             based_on_version=body.based_on_version, operation_id=body.idempotency_key,
         ),
+        JobKind.REFRESH_CULTURE: lambda: workflow.refresh_culture(project_id),
         JobKind.VERIFY: lambda: workflow.verify(project_id),
         JobKind.REPAIR: lambda: workflow.repair_from_verification(
             project_id,

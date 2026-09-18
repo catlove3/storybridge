@@ -17,6 +17,7 @@ from app.schemas import RewrittenScene as RewrittenScene
 from app.schemas.repair import RepairPlan
 from app.skills import REWRITE_SCENE, SkillSpec
 from app.skills.registry import PLAN_REPAIR
+from app.workflow.language_checks import foreign_language_fragments
 from app.workflow.targets import adaptation_target, linked_commitments, target_scene_ids
 
 
@@ -101,11 +102,32 @@ class SceneRewriter:
         ]
 
     @staticmethod
-    def _validate_rewrite(scene: Scene, rewritten: RewrittenScene) -> None:
+    def _validate_rewrite(
+        scene: Scene,
+        rewritten: RewrittenScene,
+        source_language: str = "zh-CN",
+    ) -> None:
         if rewritten.id != scene.id:
             raise ValueError(
                 f"rewritten scene id mismatch: expected {scene.id}, got {rewritten.id}"
             )
+        if source_language.lower().startswith("zh"):
+            fields = {
+                "title": rewritten.title,
+                "summary": rewritten.summary,
+                "text": rewritten.text,
+            }
+            drift = {
+                name: fragments
+                for name, value in fields.items()
+                if (fragments := foreign_language_fragments(value))
+            }
+            if drift:
+                raise ValueError(
+                    "Chinese structure draft contains target-language passages; "
+                    "rewrite title, summary, and dialogue in Simplified Chinese: "
+                    + ", ".join(drift)
+                )
 
     async def apply(
         self,
@@ -128,7 +150,9 @@ class SceneRewriter:
                 continue
             rewritten = await self.skill.run(
                 self.client,
-                result_validator=lambda result: self._validate_rewrite(scene, result),
+                result_validator=lambda result: self._validate_rewrite(
+                    scene, result, state.source_language
+                ),
                 scene_json=scene.model_dump(),
                 adaptation_brief=brief,
                 must_preserve_commitments=commitments,
@@ -290,7 +314,9 @@ class SceneRewriter:
             )
             rewritten = await self.skill.run(
                 self.client,
-                result_validator=lambda result: self._validate_rewrite(scene, result),
+                result_validator=lambda result: self._validate_rewrite(
+                    scene, result, state.source_language
+                ),
                 scene_json=scene.model_dump(),
                 adaptation_brief=brief,
                 must_preserve_commitments=[

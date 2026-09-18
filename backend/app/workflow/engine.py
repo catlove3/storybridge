@@ -25,6 +25,7 @@ from app.schemas import (
 )
 from app.sqlite_storage import SQLiteProjectStore
 from app.storage import MarketProfile, ProjectMeta, ProjectStore
+from app.workflow.culture_refresh import CultureRefresher, culture_mechanism_is_current
 from app.workflow.friction import FrictionDetector
 from app.workflow.parser import StoryParser
 from app.workflow.planner import AdaptationPlanner
@@ -103,6 +104,7 @@ class StoryBridgeWorkflow:
             client,
             batch_size=long_text.friction_batch_size,
         )
+        self.culture_refresher = CultureRefresher(client)
         self.planner = AdaptationPlanner(client)
         self.rewriter = SceneRewriter(client)
         self.renderer = TargetScriptRenderer(client)
@@ -115,6 +117,23 @@ class StoryBridgeWorkflow:
         if state is None:
             raise KeyError(f"project '{project_id}' has no analyzed state; run analyze first")
         return state
+
+    def _active_applied(
+        self, project_id: str, state: StoryState
+    ) -> list[AppliedAdaptation]:
+        current_definitions = {
+            item.id: item.adapted_to
+            for item in [*state.settings, *state.culture_mechanisms]
+            if item.adapted_to
+        }
+        active: dict[str, AppliedAdaptation] = {}
+        for item in self.store.load_applied(project_id):
+            if (
+                current_definitions.get(item.plan_culture_mechanism_id)
+                == item.chosen_option.replacement_definition
+            ):
+                active[item.plan_culture_mechanism_id] = item
+        return list(active.values())
 
     async def create_project(
         self,
@@ -208,6 +227,15 @@ class StoryBridgeWorkflow:
         state: StoryState,
         mechanism_id: str,
     ) -> AdaptationPlan:
+        if (
+            mechanism_id.startswith("CM")
+            and any(setting.adapted_to for setting in state.settings)
+            and not culture_mechanism_is_current(state, mechanism_id)
+        ):
+            raise ValueError(
+                "该文化点已随核心设定改变，不再出现在当前中文稿中；"
+                "请先重新审查文化背景和名词。"
+            )
         cached = self.store.load_plan(project_id, mechanism_id)
         if cached is not None and cached.based_on_version == state.version:
             return cached
@@ -217,6 +245,33 @@ class StoryBridgeWorkflow:
         plan.based_on_version = state.version
         self.store.save_plan(project_id, plan)
         return plan
+
+    async def refresh_culture(self, project_id: str) -> StoryState:
+        """Re-extract culture mechanisms from the current post-setting draft."""
+
+        async with self._project_locks[project_id]:
+            current_state = self.require_state(project_id)
+            meta = self.store.load_meta(project_id)
+            if meta is None:
+                raise KeyError(f"unknown project: {project_id}")
+            candidate = current_state.model_copy(deep=True)
+            with project_data_context(project_id, meta.data_policy, meta.owner_id):
+                candidate = await self.culture_refresher.apply(
+                    candidate, target_market=meta.market.market
+                )
+                candidate = await self.detector.apply(
+                    candidate, target_market=meta.market.market
+                )
+            self.store.save_state(
+                project_id,
+                candidate,
+                kind="culture_refresh",
+                description=(
+                    "Re-extracted culture mechanisms from the current story after "
+                    "core-setting adaptation"
+                ),
+            )
+            return candidate
 
     def propagate(self, project_id: str, mechanism_id: str) -> PropagationResult:
         state = self.require_state(project_id)
@@ -461,10 +516,7 @@ class StoryBridgeWorkflow:
             meta = self.store.load_meta(project_id)
             if meta is None:
                 raise KeyError(f"unknown project: {project_id}")
-            applied = list({
-                item.plan_culture_mechanism_id: item
-                for item in self.store.load_applied(project_id)
-            }.values())
+            applied = self._active_applied(project_id, state)
             summary = "; ".join(
                 f"{a.plan_culture_mechanism_id} -> {a.chosen_option.replacement_definition}"
                 for a in applied
@@ -585,10 +637,7 @@ class StoryBridgeWorkflow:
             if not issues:
                 raise ValueError("检查结果中没有可自动修复的具体场景")
 
-            applied = list({
-                item.plan_culture_mechanism_id: item
-                for item in self.store.load_applied(project_id)
-            }.values())
+            applied = self._active_applied(project_id, state)
             adaptation_summary = "; ".join(
                 f"{item.plan_culture_mechanism_id} -> "
                 f"{item.chosen_option.replacement_definition}"

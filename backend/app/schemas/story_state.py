@@ -81,6 +81,19 @@ class CultureMechanism(BaseModel):
     adapted_strategy: str | None = None
 
 
+class CultureRefreshResult(BaseModel):
+    """Culture mechanisms re-extracted from the current rewritten story."""
+
+    culture_mechanisms: list[CultureMechanism] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _unique_ids(self) -> CultureRefreshResult:
+        ids = [item.id for item in self.culture_mechanisms]
+        if len(ids) != len(set(ids)):
+            raise ValueError("refreshed culture mechanism ids must be unique")
+        return self
+
+
 class Commitment(BaseModel):
     id: str = Field(pattern=r"^NC\d+$", description=ID_PATTERN_DESCRIPTION)
     description: str
@@ -236,6 +249,7 @@ class Revision(BaseModel):
     kind: Literal[
         "initial_parse",
         "friction_detection",
+        "culture_refresh",
         "adaptation_applied",
         "repair",
     ]

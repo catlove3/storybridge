@@ -948,12 +948,12 @@ export interface components {
          * IssueType
          * @enum {string}
          */
-        IssueType: "stale_reference" | "fact_conflict" | "motivation_break" | "commitment_violation" | "unresolved_payoff";
+        IssueType: "stale_reference" | "fact_conflict" | "motivation_break" | "commitment_violation" | "unresolved_payoff" | "source_language_drift";
         /**
          * JobKind
          * @enum {string}
          */
-        JobKind: "analyze" | "plan" | "apply" | "plan_batch" | "apply_batch" | "verify" | "repair" | "render";
+        JobKind: "analyze" | "plan" | "apply" | "plan_batch" | "apply_batch" | "refresh_culture" | "verify" | "repair" | "render";
         /** JobResponse */
         JobResponse: {
             /** Cancel Requested */
@@ -1187,7 +1187,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "initial_parse" | "friction_detection" | "adaptation_applied" | "repair";
+            kind: "initial_parse" | "friction_detection" | "culture_refresh" | "adaptation_applied" | "repair";
             /** Revision Id */
             revision_id: number;
             /**

@@ -47,15 +47,15 @@ export function PlanOptions({ plan, selectedLabel, customValue, disabled, onSele
       })}
       <article className={`option-card option-card--custom${selectedLabel === 'CUSTOM' ? ' is-selected' : ''}`}>
         <header><span className="option-card__label">+</span><span className="option-card__strategy">自定义方案</span></header>
-        <h4>按你的想法来改</h4>
+        <h4>你希望“{plan.original_name}”最终变成什么？</h4>
         <label className="custom-option-input">
-          <span>写清楚希望保留、替换或重构成什么</span>
+          <span>写最终设定、必须保留的作用，以及不希望再出现的旧内容</span>
           <textarea
             rows={5}
             maxLength={4000}
             value={customValue}
             disabled={disabled}
-            placeholder="例如：保留换分规则，但改成一款只认设备原主人的校园预测 App，并保持成绩对调与公布后锁定的限制。"
+            placeholder={`例如：把“${plan.original_name}”改为【新的具体设定】；保留【关键人物动机或剧情作用】；相关场景统一替换，不再出现【旧称谓】。`}
             onChange={(event) => onCustomChange(event.target.value)}
           />
         </label>

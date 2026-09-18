@@ -58,7 +58,7 @@ def _rewrite_handler(request) -> str:
             "id": scene_id,
             "title": f"{scene_id} adapted",
             "summary": f"[REWRITTEN-SUMMARY {scene_id}]",
-            "text": f"[REWRITTEN {scene_id}] career-stability conflict resolved",
+            "text": f"[REWRITTEN {scene_id}] 已解决职业稳定性冲突",
         },
         ensure_ascii=False,
     )

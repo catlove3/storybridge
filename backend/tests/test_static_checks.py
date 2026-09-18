@@ -3,6 +3,7 @@ from __future__ import annotations
 from app.schemas import StoryState
 from app.workflow.static_checks import (
     check_reconstructed_dependency_chains,
+    check_source_language_drift,
     check_stale_references,
     check_uncovered_commitments,
     run_static_checks,
@@ -91,3 +92,17 @@ def test_run_static_checks_combines(state_dict):
     issues = run_static_checks(state)
     kinds = {i.issue_type.value for i in issues}
     assert kinds == {"stale_reference"}
+
+
+def test_chinese_structure_draft_flags_foreign_dialogue_but_allows_acronyms(state_dict):
+    state = StoryState.model_validate(state_dict)
+    state.scenes[0].text = "林晓东：SAT 和 College Board 的记录都已确认。"
+    assert check_source_language_drift(state) == []
+
+    state.scenes[0].text = "林晓东：I will never give up on this job."
+    issues = check_source_language_drift(state)
+    assert len(issues) == 1
+    assert issues[0].issue_type.value == "source_language_drift"
+
+    state.scenes[0].text = "林晓东：この仕事は絶対に諦めない。"
+    assert check_source_language_drift(state)

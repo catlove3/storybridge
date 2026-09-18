@@ -40,7 +40,7 @@ async def test_full_pipeline(tmp_path, mock_client):
     assert not result.report.blocking_issues
     assert result.report.consistency_score == 1.0
     assert result.report.overall_status == "pass"
-    assert result.report.static_checks_passed == result.report.static_checks_total == 3
+    assert result.report.static_checks_passed == result.report.static_checks_total == 4
     assert result.report.commitments_verified == result.report.commitments_total == 3
     assert result.report.scenes_checked == result.report.scenes_total == 8
 

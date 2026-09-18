@@ -124,6 +124,49 @@ def detect_frictions_user(state_digest_json: str, target_market: str) -> str:
     )
 
 
+CULTURE_REFRESH_SCHEMA = """{
+  "culture_mechanisms": [
+    {
+      "id": "CM01",
+      "name": "当前中文稿中实际存在的文化机制名称",
+      "description": "它在当前故事中的含义和剧情功能",
+      "surface_text": ["从当前场景逐字摘取的原词"],
+      "scene_ids": ["S01"]
+    }
+  ]
+}"""
+
+
+def refresh_culture_system() -> str:
+    return (
+        SYSTEM_LOCALIZATION_EXPERT
+        + "核心故事设定已经先完成改写。你要重新阅读当前中文结构稿，"
+        "重新抽取其中现在真实存在的文化背景和专有名词。"
+    )
+
+
+def refresh_culture_user(
+    current_story_json: dict,
+    target_market: str,
+) -> str:
+    return (
+        "核心故事设定已经改写。请丢弃改写前的文化名词清单，只根据下面的【当前中文结构稿】"
+        "重新抽取目标市场观众可能不理解的社会制度、习俗、身份概念和文化专名。\n\n"
+        f"输出 JSON schema：\n{CULTURE_REFRESH_SCHEMA}\n\n"
+        "要求：\n"
+        "1. 只收录当前场景 title/summary/text 中仍然实际出现并影响理解的内容；旧世界观中已经消失的"
+        "军队、制度、称谓或礼仪绝不能保留。\n"
+        "2. surface_text 必须逐字摘自当前场景，至少一项；scene_ids 只能填写该原词实际出现的场景。\n"
+        "3. 同一机制的不同说法合并，按首次出现顺序编号 CM01、CM02……；没有需要调整的内容时返回空数组。\n"
+        "4. name 和 description 必须使用简体中文。不要把动作、普通物品、人物姓名或完整情节当成文化机制。\n"
+        "5. 当前稿是供中文创作者审阅的结构稿。不要把目标语言台词写进任何字段；必要的专名使用中文译名，"
+        "可在括号中附一次原文。\n"
+        "6. 只输出 JSON。\n\n"
+        f"目标市场：{target_market}\n\n"
+        f"当前中文结构稿：\n{_json_block(current_story_json)}"
+    )
+
+
 PLAN_OPTIONS_EXAMPLE = json.dumps(
     AdaptationOption(
         option_label="B",
@@ -215,7 +258,10 @@ def rewrite_scene_user(
         "1. 彻底移除已被替换的文化机制的旧表述（包括同义说法），换成本地化设定下自然的表达。\n"
         "2. 保持人物关系、事件顺序、情绪走向不变，除非改编决定明确要求重构。\n"
         "3. 不新增与其他场景冲突的事实。\n"
-        "4. text 使用与原文一致的剧本文体（场景描述+台词）。只输出 JSON。"
+        "4. title、summary、text 都必须使用简体中文，保持中文剧本文体（场景描述+台词）。"
+        "这是供中文创作者审阅的结构稿，不是最终翻译稿：不得写整句英语、日语、韩语或其他目标语言台词。"
+        "目标文化专名优先用中文译名或音译，确有必要时只在首次出现处用括号附原文。\n"
+        "5. 只输出 JSON。"
     )
 
 

@@ -22,6 +22,7 @@ async def lifespan(app: FastAPI):
     # The browser demo can select any number of mechanisms. Let the mock handler
     # adapt the canned plan identity to the mechanism requested by each batch item.
     mock.responses.pop("plan_adaptation", None)
+    mock.responses.pop("detect_frictions", None)
     app.state.workflow = build_default_workflow(mock)
     config = get_config()
     app.state.jobs = JobManager(

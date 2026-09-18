@@ -1,6 +1,6 @@
 import type { SubmitJobRequest } from '../types/api'
 
-export type Stage = 'analyze' | 'plan_batch' | 'apply_batch' | 'verify' | 'repair' | 'render'
+export type Stage = 'analyze' | 'plan_batch' | 'apply_batch' | 'refresh_culture' | 'verify' | 'repair' | 'render'
 export interface Task {
   stage: Stage
   key: string
@@ -16,9 +16,10 @@ export interface Draft {
   audience: string; genre: string; format: string; createKey: string
 }
 export interface AdaptationFlow {
-  phase: 'settings' | 'culture'
+  phase: 'settings' | 'refresh' | 'culture'
   activeIds: string[]
   deferredIds: string[]
+  refreshedAfterSettings?: boolean
 }
 export interface Progress {
   projectId: string | null

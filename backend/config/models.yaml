@@ -36,6 +36,7 @@ llm:
   step_routes:
     parse_story: general
     detect_frictions: general
+    refresh_culture: general
     plan_adaptation: general
     rewrite_scene: general
     plan_repair: general

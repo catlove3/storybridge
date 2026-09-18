@@ -12,6 +12,8 @@
 
 模型沿用现有 `LLM_BASE_URL` 和 `LLM_MODEL`，真实调用失败不会切换为模拟结果。开发时显式运行 `./speed_run.sh --share --mock`；页面会显示“开发演示模式”，数据库也使用临时目录。原有 `./speed_run.sh` 与 `./speed_run.sh --mock` 仍提供本地 Vite 开发方式。
 
+同时选择核心设定与文化背景时，系统先完成核心设定改写，再从新版中文稿重新抽取当前实际存在的文化名词，交给用户复核后才生成下一批方案。已经从场景中消失的旧名词不会继续出现“保留并解释”选项。中间结构稿固定使用简体中文，目标语言只在最终渲染阶段生成。
+
 保持电脑联网、终端运行；按 Ctrl+C 会停止后端和隧道。日志目录在退出时显示。公开模式只启动一个后端 worker，不要运行多个进程共享同一数据库。
 
 临时地址可能随重启改变，没有稳定性保证。[Cloudflare Quick Tunnel 官方说明](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/trycloudflare/)明确将它用于测试和开发。网络限制可能导致下载、隧道连接或微信打开失败；现场务必先用实际网络测试。

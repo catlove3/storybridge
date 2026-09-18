@@ -79,7 +79,7 @@ test('custom adaptation is persisted and sent to the rewrite job', async ({ page
   await expect(page.getByRole('heading', { name: '哪些内容需要调整' })).toBeVisible({ timeout: 30000 })
   await page.getByRole('button', { name: '生成方案', exact: false }).click()
   const custom = '保留冲突强度，但改成社区医院的终身聘用岗位，并让家长明确说出养老金保障。'
-  await page.getByLabel('写清楚希望保留、替换或重构成什么').first().fill(custom)
+  await page.getByLabel(/写最终设定、必须保留的作用/).first().fill(custom)
   await expect(page.getByRole('button', { name: '已选择自定义方案' }).first()).toBeVisible()
   const submission = page.waitForRequest(request =>
     request.method() === 'POST'
@@ -112,22 +112,28 @@ test('core settings are applied before culture plans are regenerated', async ({ 
   await page.getByRole('button', { name: '选择方案 B' }).click()
   await page.getByRole('button', { name: '先应用核心设定' }).click()
 
+  await expect(page.getByText('核心设定已完成，正在看新版名词')).toBeVisible({ timeout: 30000 })
+  await expect(page.getByRole('heading', { name: '职业稳定性' })).toBeVisible()
+  await page.getByRole('button', { name: '生成方案', exact: false }).click()
   await expect(page.getByText('第 2 步：复核文化背景与名词')).toBeVisible({ timeout: 30000 })
   await expect(page.getByRole('button', { name: '选择方案 B' })).toHaveCount(1)
   const planJobs = submissions.filter(item => item.kind === 'plan_batch')
   const applyJobs = submissions.filter(item => item.kind === 'apply_batch')
+  const refreshJobs = submissions.filter(item => item.kind === 'refresh_culture')
   expect(planJobs).toHaveLength(2)
   expect(planJobs[0].culture_mechanism_ids).toEqual(['SET01'])
   expect(planJobs[1].culture_mechanism_ids).toEqual(['CM01'])
   expect(applyJobs).toHaveLength(1)
+  expect(refreshJobs).toHaveLength(1)
   expect(applyJobs[0].adaptations?.map(item => item.culture_mechanism_id)).toEqual(['SET01'])
 
   const saved = await active(page)
-  expect(saved.adaptationFlow).toEqual({ phase: 'culture', activeIds: ['CM01'], deferredIds: [] })
+  expect(saved.adaptationFlow).toEqual({ phase: 'culture', activeIds: ['CM01'], deferredIds: [], refreshedAfterSettings: true })
   const exported = await page.evaluate(async id => (await fetch(`/api/projects/${id}/data-export`)).json(), saved.projectId)
   const culturePlan = exported.plans.find((plan: { culture_mechanism_id: string }) => plan.culture_mechanism_id === 'CM01')
   expect(culturePlan.based_on_version).toBe(exported.state.version)
   expect(exported.state.settings[0].adapted_to).toBeTruthy()
+  expect(exported.state.culture_mechanisms[0].name).toBe('职业稳定性')
 })
 
 test('replacement cancel, failed read, and failed catalog keep the draft and market', async ({ page }) => {

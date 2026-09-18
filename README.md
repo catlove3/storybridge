@@ -1,6 +1,6 @@
 # StoryBridge
 
-[![CI](https://github.com/chenxizhao-cs/storybridge/actions/workflows/ci.yml/badge.svg)](https://github.com/chenxizhao-cs/storybridge/actions/workflows/ci.yml)
+[![CI](https://github.com/catlove3/storybridge/actions/workflows/ci.yml/badge.svg)](https://github.com/catlove3/storybridge/actions/workflows/ci.yml)
 
 StoryBridge 是面向中文短剧与网文出海的跨文化故事改编系统。它把故事解析成显式状态和依赖图，识别文化机制承担的剧情、社会与情绪功能，只改写真正受影响的场景，并在生成目标语言稿前完成一致性验证。
 
@@ -12,6 +12,7 @@ StoryBridge 是面向中文短剧与网文出海的跨文化故事改编系统�
 中文剧本 + 目标市场
   → Story State 与文化摩擦分析
   → 同时选择一个或多个文化点
+  → 同时选择核心设定与文化点时，先改设定，再从新版中文稿重新抽取文化点
   → 为每个点选择 A 保留解释 / B 功能替换 / C 情节重构
   → 合并依赖图影响范围，在同一候选剧本上逐点迭代
   → 原子保存结构改编稿
@@ -28,6 +29,7 @@ StoryBridge 是面向中文短剧与网文出海的跨文化故事改编系统�
 - 批量改编允许各文化点采用不同 A/B/C 方案，共享场景按选择顺序反复改写，任一点失败均不提交部分状态。
 - job 可持久化、取消、恢复轮询并进行 TTL 清理。
 - verifier 按改编策略执行不同规则，并显式展示 commitment 与场景覆盖率。
+- 中文结构稿禁止混入成段目标语言；目标语言台词只在最终渲染阶段生成。
 - 最终目标语言稿记录 `source_state_version`，不会误用已经过期的产物。
 - API 支持 owner 隔离、调用配额、数据导出/删除和默认关闭的 SFT 采集。
 - React 工作台支持刷新恢复，Playwright 覆盖完整 mock 浏览器流程。

@@ -27,6 +27,7 @@ class JobKind(StrEnum):
     APPLY = "apply"
     PLAN_BATCH = "plan_batch"
     APPLY_BATCH = "apply_batch"
+    REFRESH_CULTURE = "refresh_culture"
     VERIFY = "verify"
     REPAIR = "repair"
     RENDER = "render"

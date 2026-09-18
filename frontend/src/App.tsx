@@ -16,12 +16,13 @@ const stageCopy: Record<Stage, string> = {
   analyze: '正在读懂故事，识别需要调整的文化背景',
   plan_batch: '正在为所选内容准备改编方案',
   apply_batch: '正在按你的选择改写关联场景',
+  refresh_culture: '正在根据新版故事重新识别文化背景和名词',
   verify: '正在检查人物动机、因果和伏笔是否连贯',
   repair: '正在按照检查结果修复矛盾场景并重新检查',
   render: '正在生成完整的目标语言剧本',
 }
 function currentStageCopy(stage: Stage, flow?: AdaptationFlow) {
-  if (stage === 'plan_batch' && flow?.phase === 'culture') return '核心设定已更新，正在重新审查文化背景和名词'
+  if (stage === 'refresh_culture') return '核心设定已更新，正在重新识别新版故事里的文化背景和名词'
   if (stage === 'apply_batch' && flow?.phase === 'settings' && flow.deferredIds.length) return '正在先统一核心故事设定'
   return stageCopy[stage]
 }
@@ -110,6 +111,9 @@ function App() {
   const plans = (artifacts?.plans || []).filter(p => p.based_on_version === state?.version && activeAdaptationIds.includes(p.culture_mechanism_id)) as AdaptationPlan[]
   const sorted = [...(state?.culture_mechanisms || [])].sort((a, b) => ({ high: 3, medium: 2, low: 1 }[b.friction_level] - { high: 3, medium: 2, low: 1 }[a.friction_level]))
   const settings = coreSettings(state)
+  const postSettingCultureReview = progress.adaptationFlow?.phase === 'culture'
+    && !!progress.adaptationFlow.refreshedAfterSettings
+  const visibleSettings = postSettingCultureReview ? [] : settings
   const target = artifacts?.target_script
   const stagedSettingApply = task?.stage === 'apply_batch'
     && progress.adaptationFlow?.phase === 'settings'
@@ -146,19 +150,34 @@ function App() {
   }
   function transitionAfterApply(next: Progress, operationKey: string) {
     const flow = next.adaptationFlow
-    if (flow?.phase === 'settings' && flow.deferredIds.length) {
-      const cultureIds = flow.deferredIds
-      next.adaptationFlow = { phase: 'culture', activeIds: cultureIds, deferredIds: [] }
-      next.view = 'choose'
+    if (flow?.phase === 'settings') {
+      next.adaptationFlow = { phase: 'refresh', activeIds: [], deferredIds: flow.deferredIds }
+      next.view = flow.deferredIds.length ? 'choose' : 'result'
       next.task = newTask(
-        'plan_batch',
-        { culture_mechanism_ids: cultureIds },
-        false,
-        `${operationKey}:culture-plan`,
+        'refresh_culture',
+        {},
+        !flow.deferredIds.length,
+        `${operationKey}:refresh-culture`,
       )
       return true
     }
     return false
+  }
+  function transitionAfterCultureRefresh(next: Progress, data: Artifacts) {
+    const flow = next.adaptationFlow
+    if (flow?.phase !== 'refresh' || !flow.deferredIds.length) return false
+    const currentMechanisms = data.state?.culture_mechanisms || []
+    const highPriority = currentMechanisms.filter(item => item.friction_level === 'high').map(item => item.id)
+    const selected = highPriority.length ? highPriority : currentMechanisms.slice(0, 1).map(item => item.id)
+    next.selected = selected
+    next.labels = {}
+    next.custom = {}
+    next.adaptationFlow = {
+      phase: 'culture', activeIds: selected, deferredIds: [], refreshedAfterSettings: true,
+    }
+    next.view = 'choose'
+    next.task = null
+    return true
   }
   function edit(values: Partial<Draft>) { setDraft(previous => ({ ...previous, ...values, createKey: crypto.randomUUID() })) }
   async function reloadArtifacts(projectId: string, signal?: AbortSignal) {
@@ -265,8 +284,12 @@ function App() {
         }
         if (active.stage === 'apply_batch' && transitionAfterApply(next, active.key)) {
           // The setting rewrite changed the story. Generate culture/terminology
-          // choices only now, against the newly saved state.
+          // choices only after re-extracting them from the newly saved state.
         }
+        else if (active.stage === 'refresh_culture' && transitionAfterCultureRefresh(next, data)) {
+          // Let the author review the newly extracted terms before planning.
+        }
+        else if (active.chain && active.stage === 'refresh_culture') next.task = newTask('verify', {}, true, `${active.key}:verify`)
         else if (active.chain && active.stage === 'apply_batch') next.task = newTask('verify', {}, true, `${active.key}:verify`)
         else if (active.chain && (active.stage === 'verify' || active.stage === 'repair')) next.task = newTask('render', {}, true, `${active.key}:render`)
         else next.task = { ...active, status: 'done' }
@@ -338,6 +361,7 @@ function App() {
     if (!state || busy || !progress.selected.length) return
     const adaptationFlow = flowAfterSelection(progress.selected)
     if (!adaptationFlow) return
+    if (postSettingCultureReview) adaptationFlow.refreshedAfterSettings = true
     setError('')
     commit({
       ...progress,
@@ -409,7 +433,10 @@ function App() {
       ? progress.selected.filter(item => item !== id)
       : [...progress.selected, id]
     setImpacts([]); setGraph(null)
-    commit({ ...progress, selected, labels: {}, custom: {}, adaptationFlow: undefined, task: null })
+    const adaptationFlow = postSettingCultureReview
+      ? { phase: 'culture' as const, activeIds: selected.filter(item => item.startsWith('CM')), deferredIds: [], refreshedAfterSettings: true }
+      : undefined
+    commit({ ...progress, selected, labels: {}, custom: {}, adaptationFlow, task: null })
   }
   async function loadDetails() {
     if (!progress.projectId) return
@@ -455,15 +482,16 @@ function App() {
           <input type="checkbox" checked={progress.selected.includes(point.id)} disabled={busy} onChange={() => toggleAdaptation(point.id)} />
           <div><header><h3>{point.name}</h3><span className={`tag ${point.friction_level}`}>{point.friction_level === 'high' ? '优先调整' : point.friction_level === 'medium' ? '建议解释' : '可保留'}</span></header><p>{point.description}</p>{point.surface_text.length > 0 && <blockquote>{point.surface_text.join(' / ')}</blockquote>}<small>影响场景：{point.scene_ids.map(id => state.scenes.find(s => s.id === id)?.title || '关联场景').join('、')}</small></div>
         </label>)}</div></>}
-        {settings.length > 0 && <><h3 className="target-group-title">核心故事设定</h3><p className="muted target-group-note">这些规则关系到故事如何成立，也可以保留、替换或重新设计。</p><div className="friction-list">{settings.map(setting => <label className={`friction-card setting-card ${progress.selected.includes(setting.id) ? 'selected' : ''}`} key={setting.id}>
+        {postSettingCultureReview && <div className="notice phase-notice"><strong>核心设定已完成，正在看新版名词</strong><p>下面内容是从改写后的中文稿重新识别的；已经消失的旧世界观名词不会继续生成“保留并解释”方案。</p></div>}
+        {visibleSettings.length > 0 && <><h3 className="target-group-title">核心故事设定</h3><p className="muted target-group-note">这些规则关系到故事如何成立，也可以保留、替换或重新设计。</p><div className="friction-list">{visibleSettings.map(setting => <label className={`friction-card setting-card ${progress.selected.includes(setting.id) ? 'selected' : ''}`} key={setting.id}>
           <input type="checkbox" checked={progress.selected.includes(setting.id)} disabled={busy} onChange={() => toggleAdaptation(setting.id)} />
           <div><header><h3>{setting.name}</h3><span className="tag core">核心设定</span></header><p>{setting.description}</p><small>影响场景：{targetSceneIds(state, setting.id).map(id => state.scenes.find(scene => scene.id === id)?.title || '关联场景').join('、') || '将在生成方案时判断'}</small></div>
         </label>)}</div></>}
-        {sorted.length + settings.length === 0 ? <div className="notice"><p>未发现需要特别调整的内容，可以直接检查并生成目标语言剧本。</p><button className="primary" type="button" disabled={busy || limited} onClick={() => begin('verify')}>检查并生成剧本 →</button></div> : <button type="button" className="primary" disabled={busy || limited || !progress.selected.length} onClick={startPlanning}>{plans.length ? '重新生成方案' : '生成方案'} →</button>}
+        {sorted.length + visibleSettings.length === 0 ? <div className="notice"><p>未发现需要特别调整的内容，可以直接检查并生成目标语言剧本。</p><button className="primary" type="button" disabled={busy || limited} onClick={() => begin('verify')}>检查并生成剧本 →</button></div> : <div className="actions"><button type="button" className="primary" disabled={busy || limited || !progress.selected.length} onClick={startPlanning}>{plans.length ? '重新生成方案' : '生成方案'} →</button>{postSettingCultureReview && <button type="button" disabled={busy || limited} onClick={() => begin('verify')}>暂不调整这些名词，继续检查</button>}</div>}
         {plans.length > 0 && <div className="plans">
           {progress.adaptationFlow?.phase === 'settings' && progress.adaptationFlow.deferredIds.length > 0
             ? <div className="notice phase-notice"><strong>第 1 步：先统一核心设定</strong><p>应用后，系统会基于新版故事重新审查你选中的文化背景和名词，再让你选择下一批方案。</p></div>
-            : progress.adaptationFlow?.phase === 'culture' && progress.selected.some(id => id.startsWith('SET'))
+            : postSettingCultureReview
               ? <div className="notice phase-notice"><strong>第 2 步：复核文化背景与名词</strong><p>下面的方案已根据刚刚更新的核心设定重新生成，不会沿用旧世界观里的名词方案。</p></div>
               : null}
           <h2>{progress.adaptationFlow?.phase === 'settings' ? '为核心设定选择方案' : '为每项内容选择方案'}</h2><p className="muted">可以选择 A/B/C，也可以写下自己的改编要求。</p>{plans.map(plan => <section className="point-plan" key={plan.culture_mechanism_id}><h3>{plan.original_name}</h3><PlanOptions plan={plan} disabled={busy} selectedLabel={progress.labels[plan.culture_mechanism_id] || null} customValue={progress.custom[plan.culture_mechanism_id] || ''} onSelect={label => commit({ ...progress, labels: { ...progress.labels, [plan.culture_mechanism_id]: label } })} onCustomChange={value => commit({ ...progress, custom: { ...progress.custom, [plan.culture_mechanism_id]: value }, labels: { ...progress.labels, [plan.culture_mechanism_id]: 'CUSTOM' } })} /></section>)}
