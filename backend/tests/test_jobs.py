@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 
 from app.jobs import JobManager
+from app.workflow.rewriter import RepairNeedsInput
 
 
 async def test_job_success():
@@ -33,6 +34,20 @@ async def test_job_failure_captured():
     done = manager.get(job.id)
     assert done.status == "failed"
     assert done.error == "job_execution_failed"
+
+
+async def test_repair_question_is_surfaced_to_the_user():
+    manager = JobManager()
+
+    async def needs_answer():
+        raise RepairNeedsInput("请确认采用哪一套世界观")
+
+    job = manager.submit("repair", "p1", needs_answer)
+    await asyncio.sleep(0.1)
+    done = manager.get(job.id)
+    assert done.status == "failed"
+    assert done.error == "请确认采用哪一套世界观"
+    assert done.error_code == "repair_needs_input"
 
 
 async def test_find_idempotent_job():

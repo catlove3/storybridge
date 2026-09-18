@@ -72,6 +72,11 @@ def check_reconstructed_dependency_chains(state: StoryState) -> list[Verificatio
             for dependency in state.dependencies
             if mechanism.id in (dependency.source_id, dependency.target_id)
             and dependency.relation.value in causal_relations
+            and any(
+                _normalize(variant) in _normalize(dependency.evidence)
+                for phrase in [mechanism.name, *mechanism.surface_text]
+                for variant in _variants(phrase)
+            )
         ]
         if old_chain_edges:
             evidence = ", ".join(

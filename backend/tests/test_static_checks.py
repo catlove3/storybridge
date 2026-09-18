@@ -60,6 +60,17 @@ def test_plot_reconstruction_flags_old_dependency_chain_for_review(state_dict):
     assert "CM01" in issues[0].evidence
 
 
+def test_plot_reconstruction_accepts_dependency_evidence_updated_to_new_mechanism(state_dict):
+    state = _state_with_stale(state_dict)
+    cm01 = next(m for m in state.culture_mechanisms if m.id == "CM01")
+    cm01.adapted_strategy = "plot_reconstruction"
+    for dependency in state.dependencies:
+        if cm01.id in (dependency.source_id, dependency.target_id):
+            dependency.evidence = "家人质疑新的职业保障制度"
+
+    assert check_reconstructed_dependency_chains(state) == []
+
+
 def test_uncovered_commitment_missing_payoff_not_reported(state_dict):
     state = StoryState.model_validate(state_dict)
     state.commitments[0].payoff_scene_id = None

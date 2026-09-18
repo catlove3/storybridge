@@ -11,6 +11,7 @@ class AdaptationStrategy(str, Enum):
     PRESERVE = "preserve"
     FUNCTIONAL_REPLACEMENT = "functional_replacement"
     PLOT_RECONSTRUCTION = "plot_reconstruction"
+    CUSTOM = "custom"
 
 
 class ImpactKind(str, Enum):
@@ -40,11 +41,11 @@ class PropagationResult(BaseModel):
 
 
 class AdaptationOption(BaseModel):
-    option_label: str = Field(description="A / B / C")
+    option_label: str = Field(description="A / B / C / CUSTOM")
     strategy: AdaptationStrategy
     title: str
     replacement_definition: str = Field(
-        description="what the culture mechanism becomes in the target culture",
+        description="what the selected adaptation target becomes in the target culture",
     )
     rationale: str
     preserved_functions: list[str] = Field(default_factory=list)
@@ -58,7 +59,9 @@ class AdaptationOption(BaseModel):
 
 
 class AdaptationPlan(BaseModel):
-    culture_mechanism_id: str
+    culture_mechanism_id: str = Field(
+        description="adaptation target id; kept for API compatibility (CM or SET)",
+    )
     original_name: str
     based_on_version: int = Field(default=0, ge=0)
     friction_level: Level = Level.MEDIUM

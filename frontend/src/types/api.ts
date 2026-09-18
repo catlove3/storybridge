@@ -23,7 +23,7 @@ export type FunctionTags = WithDefaults<
 export type Character = WithDefaults<Schema<'Character'>, 'goals'>
 export type Scene = WithDefaults<Schema<'Scene'>, 'character_ids' | 'event_ids'>
 export type StoryEvent = WithDefaults<Schema<'Event'>, 'scene_ids'>
-export type Setting = Schema<'Setting'>
+export type Setting = WithDefaults<Schema<'Setting'>, 'scene_ids'>
 export type CultureMechanism = Omit<
   WithDefaults<Schema<'CultureMechanism'>, 'surface_text' | 'scene_ids' | 'functions'>,
   'functions'
@@ -43,11 +43,12 @@ export type StoryState = Omit<
     | 'commitments'
     | 'dependencies'
   >,
-  'characters' | 'scenes' | 'events' | 'culture_mechanisms'
+  'characters' | 'scenes' | 'events' | 'settings' | 'culture_mechanisms'
 > & {
   characters: Character[]
   scenes: Scene[]
   events: StoryEvent[]
+  settings: Setting[]
   culture_mechanisms: CultureMechanism[]
 }
 

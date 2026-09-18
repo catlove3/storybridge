@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from app.config import get_config
 from app.llm import MockLLMClient
 from app.schemas import StoryState, TargetScript, VerifyReport
 from app.skills import all_skills, get_skill
@@ -12,6 +13,7 @@ SKILL_NAMES = [
     "detect_frictions",
     "plan_adaptation",
     "rewrite_scene",
+    "plan_repair",
     "render_target_script",
     "verify_consistency",
 ]
@@ -30,7 +32,12 @@ def test_skill_schemas_bound():
     assert get_skill("parse_story").schema is StoryState
     assert get_skill("verify_consistency").schema is VerifyReport
     assert get_skill("render_target_script").schema is TargetScript
-    assert get_skill("parse_story").max_tokens == 8192
+    assert get_skill("parse_story").max_tokens is None
+    assert get_config().llm.step_max_tokens == {
+        "parse_story": 16384,
+        "render_target_script": 16384,
+        "verify_consistency": 16384,
+    }
 
 
 async def test_skill_run_uses_step_name_for_routing(tmp_path):
@@ -39,6 +46,7 @@ async def test_skill_run_uses_step_name_for_routing(tmp_path):
     state = await skill.run(client, script_text="剧本", target_market="US")
     assert len(state.scenes) == 8
     assert client.calls["parse_story"]
+    assert client.calls["parse_story"][0].max_tokens == 16384
 
 
 async def test_skill_run_retries_on_invalid():
@@ -50,11 +58,18 @@ async def test_skill_run_retries_on_invalid():
 
 
 def test_skill_step_routes_covered_by_config():
-    from app.config import get_config
-
     routes = get_config().llm.step_routes
     for skill in all_skills():
         assert skill.name in routes or get_config().llm.default_profile
+
+
+def test_step_token_limit_can_be_overridden_from_environment(monkeypatch):
+    monkeypatch.setenv("LLM_PARSE_STORY_MAX_TOKENS", "24576")
+    get_config.cache_clear()
+    try:
+        assert get_config().llm.step_max_tokens["parse_story"] == 24576
+    finally:
+        get_config.cache_clear()
 
 
 def test_plan_prompt_requires_chinese_decision_copy():
@@ -65,3 +80,5 @@ def test_plan_prompt_requires_chinese_decision_copy():
     )
     assert "必须使用简体中文" in prompt
     assert "不要因为目标语言是 English" in prompt
+    assert "applied_core_settings" in prompt
+    assert "不得恢复旧世界观" in prompt

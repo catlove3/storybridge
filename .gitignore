@@ -62,6 +62,11 @@ backend/data/jobs.json
 backend/data/*.sqlite3
 backend/data/*.sqlite3-wal
 backend/data/*.sqlite3-shm
+backend/data/*.sqlite3-journal
+backend/data/*.db
+backend/data/*.db-wal
+backend/data/*.db-shm
+backend/data/*.db-journal
 backend/data/history/
 
 # ===== 大体积外部语料（许可禁止再分发） =====
@@ -82,3 +87,7 @@ presentation/remake/powerpoint_preview/
 presentation/remake/setup_narrow_selection/
 presentation/remake/presentation.pptx
 presentation/remake/preview.pdf
+
+# ===== 演示文稿重制快照（包含重复交付物与预览图，可重新生成） =====
+presentation/remake/clear_story_*/
+presentation/remake/readable_*/

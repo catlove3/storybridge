@@ -28,9 +28,11 @@ class LLMRequest:
     prompt_version: str = "v1"
 
     def to_messages(self) -> list[dict[str, str]]:
-        messages = [{"role": "system", "content": self.system_prompt}]
+        messages = [
+            {"role": "system", "content": self.system_prompt},
+            {"role": "user", "content": self.user_prompt},
+        ]
         messages.extend(m.as_dict() for m in self.history)
-        messages.append({"role": "user", "content": self.user_prompt})
         return messages
 
 

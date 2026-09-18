@@ -318,6 +318,7 @@ class JobManager:
             except Exception as exc:
                 from app.public_usage import PublicLimitError
                 from app.workflow.engine import VerificationBlocked
+                from app.workflow.rewriter import RepairNeedsInput
                 logger.error(
                     "job failed: id=%s kind=%s project_id=%s exception_type=%s",
                     job.id,
@@ -334,6 +335,9 @@ class JobManager:
                 elif isinstance(exc, VerificationBlocked):
                     job.error = str(exc)
                     job.error_code = "verification_blocked"
+                elif isinstance(exc, RepairNeedsInput):
+                    job.error = str(exc)
+                    job.error_code = "repair_needs_input"
                 job.progress = 1.0
             finally:
                 job.finished_at = job.finished_at or time.time()

@@ -9,6 +9,7 @@ const strategyLabels: Record<AdaptationOption['strategy'], string> = {
   preserve: '保留并解释',
   functional_replacement: '换成当地表达',
   plot_reconstruction: '重新设计情节',
+  custom: '自定义要求',
 }
 
 const impactLabels: Record<ImpactKind, string> = {
@@ -16,11 +17,13 @@ const impactLabels: Record<ImpactKind, string> = {
   payoff: '伏笔回收', structural: '结构影响',
 }
 
-export function PlanOptions({ plan, selectedLabel, disabled, onSelect }: {
+export function PlanOptions({ plan, selectedLabel, customValue, disabled, onSelect, onCustomChange }: {
   plan: AdaptationPlan
   selectedLabel: string | null
+  customValue: string
   disabled: boolean
   onSelect: (label: string) => void
+  onCustomChange: (value: string) => void
 }) {
   return (
     <div className="option-grid">
@@ -42,6 +45,29 @@ export function PlanOptions({ plan, selectedLabel, disabled, onSelect }: {
           </article>
         )
       })}
+      <article className={`option-card option-card--custom${selectedLabel === 'CUSTOM' ? ' is-selected' : ''}`}>
+        <header><span className="option-card__label">+</span><span className="option-card__strategy">自定义方案</span></header>
+        <h4>按你的想法来改</h4>
+        <label className="custom-option-input">
+          <span>写清楚希望保留、替换或重构成什么</span>
+          <textarea
+            rows={5}
+            maxLength={4000}
+            value={customValue}
+            disabled={disabled}
+            placeholder="例如：保留换分规则，但改成一款只认设备原主人的校园预测 App，并保持成绩对调与公布后锁定的限制。"
+            onChange={(event) => onCustomChange(event.target.value)}
+          />
+        </label>
+        <button
+          className="option-card__select"
+          disabled={disabled || !customValue.trim()}
+          onClick={() => onSelect('CUSTOM')}
+          type="button"
+        >
+          {selectedLabel === 'CUSTOM' ? '已选择自定义方案' : '使用自定义方案'}
+        </button>
+      </article>
     </div>
   )
 }

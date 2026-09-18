@@ -4,6 +4,7 @@ import pytest
 
 from app.storage import MarketProfile, ProjectStore
 from app.workflow.engine import AdaptationSelection, StoryBridgeWorkflow
+from tests.fixtures import sample_story_state_dict
 
 
 async def test_full_pipeline(tmp_path, mock_client):
@@ -201,6 +202,103 @@ async def test_apply_requires_valid_option(tmp_path, mock_client):
 
     with pytest.raises(KeyError):
         await workflow.apply_adaptation(meta.id, "CM01", "Z")
+
+
+async def test_core_setting_can_be_planned_and_applied_with_custom_instruction(
+    tmp_path, mock_client
+):
+    state_payload = sample_story_state_dict()
+    state_payload["settings"][0]["name"] = "换分系统"
+    state_payload["settings"][0]["description"] = "借笔人的成绩会与笔主人对调"
+    state_payload["settings"][0]["scene_ids"] = ["S01", "S08"]
+    mock_client.set_response("parse_story", state_payload)
+    base_plan = mock_client.responses["plan_adaptation"]
+    setting_plan = {
+        **base_plan,
+        "culture_mechanism_id": "SET01",
+        "original_name": "换分系统",
+    }
+    mock_client.set_response("plan_adaptation", setting_plan)
+
+    store = ProjectStore(tmp_path / "projects")
+    workflow = StoryBridgeWorkflow(store, mock_client)
+    meta = await workflow.create_project("setting", "script", MarketProfile())
+    state = await workflow.analyze(meta.id)
+
+    plan = await workflow.plan(meta.id, "SET01")
+    assert plan.culture_mechanism_id == "SET01"
+    result = await workflow.apply_adaptations(
+        meta.id,
+        [
+            AdaptationSelection(
+                culture_mechanism_id="SET01",
+                option_label="CUSTOM",
+                custom_instruction="改成只认设备原主人的校园预测 App，保留成绩对调规则。",
+            )
+        ],
+        based_on_version=state.version,
+    )
+
+    assert result.applied[0].chosen_option.strategy.value == "custom"
+    assert result.applied[0].rewritten_scene_ids == ["S01", "S08"]
+    final_setting = workflow.require_state(meta.id).settings[0]
+    assert final_setting.adapted_strategy == "custom"
+    assert "校园预测 App" in (final_setting.adapted_to or "")
+    rewrite_prompts = [call.user_prompt for call in mock_client.calls["rewrite_scene"]]
+    assert rewrite_prompts
+    assert all("校园预测 App" in prompt for prompt in rewrite_prompts)
+
+    mock_client.set_response("plan_adaptation", base_plan)
+    culture_plan = await workflow.plan(meta.id, "CM01")
+    culture_prompt = mock_client.calls["plan_adaptation"][-1].user_prompt
+    assert culture_plan.based_on_version == workflow.require_state(meta.id).version == 2
+    assert '"applied_core_settings"' in culture_prompt
+    assert "校园预测 App" in culture_prompt
+    assert '"current_text_excerpt"' in culture_prompt
+    assert "[REWRITTEN S01]" in culture_prompt
+
+    before_culture_rewrite = len(mock_client.calls["rewrite_scene"])
+    await workflow.apply_adaptation(
+        meta.id,
+        "CM01",
+        "B",
+        based_on_version=culture_plan.based_on_version,
+    )
+    culture_rewrites = mock_client.calls["rewrite_scene"][before_culture_rewrite:]
+    assert culture_rewrites
+    assert all("已生效的核心设定" in call.user_prompt for call in culture_rewrites)
+    assert all("校园预测 App" in call.user_prompt for call in culture_rewrites)
+
+
+async def test_failed_verification_can_repair_named_scenes_and_recheck(
+    tmp_path, mock_client
+):
+    store = ProjectStore(tmp_path / "projects")
+    workflow = StoryBridgeWorkflow(store, mock_client)
+    meta = await workflow.create_project("repair-report", "script", MarketProfile())
+    await workflow.analyze(meta.id)
+    await workflow.apply_adaptation(meta.id, "CM01", "B")
+
+    failed = await workflow.verify(meta.id)
+    assert failed.overall_status == "fail"
+    assert failed.blocking_issues[0].scene_id == "S05"
+
+    repaired = await workflow.repair_from_verification(meta.id)
+
+    assert repaired.overall_status == "pass"
+    assert workflow.require_state(meta.id).version == 3
+    assert store.list_revisions(meta.id)[-1].kind == "repair"
+    assert store.list_revisions(meta.id)[-1].changed_scene_ids == ["S05"]
+    assert workflow.latest_report(meta.id).overall_status == "pass"
+
+
+def test_custom_selection_requires_instruction():
+    with pytest.raises(ValueError, match="custom option requires"):
+        AdaptationSelection(
+            culture_mechanism_id="SET01",
+            option_label="CUSTOM",
+            custom_instruction="   ",
+        )
 
 
 async def test_plan_is_bound_to_state_version_and_stale_apply_is_rejected(

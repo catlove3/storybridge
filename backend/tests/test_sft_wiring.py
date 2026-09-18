@@ -76,6 +76,7 @@ async def test_full_pipeline_with_sft_logger_wiring(tmp_path, sft_dir):
     )
     await wf.analyze(meta.id)
     await wf.apply_adaptation(meta.id, "CM01", "B")
+    await wf.verify(meta.id)
 
     files = sorted(p.name for p in sft_dir.iterdir())
     assert "parse_story.jsonl" in files

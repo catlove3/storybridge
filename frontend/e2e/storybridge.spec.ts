@@ -40,6 +40,11 @@ test('edited demo completes the real HTTP flow, restores, compares and downloads
   const submission = page.waitForRequest(r => r.method() === 'POST' && r.url().endsWith('/api/projects'))
   await analyzeAndPlan(page, true)
   expect((await submission).postDataJSON().script).toBe(edited)
+  await page.getByText('展开关联路径、图谱和详细依据', { exact: true }).click()
+  await page.getByText('查看关系图', { exact: true }).click()
+  const graphEdge = page.locator('.graph-edges path').first()
+  await expect(graphEdge).toHaveAttribute('fill', 'none')
+  expect(await graphEdge.evaluate(path => getComputedStyle(path).stroke)).not.toBe('none')
   await page.reload()
   await expect(page.getByRole('button', { name: '已选择此方案' })).toHaveCount(2)
   await page.getByRole('button', { name: '生成改编剧本' }).click()
@@ -65,6 +70,64 @@ test('edited demo completes the real HTTP flow, restores, compares and downloads
   await page.getByRole('button', { name: '我的故事', exact: true }).click()
   await page.getByRole('button', { name: /^拜见岳父大人/ }).click()
   await expect(page.getByRole('heading', { name: 'English 完整剧本' })).toBeVisible()
+})
+
+test('custom adaptation is persisted and sent to the rewrite job', async ({ page }) => {
+  await ready(page)
+  await importDemo(page)
+  await page.getByRole('button', { name: '开始分析' }).click()
+  await expect(page.getByRole('heading', { name: '哪些内容需要调整' })).toBeVisible({ timeout: 30000 })
+  await page.getByRole('button', { name: '生成方案', exact: false }).click()
+  const custom = '保留冲突强度，但改成社区医院的终身聘用岗位，并让家长明确说出养老金保障。'
+  await page.getByLabel('写清楚希望保留、替换或重构成什么').first().fill(custom)
+  await expect(page.getByRole('button', { name: '已选择自定义方案' }).first()).toBeVisible()
+  const submission = page.waitForRequest(request =>
+    request.method() === 'POST'
+    && request.url().endsWith('/jobs')
+    && request.postDataJSON().kind === 'apply_batch',
+  )
+  await page.getByRole('button', { name: '生成改编剧本' }).click()
+  const body = (await submission).postDataJSON()
+  expect(body.adaptations[0]).toMatchObject({ option_label: 'CUSTOM', custom_instruction: custom })
+  const saved = await active(page)
+  expect(saved.custom[saved.selected[0]]).toBe(custom)
+})
+
+test('core settings are applied before culture plans are regenerated', async ({ page }) => {
+  await ready(page)
+  await importDemo(page)
+  const submissions: Array<{ kind: string; culture_mechanism_ids?: string[]; adaptations?: Array<{ culture_mechanism_id: string }> }> = []
+  page.on('request', request => {
+    if (request.method() === 'POST' && request.url().endsWith('/jobs')) submissions.push(request.postDataJSON())
+  })
+
+  await page.getByRole('button', { name: '开始分析' }).click()
+  await expect(page.getByRole('heading', { name: '哪些内容需要调整' })).toBeVisible({ timeout: 30000 })
+  await page.getByRole('checkbox', { name: /当代中国都市/ }).check()
+  await page.getByRole('button', { name: '生成方案', exact: false }).click()
+
+  await expect(page.getByText('第 1 步：先统一核心设定')).toBeVisible({ timeout: 30000 })
+  await expect(page.getByRole('heading', { name: '为核心设定选择方案' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '选择方案 B' })).toHaveCount(1)
+  await page.getByRole('button', { name: '选择方案 B' }).click()
+  await page.getByRole('button', { name: '先应用核心设定' }).click()
+
+  await expect(page.getByText('第 2 步：复核文化背景与名词')).toBeVisible({ timeout: 30000 })
+  await expect(page.getByRole('button', { name: '选择方案 B' })).toHaveCount(1)
+  const planJobs = submissions.filter(item => item.kind === 'plan_batch')
+  const applyJobs = submissions.filter(item => item.kind === 'apply_batch')
+  expect(planJobs).toHaveLength(2)
+  expect(planJobs[0].culture_mechanism_ids).toEqual(['SET01'])
+  expect(planJobs[1].culture_mechanism_ids).toEqual(['CM01'])
+  expect(applyJobs).toHaveLength(1)
+  expect(applyJobs[0].adaptations?.map(item => item.culture_mechanism_id)).toEqual(['SET01'])
+
+  const saved = await active(page)
+  expect(saved.adaptationFlow).toEqual({ phase: 'culture', activeIds: ['CM01'], deferredIds: [] })
+  const exported = await page.evaluate(async id => (await fetch(`/api/projects/${id}/data-export`)).json(), saved.projectId)
+  const culturePlan = exported.plans.find((plan: { culture_mechanism_id: string }) => plan.culture_mechanism_id === 'CM01')
+  expect(culturePlan.based_on_version).toBe(exported.state.version)
+  expect(exported.state.settings[0].adapted_to).toBeTruthy()
 })
 
 test('replacement cancel, failed read, and failed catalog keep the draft and market', async ({ page }) => {
@@ -204,14 +267,26 @@ test('lost submission response reuses one operation across refresh', async ({ pa
 test('background query pauses and blocking verification stops language generation', async ({ page }) => {
   await ready(page); await importDemo(page); await analyzeAndPlan(page)
   let renderSubmissions = 0
-  let block = true
+  let repairSubmissions = 0
+  let blockFirstVerification = true
   page.on('request', request => {
-    if (request.method() === 'POST' && request.url().endsWith('/jobs') && request.postDataJSON().kind === 'render') renderSubmissions++
+    if (request.method() !== 'POST' || !request.url().endsWith('/jobs')) return
+    if (request.postDataJSON().kind === 'render') renderSubmissions++
+    if (request.postDataJSON().kind === 'repair') repairSubmissions++
+  })
+  await page.route('**/api/projects/*/jobs', async route => {
+    const body = route.request().postDataJSON()
+    if (body.kind === 'repair') {
+      await route.continue({ postData: JSON.stringify({ ...body, kind: 'verify' }) })
+      return
+    }
+    await route.continue()
   })
   await page.route('**/api/jobs/*', async route => {
     const response = await route.fetch()
     const data = await response.json()
-    if (block && data.kind === 'verify' && data.status === 'done') {
+    if (blockFirstVerification && data.kind === 'verify' && data.status === 'done') {
+      blockFirstVerification = false
       data.result.overall_status = 'fail'
       data.result.issues = [{ severity: 'error', issue_type: 'fact_conflict', description: '主角动机仍有冲突，需要复核。' }]
     }
@@ -224,8 +299,107 @@ test('background query pauses and blocking verification stops language generatio
   await expect(page.getByRole('alert')).toContainText('检查发现阻塞问题')
   await expect(page.getByText('主角动机仍有冲突，需要复核。')).toBeVisible()
   expect(renderSubmissions).toBe(0)
-  block = false
-  await page.getByRole('button', { name: '再次检查', exact: true }).click()
+  await page.getByRole('button', { name: '按检查结果修复', exact: true }).first().click()
   await expect(page.getByRole('heading', { name: 'English 完整剧本' })).toBeVisible({ timeout: 30000 })
+  expect(repairSubmissions).toBe(1)
   expect(renderSubmissions).toBe(1)
+})
+
+test('review choices distinguish keep from modify and survive refresh', async ({ page }) => {
+  await ready(page); await importDemo(page); await analyzeAndPlan(page)
+  await page.getByRole('button', { name: '生成改编剧本' }).click()
+  await expect(page.getByRole('heading', { name: 'English 完整剧本' })).toBeVisible({ timeout: 45000 })
+  // Present two uncertain findings to exercise the decision UI independently
+  // from the model. Backend scope enforcement has separate workflow tests.
+  await page.route('**/api/projects/*/verification', async route => {
+    const response = await route.fetch()
+    const report = await response.json()
+    await route.fulfill({ response, json: { ...report, overall_status: 'needs_review', review_token: 'review-fixture', commitment_checks: [], issues: [
+      { severity: 'warning', issue_type: 'fact_conflict', scene_id: 'S01', description: '可能需要调整称谓' },
+      { severity: 'warning', issue_type: 'motivation_break', scene_id: null, description: '可能需要重建因果关联' },
+    ] } })
+  })
+  await page.route('**/api/projects/*/verification/review', async route => {
+    const body = route.request().postDataJSON()
+    expect(body.kept_issue_indexes).toEqual([0])
+    await route.fulfill({ json: { review_token: 'review-fixture', issues: [], commitment_checks: [], kept_issue_indexes: [0] } })
+  })
+  await page.reload()
+  await expect(page.getByText('待你确认', { exact: true })).toHaveCount(2)
+  await expect(page.getByRole('button', { name: '修复错误及已确认项目' })).toHaveCount(0)
+  await page.getByRole('button', { name: '无需修改', exact: true }).first().click()
+  await expect(page.getByText('已确认保留', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: '修复错误及已确认项目' })).toHaveCount(0)
+  await page.getByRole('button', { name: '需要修改', exact: true }).nth(1).click()
+  await page.reload()
+  await expect(page.getByRole('button', { name: '无需修改', exact: true }).first()).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('button', { name: '需要修改', exact: true }).nth(1)).toHaveAttribute('aria-pressed', 'true')
+  await page.route('**/api/projects/*/jobs', async route => {
+    await route.fulfill({ status: 429, json: { detail: { message: '测试暂停提交' } } })
+  })
+  const submitted = page.waitForRequest(request => request.method() === 'POST' && request.url().endsWith('/jobs'))
+  await page.getByRole('button', { name: '修复错误及已确认项目' }).click()
+  expect((await submitted).postDataJSON()).toMatchObject({
+    kind: 'repair', based_on_report: 'review-fixture', review_issue_indexes: [1], review_commitment_ids: [],
+  })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+})
+
+test('personal suggestion alone survives reload and creates a revised result', async ({ page }) => {
+  await ready(page); await importDemo(page); await analyzeAndPlan(page)
+  await page.getByRole('button', { name: '生成改编剧本' }).click()
+  await expect(page.getByRole('heading', { name: 'English 完整剧本' })).toBeVisible({ timeout: 45000 })
+  await page.getByText('检查详情', { exact: true }).click()
+  const note = '女主这段台词更坚定，保留双方关系。'
+  await page.getByLabel('补充问题或改进建议').fill('   ')
+  await expect(page.getByRole('button', { name: '按问题和建议修改' })).toHaveCount(0)
+  await page.getByLabel('补充问题或改进建议').fill(note)
+  await page.getByLabel('建议适用范围').selectOption('S03')
+  await page.reload()
+  await page.getByText('检查详情', { exact: true }).click()
+  await expect(page.getByLabel('补充问题或改进建议')).toHaveValue(note)
+  await expect(page.getByLabel('建议适用范围')).toHaveValue('S03')
+  const submission = page.waitForRequest(request => request.method() === 'POST' && request.url().endsWith('/jobs') && request.postDataJSON().kind === 'repair')
+  await page.getByRole('button', { name: '按问题和建议修改' }).click()
+  expect((await submission).postDataJSON()).toMatchObject({ repair_suggestion: note, repair_scene_ids: ['S03'] })
+  await expect.poll(async () => (await active(page)).repairNote?.text).toBe('')
+  await expect.poll(async () => (await active(page)).task?.status).toBe('done')
+  await expect(page.getByRole('heading', { name: 'English 完整剧本' })).toBeVisible()
+  const pid = (await active(page)).projectId
+  const data = await page.evaluate(async id => (await fetch(`/api/projects/${id}/data-export`)).json(), pid)
+  expect(data.revisions.at(-1)).toMatchObject({ kind: 'repair', changed_scene_ids: ['S03'], applied_option: { repair_suggestion: note } })
+  expect(data.target_script.source_state_version).toBe(data.state.version)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+})
+
+test('blocking errors and violated commitments can be kept without rewriting', async ({ page }) => {
+  await ready(page); await importDemo(page); await analyzeAndPlan(page)
+  await page.getByRole('button', { name: '生成改编剧本' }).click()
+  await expect(page.getByRole('heading', { name: 'English 完整剧本' })).toBeVisible({ timeout: 45000 })
+  await page.route('**/api/projects/*/verification', async route => {
+    const response = await route.fetch()
+    const report = await response.json()
+    await route.fulfill({ response, json: { ...report, overall_status: 'fail', issues: [
+      { severity: 'error', issue_type: 'fact_conflict', scene_id: 'S01', description: '前世与重生后的成绩不同' },
+    ], commitment_checks: [{ commitment_id: 'NC01', status: 'violated', explanation: '前世事件没有在重生后重演' }] } })
+  })
+  await page.reload()
+  await expect(page.getByRole('button', { name: '需要修改', exact: true })).toHaveCount(2)
+  await page.getByRole('button', { name: '无需修改', exact: true }).first().click()
+  await page.getByRole('button', { name: '无需修改', exact: true }).nth(1).click()
+  await page.reload()
+  await expect(page.getByRole('button', { name: '无需修改', exact: true }).first()).toHaveAttribute('aria-pressed', 'true')
+  const submittedKinds: string[] = []
+  page.on('request', request => {
+    if (request.method() === 'POST' && request.url().endsWith('/jobs')) submittedKinds.push(request.postDataJSON().kind)
+  })
+  await page.route('**/api/projects/*/verification/review', async route => {
+    const body = route.request().postDataJSON()
+    expect(body.kept_issue_indexes).toEqual([0])
+    expect(body.kept_commitment_ids).toEqual(['NC01'])
+    await route.fulfill({ json: { review_token: body.based_on_report, overall_status: 'pass', issues: [], commitment_checks: [], ...body } })
+  })
+  await page.getByRole('button', { name: '确认保留并继续' }).click()
+  await expect.poll(async () => (await active(page)).task?.status).toBe('done')
+  expect(submittedKinds).toEqual(['render'])
 })

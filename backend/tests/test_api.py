@@ -311,3 +311,27 @@ async def test_target_script_render_and_get(client):
     assert rendered.json() == loaded.json()
     assert rendered.json()["target_language"] == "English"
     assert len(rendered.json()["scenes"]) == 8
+
+
+async def test_review_endpoint_persists_human_choice_without_rewriting(client):
+    from app.schemas import VerifyReport
+
+    project_id = (await client.post('/api/projects', json={'script': 'review'})).json()['id']
+    workflow = app.state.workflow
+    await workflow.analyze(project_id)
+    report = VerifyReport.model_validate({
+        'issues': [{'severity': 'error', 'issue_type': 'fact_conflict', 'scene_id': 'S01', 'description': '模型误判'}],
+    })
+    workflow._remember_report(project_id, 1, report)
+    response = await client.post(f'/api/projects/{project_id}/verification/review', json={
+        'based_on_report': report.review_token, 'kept_issue_indexes': [0],
+    })
+    assert response.status_code == 200
+    assert response.json()['overall_status'] == 'pass'
+    assert response.json()['kept_issue_indexes'] == [0]
+    assert workflow.require_state(project_id).version == 1
+    assert not workflow.rewriter.client.calls['rewrite_scene']
+    missing = await client.post('/api/projects/nope/verification/review', json={
+        'based_on_report': report.review_token, 'kept_issue_indexes': [0],
+    })
+    assert missing.status_code == 404

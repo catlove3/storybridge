@@ -11,7 +11,7 @@
             "type": "array"
           },
           "option_label": {
-            "description": "A / B / C",
+            "description": "A / B / C / CUSTOM",
             "title": "Option Label",
             "type": "string"
           },
@@ -27,7 +27,7 @@
             "type": "string"
           },
           "replacement_definition": {
-            "description": "what the culture mechanism becomes in the target culture",
+            "description": "what the selected adaptation target becomes in the target culture",
             "title": "Replacement Definition",
             "type": "string"
           },
@@ -65,6 +65,7 @@
             "type": "integer"
           },
           "culture_mechanism_id": {
+            "description": "adaptation target id; kept for API compatibility (CM or SET)",
             "title": "Culture Mechanism Id",
             "type": "string"
           },
@@ -95,15 +96,28 @@
       "AdaptationSelection": {
         "properties": {
           "culture_mechanism_id": {
-            "pattern": "^CM\\d+$",
+            "pattern": "^(?:CM|SET)\\d+$",
             "title": "Culture Mechanism Id",
             "type": "string"
+          },
+          "custom_instruction": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Instruction"
           },
           "option_label": {
             "enum": [
               "A",
               "B",
-              "C"
+              "C",
+              "CUSTOM"
             ],
             "title": "Option Label",
             "type": "string"
@@ -120,7 +134,8 @@
         "enum": [
           "preserve",
           "functional_replacement",
-          "plot_reconstruction"
+          "plot_reconstruction",
+          "custom"
         ],
         "title": "AdaptationStrategy",
         "type": "string"
@@ -238,9 +253,21 @@
             "title": "Based On Version"
           },
           "culture_mechanism_id": {
-            "pattern": "^CM\\d+$",
+            "pattern": "^(?:CM|SET)\\d+$",
             "title": "Culture Mechanism Id",
             "type": "string"
+          },
+          "custom_instruction": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Instruction"
           },
           "operation_id": {
             "anyOf": [
@@ -259,7 +286,8 @@
             "enum": [
               "A",
               "B",
-              "C"
+              "C",
+              "CUSTOM"
             ],
             "title": "Option Label",
             "type": "string"
@@ -1104,6 +1132,7 @@
           "plan_batch",
           "apply_batch",
           "verify",
+          "repair",
           "render"
         ],
         "title": "JobKind",
@@ -1246,6 +1275,17 @@
             "title": "Auto Verify And Repair",
             "type": "boolean"
           },
+          "based_on_report": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Based On Report"
+          },
           "based_on_version": {
             "anyOf": [
               {
@@ -1261,7 +1301,7 @@
           "culture_mechanism_id": {
             "anyOf": [
               {
-                "pattern": "^CM\\d+$",
+                "pattern": "^(?:CM|SET)\\d+$",
                 "type": "string"
               },
               {
@@ -1286,6 +1326,18 @@
             ],
             "title": "Culture Mechanism Ids"
           },
+          "custom_instruction": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Instruction"
+          },
           "idempotency_key": {
             "anyOf": [
               {
@@ -1308,7 +1360,8 @@
                 "enum": [
                   "A",
                   "B",
-                  "C"
+                  "C",
+                  "CUSTOM"
                 ],
                 "type": "string"
               },
@@ -1317,6 +1370,35 @@
               }
             ],
             "title": "Option Label"
+          },
+          "repair_scene_ids": {
+            "items": {
+              "pattern": "^S\\d+$",
+              "type": "string"
+            },
+            "title": "Repair Scene Ids",
+            "type": "array"
+          },
+          "repair_suggestion": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Repair Suggestion",
+            "type": "string"
+          },
+          "review_commitment_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Review Commitment Ids",
+            "type": "array"
+          },
+          "review_issue_indexes": {
+            "items": {
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "title": "Review Issue Indexes",
+            "type": "array"
           }
         },
         "required": [
@@ -1429,7 +1511,7 @@
       "PlanBody": {
         "properties": {
           "culture_mechanism_id": {
-            "pattern": "^CM\\d+$",
+            "pattern": "^(?:CM|SET)\\d+$",
             "title": "Culture Mechanism Id",
             "type": "string"
           }
@@ -1557,6 +1639,71 @@
           "affected_scenes"
         ],
         "title": "PropagationResult",
+        "type": "object"
+      },
+      "RepairBaseline": {
+        "properties": {
+          "facts": {
+            "items": {
+              "$ref": "#/components/schemas/RepairFact"
+            },
+            "title": "Facts",
+            "type": "array"
+          },
+          "rules": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Rules",
+            "type": "array"
+          }
+        },
+        "title": "RepairBaseline",
+        "type": "object"
+      },
+      "RepairFact": {
+        "properties": {
+          "attribute": {
+            "minLength": 1,
+            "title": "Attribute",
+            "type": "string"
+          },
+          "basis": {
+            "description": "原文、用户建议或已选改编方案的依据；不能仅引用检查结论",
+            "minLength": 1,
+            "title": "Basis",
+            "type": "string"
+          },
+          "phase": {
+            "minLength": 1,
+            "title": "Phase",
+            "type": "string"
+          },
+          "subject": {
+            "minLength": 1,
+            "title": "Subject",
+            "type": "string"
+          },
+          "timeline": {
+            "minLength": 1,
+            "title": "Timeline",
+            "type": "string"
+          },
+          "value": {
+            "minLength": 1,
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timeline",
+          "subject",
+          "attribute",
+          "phase",
+          "value",
+          "basis"
+        ],
+        "title": "RepairFact",
         "type": "object"
       },
       "Revision": {
@@ -1802,6 +1949,29 @@
       },
       "Setting": {
         "properties": {
+          "adapted_strategy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adapted Strategy"
+          },
+          "adapted_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "replacement definition after an adaptation has been applied",
+            "title": "Adapted To"
+          },
           "description": {
             "title": "Description",
             "type": "string"
@@ -1815,6 +1985,14 @@
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "scene_ids": {
+            "description": "scenes in which this story-world rule or setting is active",
+            "items": {
+              "type": "string"
+            },
+            "title": "Scene Ids",
+            "type": "array"
           }
         },
         "required": [
@@ -1986,6 +2164,16 @@
             "default": "",
             "title": "Genre",
             "type": "string"
+          },
+          "repair_baseline": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RepairBaseline"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "scenes": {
             "items": {
@@ -2189,6 +2377,35 @@
         "title": "VerificationIssue",
         "type": "object"
       },
+      "VerificationReviewBody": {
+        "properties": {
+          "based_on_report": {
+            "minLength": 1,
+            "title": "Based On Report",
+            "type": "string"
+          },
+          "kept_commitment_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Kept Commitment Ids",
+            "type": "array"
+          },
+          "kept_issue_indexes": {
+            "items": {
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "title": "Kept Issue Indexes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "based_on_report"
+        ],
+        "title": "VerificationReviewBody",
+        "type": "object"
+      },
       "VerifyReport": {
         "properties": {
           "checked_scene_ids": {
@@ -2232,6 +2449,20 @@
             "title": "Issues",
             "type": "array"
           },
+          "kept_commitment_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Kept Commitment Ids",
+            "type": "array"
+          },
+          "kept_issue_indexes": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Kept Issue Indexes",
+            "type": "array"
+          },
           "overall_status": {
             "default": "not_run",
             "enum": [
@@ -2241,6 +2472,12 @@
               "fail"
             ],
             "title": "Overall Status",
+            "type": "string"
+          },
+          "review_token": {
+            "default": "",
+            "description": "Identifies the report and story version used for review choices",
+            "title": "Review Token",
             "type": "string"
           },
           "scenes_checked": {
@@ -3452,6 +3689,60 @@
           }
         ],
         "summary": "Get Verification"
+      }
+    },
+    "/api/projects/{project_id}/verification/review": {
+      "post": {
+        "operationId": "confirm_verification_review_api_projects__project_id__verification_review_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerificationReviewBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Confirm Verification Review"
       }
     },
     "/api/projects/{project_id}/verify": {

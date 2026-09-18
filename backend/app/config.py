@@ -7,7 +7,7 @@ from pathlib import Path
 
 import yaml
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PositiveInt
 
 BACKEND_ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(BACKEND_ROOT / ".env")
@@ -34,6 +34,7 @@ class LLMConfig(BaseModel):
     default_profile: str = "general"
     profiles: dict[str, ProfileConfig] = Field(default_factory=dict)
     step_routes: dict[str, str] = Field(default_factory=dict)
+    step_max_tokens: dict[str, PositiveInt] = Field(default_factory=dict)
 
     def profile_for_step(self, step: str) -> ProfileConfig:
         profile_name = self.step_routes.get(step, self.default_profile)
@@ -152,6 +153,15 @@ def get_config() -> AppConfig:
         if model:
             profile.model = model
         profile.api_key_env = "LLM_API_KEY"
+
+    for step in set(config.llm.step_routes) | set(config.llm.step_max_tokens):
+        env_name = f"LLM_{step.upper()}_MAX_TOKENS"
+        raw_limit = os.environ.get(env_name, "").strip()
+        if raw_limit:
+            limit = int(raw_limit)
+            if limit < 1:
+                raise ValueError(f"{env_name} must be a positive integer")
+            config.llm.step_max_tokens[step] = limit
 
     return config
 

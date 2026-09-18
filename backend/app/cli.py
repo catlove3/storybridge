@@ -19,6 +19,22 @@ def _rewrite_echo_handler(request) -> str:
     import json as _json
     import re
 
+    if request.step == "plan_repair":
+        context = _json.loads(request.user_prompt)
+        instructions: dict[str, list[str]] = {}
+        for scene_id, detail in context["selected_issues"]:
+            instructions.setdefault(scene_id, []).append(detail)
+        return _json.dumps({
+            "baseline": context["current_story"].get("repair_baseline") or {
+                "facts": [], "rules": ["模拟修复：保持既定人物关系和改编方向"]
+            },
+            "scene_repairs": [
+                {"scene_id": scene_id, "instruction": "；".join(details)}
+                for scene_id, details in instructions.items()
+            ],
+            "unresolved_questions": [],
+        }, ensure_ascii=False)
+
     if request.step == "plan_adaptation":
         fixture_path = (
             Path(__file__).resolve().parent.parent
@@ -27,7 +43,7 @@ def _rewrite_echo_handler(request) -> str:
             / "plan_adaptation.json"
         )
         payload = _json.loads(fixture_path.read_text(encoding="utf-8"))
-        mechanism_id = re.search(r'"id": "(CM\d+)"', request.user_prompt)
+        mechanism_id = re.search(r'"id": "((?:CM|SET)\d+)"', request.user_prompt)
         mechanism_name = re.search(r'"name": "([^"]+)"', request.user_prompt)
         if mechanism_id:
             payload["culture_mechanism_id"] = mechanism_id.group(1)

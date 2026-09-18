@@ -35,6 +35,9 @@ class CommitmentCheck(BaseModel):
 
 
 class VerifyReport(BaseModel):
+    review_token: str = Field(default="", description="Identifies the report and story version used for review choices")
+    kept_issue_indexes: list[int] = Field(default_factory=list)
+    kept_commitment_ids: list[str] = Field(default_factory=list)
     issues: list[VerificationIssue] = Field(default_factory=list)
     commitment_checks: list[CommitmentCheck] = Field(default_factory=list)
     checked_scene_ids: list[str] = Field(default_factory=list)
@@ -54,13 +57,14 @@ class VerifyReport(BaseModel):
 
     @property
     def blocking_issues(self) -> list[VerificationIssue]:
-        return [i for i in self.issues if i.severity == Severity.ERROR]
+        return [i for index, i in enumerate(self.issues) if i.severity == Severity.ERROR and index not in self.kept_issue_indexes]
 
     def recompute_score(self) -> float:
         errors = len(self.blocking_issues)
-        warnings = sum(1 for i in self.issues if i.severity == Severity.WARNING)
-        violated = sum(1 for c in self.commitment_checks if c.status == "violated")
-        needs_review = sum(1 for c in self.commitment_checks if c.status == "needs_review")
+        warnings = sum(1 for index, i in enumerate(self.issues) if i.severity == Severity.WARNING and index not in self.kept_issue_indexes)
+        active_checks = [c for c in self.commitment_checks if c.commitment_id not in self.kept_commitment_ids]
+        violated = sum(1 for c in active_checks if c.status == "violated")
+        needs_review = sum(1 for c in active_checks if c.status == "needs_review")
         scene_coverage_gap = (
             max(0.0, 1.0 - self.scenes_checked / self.scenes_total)
             if self.scenes_total

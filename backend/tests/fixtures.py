@@ -44,7 +44,12 @@ def sample_story_state_dict() -> dict:
             {"id": "E07", "description": "身份反转，男主收购情敌客户公司", "scene_ids": ["S08"]},
         ],
         "settings": [
-            {"id": "SET01", "name": "当代中国都市", "description": "当代一线城市背景，体制内文化浓厚"},
+            {
+                "id": "SET01",
+                "name": "当代中国都市",
+                "description": "当代一线城市背景，体制内文化浓厚",
+                "scene_ids": ["S01", "S08"],
+            },
         ],
         "culture_mechanisms": [
             {

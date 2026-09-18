@@ -81,14 +81,14 @@ export function StoryGraphView({ graph, focusIds, affectedIds }: StoryGraphViewP
               refX="6"
               refY="3.5"
             >
-              <path d="M0,0 L7,3.5 L0,7 Z" />
+              <path d="M0,0 L7,3.5 L0,7 Z" fill="#8793a3" />
             </marker>
           </defs>
 
           {columns.map((column, index) => (
             <g key={column.label} className="graph-column">
               <text x={105 + index * 300} y={28}>{column.label}</text>
-              <line x1={105 + index * 300} x2={105 + index * 300} y1={42} y2={layout.height - 22} />
+              <line fill="none" stroke="#d8d3c8" x1={105 + index * 300} x2={105 + index * 300} y1={42} y2={layout.height - 22} />
             </g>
           ))}
 
@@ -103,8 +103,11 @@ export function StoryGraphView({ graph, focusIds, affectedIds }: StoryGraphViewP
                 <path
                   className={highlighted ? 'is-highlighted' : ''}
                   d={`M ${source.x + 84} ${source.y} C ${middle} ${source.y}, ${middle} ${target.y}, ${target.x - 84} ${target.y}`}
+                  fill="none"
                   key={`${edge.source}-${edge.target}-${edge.relation}-${index}`}
                   markerEnd="url(#graph-arrow)"
+                  stroke={highlighted ? '#b36b42' : '#8793a3'}
+                  strokeWidth={highlighted ? 2.4 : 1.25}
                 >
                   <title>{`${edge.source} —${edge.relation}→ ${edge.target}${edge.evidence ? `\n${edge.evidence}` : ''}`}</title>
                 </path>
@@ -125,9 +128,9 @@ export function StoryGraphView({ graph, focusIds, affectedIds }: StoryGraphViewP
                   key={node.id}
                   transform={`translate(${point.x - 84} ${point.y - 27})`}
                 >
-                  <rect height="54" rx="5" width="168" />
-                  <text className="node-id" x="10" y="17">{node.id}</text>
-                  <text className="node-label" x="10" y="37">{shortLabel(node.label)}</text>
+                  <rect fill="#fffdf8" height="54" rx="5" stroke="#9aa4b1" width="168" />
+                  <text className="node-id" fill="#6d7480" x="10" y="17">{node.id}</text>
+                  <text className="node-label" fill="#1d2f48" x="10" y="37">{shortLabel(node.label)}</text>
                   <title>{`${node.id} · ${kindLabels[node.kind]}\n${node.label}`}</title>
                 </g>
               )

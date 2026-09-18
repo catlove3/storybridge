@@ -33,6 +33,9 @@ class SkillSpec:
         result_validator: Callable[[BaseModel], None] | None = None,
         **prompt_kwargs,
     ) -> BaseModel:
+        from app.config import get_config
+
+        configured_max_tokens = get_config().llm.step_max_tokens.get(self.name)
         return await generate_structured(
             client,
             self.schema,
@@ -40,7 +43,11 @@ class SkillSpec:
             system_prompt=self.system_prompt,
             user_prompt=self.user_prompt(**prompt_kwargs),
             max_retries=self.max_retries,
-            max_tokens=self.max_tokens,
+            max_tokens=(
+                configured_max_tokens
+                if configured_max_tokens is not None
+                else self.max_tokens
+            ),
             temperature=self.temperature,
             frequency_penalty=self.frequency_penalty,
             result_validator=result_validator,

@@ -13,6 +13,7 @@ from .common import (
     PlotFunction,
     SocialFunction,
 )
+from .repair import RepairBaseline
 
 ID_PATTERN_DESCRIPTION = "id must start with the node kind prefix, e.g. C01/S01/E01/SET01/CM01/NC01"
 
@@ -50,6 +51,15 @@ class Setting(BaseModel):
     id: str = Field(pattern=r"^SET\d+$", description=ID_PATTERN_DESCRIPTION)
     name: str
     description: str
+    scene_ids: list[str] = Field(
+        default_factory=list,
+        description="scenes in which this story-world rule or setting is active",
+    )
+    adapted_to: str | None = Field(
+        default=None,
+        description="replacement definition after an adaptation has been applied",
+    )
+    adapted_strategy: str | None = None
 
 
 class CultureMechanism(BaseModel):
@@ -98,6 +108,7 @@ class StoryState(BaseModel):
     target_locale: str = "en-US"
     style_guide: str = ""
     terminology_map: dict[str, str] = Field(default_factory=dict)
+    repair_baseline: RepairBaseline | None = None
 
     characters: list[Character] = Field(default_factory=list)
     scenes: list[Scene] = Field(default_factory=list)
@@ -153,6 +164,8 @@ class StoryState(BaseModel):
             require_ids(scene.id, "event_ids", scene.event_ids, event_ids)
         for event in self.events:
             require_ids(event.id, "scene_ids", event.scene_ids, scene_ids)
+        for setting in self.settings:
+            require_ids(setting.id, "scene_ids", setting.scene_ids, scene_ids)
         for mechanism in self.culture_mechanisms:
             require_ids(mechanism.id, "scene_ids", mechanism.scene_ids, scene_ids)
         for commitment in self.commitments:

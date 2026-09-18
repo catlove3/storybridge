@@ -7,7 +7,7 @@ import pytest
 from pydantic import BaseModel
 
 from app.config import ProfileConfig, api_key_for, get_config
-from app.llm.base import LLMRequest
+from app.llm.base import LLMRequest, LLMResponse, Message
 from app.llm.openai_compat import OpenAICompatClient
 from app.llm.structured import generate_structured
 
@@ -193,6 +193,64 @@ async def test_unsupported_extra_body_is_removed_and_cached():
 
 class _StructuredResult(BaseModel):
     value: int
+
+
+def test_retry_history_follows_the_original_user_prompt():
+    request = LLMRequest(
+        step="test",
+        system_prompt="system",
+        user_prompt="original",
+        history=[
+            Message(role="assistant", content="invalid"),
+            Message(role="user", content="correct it"),
+        ],
+    )
+
+    assert request.to_messages() == [
+        {"role": "system", "content": "system"},
+        {"role": "user", "content": "original"},
+        {"role": "assistant", "content": "invalid"},
+        {"role": "user", "content": "correct it"},
+    ]
+
+
+async def test_structured_length_retry_does_not_replay_truncated_output():
+    calls: list[LLMRequest] = []
+    truncated = '{"value":"' + ("x" * 6000)
+
+    class Client:
+        async def complete(self, request: LLMRequest) -> LLMResponse:
+            calls.append(request)
+            if len(calls) == 1:
+                return LLMResponse(
+                    text=truncated,
+                    model="test",
+                    profile_name="test",
+                    step=request.step,
+                    finish_reason="length",
+                )
+            return LLMResponse(
+                text='{"value":42}',
+                model="test",
+                profile_name="test",
+                step=request.step,
+                finish_reason="stop",
+            )
+
+    result = await generate_structured(
+        Client(),
+        _StructuredResult,
+        step="test",
+        system_prompt="Return JSON.",
+        user_prompt="Return value 42.",
+        max_tokens=16384,
+    )
+
+    assert result.value == 42
+    assert len(calls) == 2
+    assert calls[1].max_tokens == 16384
+    assert truncated not in "".join(message.content for message in calls[1].history)
+    assert calls[1].to_messages()[-1]["content"].startswith("Start over")
 
 
 async def test_structured_output_unwraps_provider_result_envelope():

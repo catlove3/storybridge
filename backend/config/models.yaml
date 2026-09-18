@@ -38,10 +38,18 @@ llm:
     detect_frictions: general
     plan_adaptation: general
     rewrite_scene: general
+    plan_repair: general
     verify_consistency: general
     render_target_script: general
     baseline_translate: general
     baseline_strong_prompt: general
+
+  # Per-stage output limits. Override with, for example,
+  # LLM_PARSE_STORY_MAX_TOKENS=24576 without changing application code.
+  step_max_tokens:
+    parse_story: 16384
+    render_target_script: 16384
+    verify_consistency: 16384
 
 logging:
   sft_log_dir: data/sft_logs

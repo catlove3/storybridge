@@ -365,6 +365,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/verification/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm Verification Review */
+        post: operations["confirm_verification_review_api_projects__project_id__verification_review_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/{project_id}/verify": {
         parameters: {
             query?: never;
@@ -477,7 +494,7 @@ export interface components {
             lost_functions?: string[];
             /**
              * Option Label
-             * @description A / B / C
+             * @description A / B / C / CUSTOM
              */
             option_label: string;
             /** Preserved Functions */
@@ -486,7 +503,7 @@ export interface components {
             rationale: string;
             /**
              * Replacement Definition
-             * @description what the culture mechanism becomes in the target culture
+             * @description what the selected adaptation target becomes in the target culture
              */
             replacement_definition: string;
             /** Risks */
@@ -502,7 +519,10 @@ export interface components {
              * @default 0
              */
             based_on_version: number;
-            /** Culture Mechanism Id */
+            /**
+             * Culture Mechanism Id
+             * @description adaptation target id; kept for API compatibility (CM or SET)
+             */
             culture_mechanism_id: string;
             /** @default medium */
             friction_level: components["schemas"]["Level"];
@@ -515,17 +535,19 @@ export interface components {
         AdaptationSelection: {
             /** Culture Mechanism Id */
             culture_mechanism_id: string;
+            /** Custom Instruction */
+            custom_instruction?: string | null;
             /**
              * Option Label
              * @enum {string}
              */
-            option_label: "A" | "B" | "C";
+            option_label: "A" | "B" | "C" | "CUSTOM";
         };
         /**
          * AdaptationStrategy
          * @enum {string}
          */
-        AdaptationStrategy: "preserve" | "functional_replacement" | "plot_reconstruction";
+        AdaptationStrategy: "preserve" | "functional_replacement" | "plot_reconstruction" | "custom";
         /** AffectedScene */
         AffectedScene: {
             /**
@@ -581,13 +603,15 @@ export interface components {
             based_on_version?: number | null;
             /** Culture Mechanism Id */
             culture_mechanism_id: string;
+            /** Custom Instruction */
+            custom_instruction?: string | null;
             /** Operation Id */
             operation_id?: string | null;
             /**
              * Option Label
              * @enum {string}
              */
-            option_label: "A" | "B" | "C";
+            option_label: "A" | "B" | "C" | "CUSTOM";
         };
         /** ApplyResult */
         ApplyResult: {
@@ -929,7 +953,7 @@ export interface components {
          * JobKind
          * @enum {string}
          */
-        JobKind: "analyze" | "plan" | "apply" | "plan_batch" | "apply_batch" | "verify" | "render";
+        JobKind: "analyze" | "plan" | "apply" | "plan_batch" | "apply_batch" | "verify" | "repair" | "render";
         /** JobResponse */
         JobResponse: {
             /** Cancel Requested */
@@ -972,17 +996,32 @@ export interface components {
              * @default false
              */
             auto_verify_and_repair: boolean;
+            /** Based On Report */
+            based_on_report?: string | null;
             /** Based On Version */
             based_on_version?: number | null;
             /** Culture Mechanism Id */
             culture_mechanism_id?: string | null;
             /** Culture Mechanism Ids */
             culture_mechanism_ids?: string[] | null;
+            /** Custom Instruction */
+            custom_instruction?: string | null;
             /** Idempotency Key */
             idempotency_key?: string | null;
             kind: components["schemas"]["JobKind"];
             /** Option Label */
-            option_label?: ("A" | "B" | "C") | null;
+            option_label?: ("A" | "B" | "C" | "CUSTOM") | null;
+            /** Repair Scene Ids */
+            repair_scene_ids?: string[];
+            /**
+             * Repair Suggestion
+             * @default
+             */
+            repair_suggestion: string;
+            /** Review Commitment Ids */
+            review_commitment_ids?: string[];
+            /** Review Issue Indexes */
+            review_issue_indexes?: number[];
         };
         /** JobSubmitted */
         JobSubmitted: {
@@ -1101,6 +1140,31 @@ export interface components {
              */
             summary: string;
         };
+        /** RepairBaseline */
+        RepairBaseline: {
+            /** Facts */
+            facts?: components["schemas"]["RepairFact"][];
+            /** Rules */
+            rules?: string[];
+        };
+        /** RepairFact */
+        RepairFact: {
+            /** Attribute */
+            attribute: string;
+            /**
+             * Basis
+             * @description 原文、用户建议或已选改编方案的依据；不能仅引用检查结论
+             */
+            basis: string;
+            /** Phase */
+            phase: string;
+            /** Subject */
+            subject: string;
+            /** Timeline */
+            timeline: string;
+            /** Value */
+            value: string;
+        };
         /** Revision */
         Revision: {
             /** Applied Option */
@@ -1215,6 +1279,13 @@ export interface components {
         };
         /** Setting */
         Setting: {
+            /** Adapted Strategy */
+            adapted_strategy?: string | null;
+            /**
+             * Adapted To
+             * @description replacement definition after an adaptation has been applied
+             */
+            adapted_to?: string | null;
             /** Description */
             description: string;
             /**
@@ -1224,6 +1295,11 @@ export interface components {
             id: string;
             /** Name */
             name: string;
+            /**
+             * Scene Ids
+             * @description scenes in which this story-world rule or setting is active
+             */
+            scene_ids?: string[];
         };
         /**
          * Severity
@@ -1294,6 +1370,7 @@ export interface components {
              * @default
              */
             genre: string;
+            repair_baseline?: components["schemas"]["RepairBaseline"] | null;
             /** Scenes */
             scenes?: components["schemas"]["Scene"][];
             /** Settings */
@@ -1399,6 +1476,15 @@ export interface components {
             scene_id?: string | null;
             severity: components["schemas"]["Severity"];
         };
+        /** VerificationReviewBody */
+        VerificationReviewBody: {
+            /** Based On Report */
+            based_on_report: string;
+            /** Kept Commitment Ids */
+            kept_commitment_ids?: string[];
+            /** Kept Issue Indexes */
+            kept_issue_indexes?: number[];
+        };
         /** VerifyReport */
         VerifyReport: {
             /** Checked Scene Ids */
@@ -1423,12 +1509,22 @@ export interface components {
             consistency_score: number;
             /** Issues */
             issues?: components["schemas"]["VerificationIssue"][];
+            /** Kept Commitment Ids */
+            kept_commitment_ids?: string[];
+            /** Kept Issue Indexes */
+            kept_issue_indexes?: number[];
             /**
              * Overall Status
              * @default not_run
              * @enum {string}
              */
             overall_status: "not_run" | "pass" | "needs_review" | "fail";
+            /**
+             * Review Token
+             * @description Identifies the report and story version used for review choices
+             * @default
+             */
+            review_token: string;
             /**
              * Scenes Checked
              * @default 0
@@ -2226,6 +2322,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VerifyReport"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_verification_review_api_projects__project_id__verification_review_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerificationReviewBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerifyReport"];
                 };
             };
             /** @description Validation Error */

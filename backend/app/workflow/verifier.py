@@ -23,10 +23,14 @@ class Verifier:
 
     def _digest(self, state: StoryState) -> dict:
         return {
+            "genre": state.genre,
+            "format": state.format,
+            "repair_baseline": state.repair_baseline.model_dump() if state.repair_baseline else None,
             "characters": [c.model_dump() for c in state.characters],
             "scenes": [
                 {
                     "id": s.id,
+                    "title": s.title,
                     "summary": s.summary,
                     "text": s.text,
                 }
@@ -37,7 +41,7 @@ class Verifier:
                 for e in state.events
             ],
             "settings": [
-                {"id": st.id, "description": st.description, "_note": "结构元数据，非场景文本"}
+                {**st.model_dump(), "_note": "结构元数据；adapted_to 非空时为当前改编设定，description 是原设定"}
                 for st in state.settings
             ],
             "culture_mechanisms": [
@@ -54,6 +58,10 @@ class Verifier:
 
     @staticmethod
     def sanitize(state: StoryState, report: VerifyReport) -> VerifyReport:
+        # Human review decisions can only be set through the owner-authorized
+        # review endpoint; model output cannot waive its own findings.
+        report.kept_issue_indexes = []
+        report.kept_commitment_ids = []
         known_scene_ids = {s.id for s in state.scenes}
         known_commitment_ids = {nc.id for nc in state.commitments}
         report.checked_scene_ids = list(

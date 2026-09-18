@@ -4,8 +4,9 @@ import re
 
 from app.graph import StoryGraph
 from app.llm import LLMClient
-from app.schemas import AdaptationPlan, CultureMechanism, StoryState
+from app.schemas import AdaptationPlan, CultureMechanism, Setting, StoryState
 from app.skills import PLAN_ADAPTATION, SkillSpec
+from app.workflow.targets import adaptation_target, linked_commitments, target_scene_ids
 
 _CJK_RE = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff]")
 
@@ -37,18 +38,40 @@ class AdaptationPlanner:
     def step_name(self) -> str:
         return self.skill.name
 
-    def _related_context(self, state: StoryState, mechanism: CultureMechanism) -> dict:
+    @staticmethod
+    def _target(state: StoryState, target_id: str) -> CultureMechanism | Setting:
+        return adaptation_target(state, target_id)
+
+    def _related_context(
+        self, state: StoryState, target: CultureMechanism | Setting
+    ) -> dict:
         graph = StoryGraph(state)
         neighbors = (
-            list(graph.graph.successors(mechanism.id)) + list(graph.graph.predecessors(mechanism.id))
-            if graph.has_node(mechanism.id)
+            list(graph.graph.successors(target.id)) + list(graph.graph.predecessors(target.id))
+            if graph.has_node(target.id)
             else []
         )
 
+        related_commitments = linked_commitments(state, target.id)
+        touching_scene_ids = target_scene_ids(state, target)
+        for commitment in related_commitments:
+            touching_scene_ids.update(
+                scene_id
+                for scene_id in (
+                    commitment.established_at_scene_id,
+                    commitment.payoff_scene_id,
+                )
+                if scene_id
+            )
+
         scene_summaries = [
-            {"id": s.id, "summary": s.summary}
+            {
+                "id": s.id,
+                "summary": s.summary,
+                "current_text_excerpt": s.text[:1600],
+            }
             for s in state.scenes
-            if s.id in set(mechanism.scene_ids) | {n for n in neighbors if n.startswith("S")}
+            if s.id in touching_scene_ids | {n for n in neighbors if n.startswith("S")}
         ]
         events = [
             {"id": e.id, "description": e.description}
@@ -58,15 +81,25 @@ class AdaptationPlanner:
         commitments = [
             {"id": nc.id, "description": nc.description}
             for nc in state.commitments
-            if nc.id in neighbors or nc.must_preserve
+            if nc in related_commitments or nc.must_preserve
         ]
         dependency_edges = [
             d.model_dump()
             for d in state.dependencies
-            if mechanism.id in (d.source_id, d.target_id)
+            if target.id in (d.source_id, d.target_id)
         ]
         return {
             "touching_scenes": scene_summaries,
+            "applied_core_settings": [
+                {
+                    "id": setting.id,
+                    "name": setting.name,
+                    "current_definition": setting.adapted_to,
+                    "strategy": setting.adapted_strategy,
+                }
+                for setting in state.settings
+                if setting.adapted_to
+            ],
             "related_events": events,
             "related_commitments": commitments,
             "dependency_edges": dependency_edges,
@@ -78,9 +111,7 @@ class AdaptationPlanner:
         mechanism_id: str,
         target_market_profile: dict | None = None,
     ) -> AdaptationPlan:
-        mechanism = next((m for m in state.culture_mechanisms if m.id == mechanism_id), None)
-        if mechanism is None:
-            raise KeyError(f"unknown culture mechanism: {mechanism_id}")
+        target = self._target(state, mechanism_id)
 
         profile = target_market_profile or {
             "market": state.target_market,
@@ -88,25 +119,32 @@ class AdaptationPlanner:
             "format": state.format,
             "genre": state.genre,
         }
-        context = self._related_context(state, mechanism)
+        context = self._related_context(state, target)
 
         def validate_result(plan: AdaptationPlan) -> None:
-            if plan.culture_mechanism_id != mechanism.id:
+            if plan.culture_mechanism_id != target.id:
                 raise ValueError(
                     "adaptation plan mechanism id mismatch: "
-                    f"expected {mechanism.id}, got {plan.culture_mechanism_id}"
+                    f"expected {target.id}, got {plan.culture_mechanism_id}"
                 )
-            if plan.original_name != mechanism.name:
+            if plan.original_name != target.name:
                 raise ValueError(
                     "adaptation plan mechanism name mismatch: "
-                    f"expected {mechanism.name!r}, got {plan.original_name!r}"
+                    f"expected {target.name!r}, got {plan.original_name!r}"
                 )
             _require_chinese_decision_copy(plan)
 
         plan = await self.skill.run(
             self.client,
             result_validator=validate_result,
-            mechanism_json=mechanism.model_dump(),
+            mechanism_json={
+                **target.model_dump(),
+                "target_kind": (
+                    "culture_mechanism"
+                    if isinstance(target, CultureMechanism)
+                    else "core_setting"
+                ),
+            },
             related_context_json=context,
             target_market_profile=profile,
         )

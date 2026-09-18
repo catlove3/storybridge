@@ -30,6 +30,9 @@ def state_dict() -> dict:
 
 
 def _rewrite_handler(request) -> str:
+    if request.step == "plan_repair":
+        from app.cli import _rewrite_echo_handler
+        return _rewrite_echo_handler(request)
     if request.step == "render_target_script":
         scene_ids = list(dict.fromkeys(re.findall(r'"id": "(S\d+)"', request.user_prompt)))
         return json.dumps(

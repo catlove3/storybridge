@@ -105,6 +105,11 @@ export const api = {
       params: { path: { project_id: projectId } }, signal,
     }))
   },
+  async confirmReview(projectId: string, body: import('./generated/schema').components['schemas']['VerificationReviewBody']) {
+    return unwrap<import('../types/api').VerifyReport>(await client.POST('/api/projects/{project_id}/verification/review', {
+      params: { path: { project_id: projectId } }, body,
+    }))
+  },
   async shareCode() {
     const response = await fetch('/api/share-code', { headers: API_KEY ? { 'X-API-Key': API_KEY } : {} })
     if (!response.ok) throw new Error('请使用分享模式启动，再打开二维码。')

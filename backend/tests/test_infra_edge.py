@@ -178,6 +178,8 @@ async def test_apply_with_scene_ids_unpadded(tmp_path):
         cm["scene_ids"] = [f"S{int(s[1:])}" for s in cm["scene_ids"]]
     for event in state_dict["events"]:
         event["scene_ids"] = [f"S{int(s[1:])}" for s in event["scene_ids"]]
+    for setting in state_dict["settings"]:
+        setting["scene_ids"] = [f"S{int(s[1:])}" for s in setting.get("scene_ids", [])]
     for commitment in state_dict["commitments"]:
         for field in ("established_at_scene_id", "payoff_scene_id"):
             scene_id = commitment[field]

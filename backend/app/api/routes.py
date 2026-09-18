@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from typing import Literal
+from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
@@ -135,18 +135,27 @@ class CreateProjectBody(BaseModel):
 
 
 class PlanBody(BaseModel):
-    culture_mechanism_id: str = Field(pattern=r"^CM\d+$")
+    culture_mechanism_id: str = Field(pattern=r"^(?:CM|SET)\d+$")
 
 
 class ApplyBody(BaseModel):
-    culture_mechanism_id: str = Field(pattern=r"^CM\d+$")
-    option_label: Literal["A", "B", "C"]
+    culture_mechanism_id: str = Field(pattern=r"^(?:CM|SET)\d+$")
+    option_label: Literal["A", "B", "C", "CUSTOM"]
+    custom_instruction: str | None = Field(default=None, max_length=4000)
     auto_verify_and_repair: bool = Field(
         default=False,
         description="Only run automatic verification and repair when explicitly authorized.",
     )
     based_on_version: int | None = Field(default=None, ge=1)
     operation_id: str | None = Field(default=None, min_length=1, max_length=200)
+
+    @model_validator(mode="after")
+    def _validate_custom_instruction(self) -> ApplyBody:
+        if self.option_label == "CUSTOM" and not (
+            self.custom_instruction and self.custom_instruction.strip()
+        ):
+            raise ValueError("custom option requires a non-empty custom instruction")
+        return self
 
 
 class BatchPlanBody(BaseModel):
@@ -155,10 +164,13 @@ class BatchPlanBody(BaseModel):
     @model_validator(mode="after")
     def _validate_ids(self) -> BatchPlanBody:
         if any(
-            not item.startswith("CM") or not item[2:].isdigit()
+            not (
+                (item.startswith("CM") and item[2:].isdigit())
+                or (item.startswith("SET") and item[3:].isdigit())
+            )
             for item in self.culture_mechanism_ids
         ):
-            raise ValueError("culture mechanism ids must match CM followed by digits")
+            raise ValueError("adaptation target ids must match CM or SET followed by digits")
         if len(self.culture_mechanism_ids) != len(set(self.culture_mechanism_ids)):
             raise ValueError("culture mechanism ids must be unique")
         return self
@@ -428,6 +440,7 @@ async def apply_adaptation(project_id: str, body: ApplyBody, request: Request):
             auto_verify_and_repair=body.auto_verify_and_repair,
             based_on_version=body.based_on_version,
             operation_id=body.operation_id,
+            custom_instruction=body.custom_instruction,
         )
     except (StateVersionConflict, DuplicateOperation) as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
@@ -484,6 +497,24 @@ async def get_verification(project_id: str, request: Request):
     workflow = _workflow(request)
     _project_or_404(workflow, project_id, request)
     return workflow.latest_report(project_id)
+
+
+class VerificationReviewBody(BaseModel):
+    based_on_report: str = Field(min_length=1)
+    kept_issue_indexes: list[Annotated[int, Field(ge=0)]] = Field(default_factory=list)
+    kept_commitment_ids: list[str] = Field(default_factory=list)
+
+
+@router.post("/projects/{project_id}/verification/review", response_model=VerifyReport)
+async def confirm_verification_review(project_id: str, body: VerificationReviewBody, request: Request):
+    workflow = _workflow(request)
+    _project_or_404(workflow, project_id, request)
+    try:
+        return await workflow.confirm_verification_review(
+            project_id, body.based_on_report, body.kept_issue_indexes, body.kept_commitment_ids,
+        )
+    except ValueError as exc:
+        raise HTTPException(409, detail=str(exc)) from exc
 
 
 @router.post("/projects/{project_id}/target-script", response_model=TargetScript)
@@ -602,8 +633,16 @@ def _bible_path(request: Request, project_id: str):
 
 class JobSubmitBody(BaseModel):
     kind: JobKind
-    culture_mechanism_id: str | None = Field(default=None, pattern=r"^CM\d+$")
-    option_label: Literal["A", "B", "C"] | None = None
+    review_issue_indexes: list[Annotated[int, Field(ge=0)]] = Field(default_factory=list)
+    review_commitment_ids: list[str] = Field(default_factory=list)
+    repair_suggestion: str = Field(default="", max_length=4000)
+    repair_scene_ids: list[Annotated[str, Field(pattern=r"^S\d+$")]] = Field(default_factory=list)
+    based_on_report: str | None = None
+    culture_mechanism_id: str | None = Field(
+        default=None, pattern=r"^(?:CM|SET)\d+$"
+    )
+    option_label: Literal["A", "B", "C", "CUSTOM"] | None = None
+    custom_instruction: str | None = Field(default=None, max_length=4000)
     culture_mechanism_ids: list[str] | None = Field(
         default=None, min_length=1, max_length=20
     )
@@ -623,6 +662,12 @@ class JobSubmitBody(BaseModel):
             self.culture_mechanism_id and self.option_label
         ):
             raise ValueError("apply job needs culture_mechanism_id and option_label")
+        if (
+            self.kind == JobKind.APPLY
+            and self.option_label == "CUSTOM"
+            and not (self.custom_instruction and self.custom_instruction.strip())
+        ):
+            raise ValueError("custom option requires a non-empty custom instruction")
         if self.kind == JobKind.PLAN and not self.culture_mechanism_id:
             raise ValueError("plan job needs culture_mechanism_id")
         if self.kind == JobKind.PLAN_BATCH and not self.culture_mechanism_ids:
@@ -633,6 +678,14 @@ class JobSubmitBody(BaseModel):
             set(self.culture_mechanism_ids)
         ):
             raise ValueError("culture mechanism ids must be unique")
+        if self.culture_mechanism_ids and any(
+            not (
+                (item.startswith("CM") and item[2:].isdigit())
+                or (item.startswith("SET") and item[3:].isdigit())
+            )
+            for item in self.culture_mechanism_ids
+        ):
+            raise ValueError("adaptation target ids must match CM or SET followed by digits")
         if self.adaptations:
             ids = [item.culture_mechanism_id for item in self.adaptations]
             if len(ids) != len(set(ids)):
@@ -669,6 +722,7 @@ async def submit_job(project_id: str, body: JobSubmitBody, request: Request):
             project_id, body.culture_mechanism_id, body.option_label,
             auto_verify_and_repair=body.auto_verify_and_repair,
             based_on_version=body.based_on_version, operation_id=body.idempotency_key,
+            custom_instruction=body.custom_instruction,
         ),
         JobKind.APPLY_BATCH: lambda: workflow.apply_adaptations(
             project_id, body.adaptations or [],
@@ -676,6 +730,14 @@ async def submit_job(project_id: str, body: JobSubmitBody, request: Request):
             based_on_version=body.based_on_version, operation_id=body.idempotency_key,
         ),
         JobKind.VERIFY: lambda: workflow.verify(project_id),
+        JobKind.REPAIR: lambda: workflow.repair_from_verification(
+            project_id,
+            review_issue_indexes=body.review_issue_indexes,
+            review_commitment_ids=body.review_commitment_ids,
+            based_on_report=body.based_on_report,
+            repair_suggestion=body.repair_suggestion,
+            repair_scene_ids=body.repair_scene_ids,
+        ),
         JobKind.RENDER: lambda: workflow.render_target_script(project_id),
     }
     slot = None

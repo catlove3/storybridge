@@ -14,6 +14,7 @@ from app.prompts import (
     verify_consistency_system,
     verify_consistency_user,
 )
+from app.prompts.repair import REPAIR_PLAN_SYSTEM, repair_plan_user
 from app.schemas import (
     AdaptationPlan,
     FrictionDetectionResult,
@@ -22,6 +23,7 @@ from app.schemas import (
     TargetScript,
     VerifyReport,
 )
+from app.schemas.repair import RepairPlan
 from app.skills.base import SkillSpec
 
 PARSE_STORY = SkillSpec(
@@ -29,7 +31,6 @@ PARSE_STORY = SkillSpec(
     schema=StoryState,
     system_prompt=parse_story_system(),
     user_prompt=parse_story_user,
-    max_tokens=8192,
     temperature=0.0,
 )
 
@@ -55,12 +56,19 @@ REWRITE_SCENE = SkillSpec(
     user_prompt=rewrite_scene_user,
 )
 
+PLAN_REPAIR = SkillSpec(
+    name="plan_repair",
+    schema=RepairPlan,
+    system_prompt=REPAIR_PLAN_SYSTEM,
+    user_prompt=repair_plan_user,
+    temperature=0.0,
+)
+
 RENDER_TARGET_SCRIPT = SkillSpec(
     name="render_target_script",
     schema=TargetScript,
     system_prompt=render_target_script_system(),
     user_prompt=render_target_script_user,
-    max_tokens=8192,
     temperature=0.0,
 )
 
@@ -69,7 +77,6 @@ VERIFY_CONSISTENCY = SkillSpec(
     schema=VerifyReport,
     system_prompt=verify_consistency_system(),
     user_prompt=verify_consistency_user,
-    max_tokens=8192,
     temperature=0.0,
     frequency_penalty=0.3,
 )
@@ -81,6 +88,7 @@ _REGISTRY: dict[str, SkillSpec] = {
         DETECT_FRICTIONS,
         PLAN_ADAPTATION,
         REWRITE_SCENE,
+        PLAN_REPAIR,
         RENDER_TARGET_SCRIPT,
         VERIFY_CONSISTENCY,
     )

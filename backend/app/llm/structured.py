@@ -125,6 +125,29 @@ async def generate_structured(
         )
         response = await client.complete(request)
 
+        if response.finish_reason == "length":
+            last_error = (
+                "output reached the token limit before the structured result was complete"
+            )
+            if attempt + 1 < attempts:
+                # Never feed a large, truncated response back into the model. It
+                # only inflates the next prompt while preserving the same broken
+                # prefix. Keep a tiny synthetic turn and ask for a fresh, terse
+                # result after the original request instead.
+                history = [
+                    Message(role="assistant", content="The response was truncated."),
+                    Message(
+                        role="user",
+                        content=(
+                            "Start over and return complete JSON within the output limit. "
+                            "Keep descriptions, evidence, and scene summaries concise; "
+                            "do not omit required fields."
+                        ),
+                    ),
+                ]
+                continue
+            break
+
         payload_text = extract_json_payload(response.text)
         if payload_text is None:
             looks_truncated = (
@@ -132,12 +155,20 @@ async def generate_structured(
                 and response.text.count("{") != response.text.count("}")
             )
             if looks_truncated:
-                raise StructuredGenerationError(
-                    step,
-                    attempt + 1,
-                    "output truncated at token limit with unbalanced JSON; "
-                    "instruct model to emit terser output or raise max_tokens",
-                )
+                last_error = "output was truncated with unbalanced JSON"
+                if attempt + 1 < attempts:
+                    history = [
+                        Message(role="assistant", content="The response was truncated."),
+                        Message(
+                            role="user",
+                            content=(
+                                "Start over and return complete, concise JSON. "
+                                "Do not repeat the truncated response."
+                            ),
+                        ),
+                    ]
+                    continue
+                break
             last_error = "no JSON object found in model output"
         else:
             try:

@@ -25,7 +25,7 @@ PARSE_STORY_SCHEMA = """{
   "characters": [{"id": "C01", "name": "...", "role": "protagonist|antagonist|supporting|minor", "description": "...", "goals": ["..."]}],
   "scenes": [{"id": "S01", "title": "...", "summary": "一句话概括本场景发生什么", "text": "场景原文", "character_ids": ["C01"], "event_ids": ["E01"]}],
   "events": [{"id": "E01", "description": "...", "scene_ids": ["S01"]}],
-  "settings": [{"id": "SET01", "name": "...", "description": "世界观事实，如时代、城市、职业背景"}],
+  "settings": [{"id": "SET01", "name": "...", "description": "世界观事实或核心规则，如时代、城市、超自然系统", "scene_ids": ["S01"]}],
   "culture_mechanisms": [{"id": "CM01", "name": "文化机制名称，如：编制", "description": "...", "surface_text": ["剧本中出现的原词"], "scene_ids": ["S01"]}],
   "commitments": [{"id": "NC01", "description": "故事已建立、后续不可破坏的叙事承诺", "established_at_scene_id": "S02", "payoff_scene_id": null, "must_preserve": true}],
   "dependencies": [{"source_id": "CM01", "target_id": "E03", "relation": "motivates|causes|depends_on|references|appears_in|sets_up|pays_off", "evidence": "支持该关系的原文片段", "confidence": 0.9}]
@@ -56,13 +56,15 @@ def parse_story_user(
         "不能重复抽取。\n"
         "   - 只抽'社会文化制度/习俗/身份概念'，不抽动作、事件或普通名词"
         "（如'以死相抗''赌场规矩'中的具体玩法不算，'赌场规矩'作为社会规则才算）。\n"
-        "4. commitments 记录明确的伏笔与叙事承诺（如'结尾必须身份反转'），有回收场景的填 payoff_scene_id。\n"
-        "5. dependencies 是重点。边方向约定：\n"
+        "4. settings 除时代、地点、职业背景外，也必须抽取驱动剧情的核心世界观规则或超自然系统；"
+        "scene_ids 列出规则实际生效、被解释或触发的全部场景。\n"
+        "5. commitments 记录明确的伏笔与叙事承诺（如'结尾必须身份反转'），有回收场景的填 payoff_scene_id。\n"
+        "6. dependencies 是重点。边方向约定：\n"
         "   - 场景 --references--> 它引用的文化机制；人物动机链用 机制 --motivates--> 事件、事件 --causes--> 事件；\n"
         "   - 人物 --appears_in--> 场景，事件 --appears_in--> 它发生的场景；\n"
         "   - 前置 --sets_up--> 后续回收，承诺 --depends_on--> 其依赖的机制。\n"
         "   一个机制影响多个场景时，每条依赖单独一条记录。\n"
-        "6. 只输出 JSON。\n\n"
+        "7. 只输出 JSON。\n\n"
         f"{chunk_context}\n\n"
         f"目标市场（可空）：{target_market or '未指定'}\n\n"
         "剧本全文：\n---\n"
@@ -148,10 +150,10 @@ def plan_adaptation_user(
     target_market_profile: dict,
 ) -> str:
     return (
-        "请为下面这个中国文化机制生成面向目标市场的改编方案。输出 JSON：\n"
+        "请为下面这个改编对象（中国文化背景或核心故事设定）生成面向目标市场的改编方案。输出 JSON：\n"
         '{\n'
-        '  "culture_mechanism_id": "CM01",\n'
-        '  "original_name": "机制名",\n'
+        '  "culture_mechanism_id": "CM01 或 SET01（必须与输入 id 一致）",\n'
+        '  "original_name": "改编对象名称",\n'
         '  "friction_level": "high|medium|low",\n'
         '  "options": [三个方案，option_label 分别为 A/B/C]\n'
         "}\n\n"
@@ -167,10 +169,14 @@ def plan_adaptation_user(
         "4. title、replacement_definition、rationale 和 risks 是给中文创作者看的决策说明，"
         "必须使用简体中文；必要的目标文化专名可保留英文，但须放在中文说明中。"
         "不要因为目标语言是 English 就把方案说明写成英文。\n"
-        "5. preserved_functions / lost_functions 从该机制的叙事功能出发逐条说明。\n"
+        "5. preserved_functions / lost_functions 从该对象的叙事功能出发逐条说明；核心设定没有现成标签时，"
+        "从上下文概括其剧情功能。\n"
         "6. 避免刻板印象；结合目标受众画像，不要把整个国家当成单一文化。\n"
+        "7. 如果相关上下文包含 applied_core_settings，说明核心世界观已经改写完成。"
+        "必须以这些已生效设定和 current_text_excerpt 为准，重新检查当前名词、礼仪和文化机制是否协调；"
+        "方案不得恢复旧世界观，也不得照搬改写前生成的术语。\n"
         "只输出 JSON。\n\n"
-        f"文化机制数据：\n{_json_block(mechanism_json)}\n\n"
+        f"改编对象数据：\n{_json_block(mechanism_json)}\n\n"
         f"相关上下文（涉及场景/事件/承诺/依赖边）：\n{_json_block(related_context_json)}\n\n"
         f"目标市场画像：\n{_json_block(target_market_profile)}"
     )
@@ -283,6 +289,23 @@ def verify_consistency_user(
         "- 未改编的机制（adapted_to 为 null）出现在任何地方（场景/事件/摘要）都完全正常，绝不报告。\n"
         "- events/settings 是结构元数据，其中出现旧词不算场景残留，不要据此报告。\n"
         "- 改编后的新表述（如'婚礼基金''稳定职业'）是正确内容，不是残留。\n\n"
+        "**审查前先识别叙事时间线与事实状态**：\n"
+        "- repair_baseline 若非空，是跨场景、跨轮次的修复基准。逐一检查正文是否符合其中时间线、人物、阶段和归属，"
+        "不能因较早场景或多数场景写错，就反转基准。基准不等于正文已正确，仍须逐场核查。"
+        "若基准自身矛盾或与明确改编决定冲突，应报告具体依据请作者确认，不要默默换一套基准。\n"
+        "- 综合所有场景的 title、summary、text、故事类型、设定和承诺，识别前世、重生后、回忆、"
+        "梦境、平行世界及时间循环。场景标题是重要证据，不能忽略；无新时间标记的场景，结合衔接判断所属时间线。\n"
+        "- 分别判断每个事实的时间线、发生时点、所属人物、事实状态和信息来源。"
+        "前世失败、死亡、贿赂与重生后成功、存活、未发生贿赂可以并存，不因结果不同就报告矛盾。"
+        "前世发生的犯罪不必在重生后的审判中被追责或回收。\n"
+        "- 对调、身份交换、伪装、重生改命等规则会改变事实状态。区分原始成绩、交换后成绩、公布后锁定成绩，"
+        "以及人物真实身份、伪装身份；不能把交换前的数值和交换后的数值要求统一。"
+        "人物说“本来是我的”描述的是原始归属，不等于当前官方结果；对话中的谎言、猜测、指控也不等于客观事实。\n"
+        "- 报告 fact_conflict 前，必须确认是同一时间线、同一人物、同一事实状态与可比较时点的冲突，"
+        "且没有剧情转折或超自然规则可以解释。在 description 中说明比较条件，在 evidence 中分别引用冲突原句。"
+        "时间线不明确时不要强行定为 error；仅在确实缺少必要交代时用 warning 请作者确认。\n"
+        "- 重生不豁免真实错误：同一时间线内已锁定的成绩前后不一、违背已明确的系统限制仍需报告。"
+        "commitment_checks 也必须按承诺所属的时间线与生效阶段判断，不能要求前世事件在重生后原样发生。\n\n"
         "其他检查项：\n"
         "1. fact_conflict：人物事实/世界观自相矛盾。\n"
         "2. motivation_break：人物行为失去动机支撑。\n"

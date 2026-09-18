@@ -80,7 +80,7 @@ blockquote { margin: 12px 0; padding: 8px 14px; border-left: 2px solid var(--gol
 .tag.high { background: #f4e1d8; color: #9a513b; }
 .plans { border-top: 1px solid var(--line); margin-top: 32px; padding-top: 32px; }
 .point-plan { margin: 30px 0; }
-.option-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; margin-top: 16px; }
+.option-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin-top: 16px; }
 .option-card { display: flex; flex-direction: column; padding: 22px; background: #faf8f2; border: 1px solid var(--line); border-radius: 6px; min-width: 0; }
 .option-card.is-selected { border: 2px solid var(--indigo); padding: 21px; background: #edf1f5; }
 .option-card header { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--indigo); }
@@ -89,18 +89,46 @@ blockquote { margin: 12px 0; padding: 8px 14px; border-left: 2px solid var(--gol
 .option-card__facts { font-size: 12px; color: var(--muted); }
 .option-card__select { margin-top: auto; width: 100%; }
 .option-card.is-selected .option-card__select { color: white; background: var(--indigo); border-color: var(--indigo); }
+.option-card--custom textarea { min-height: 132px; line-height: 1.55; margin-top: 8px; background: #fff; }
+.custom-option-input { display: block; margin-bottom: 16px; color: var(--muted); font-size: 13px; }
+.target-group-title { margin: 28px 0 8px; font-size: 15px; color: var(--indigo); }
+.target-group-note { margin: 0 0 12px; }
+.tag.core { background: #e8e3f2; color: #51416f; }
+.verification-items > li { margin-bottom: 20px; }
+.review-choice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.review-choice button { min-height: 44px; }
+.review-choice button[aria-pressed="true"] { background: var(--indigo); color: white; border-color: var(--indigo); }
+.review-choice span { color: var(--muted); font-size: 13px; }
+.review-suggestion { margin: 20px 0; display: grid; gap: 12px; }
+.review-suggestion label { display: grid; gap: 8px; }
 .impact-summary { background: #f5f1e7; padding: 20px; font-size: 14px; border-radius: 4px; }
 .impact-summary p { margin-bottom: 0; }
 .relation-list { font-size: 14px; }
 .relation-list li { margin-bottom: 12px; line-height: 1.8; }
 .graph-container { overflow: auto; max-width: 100%; }
-.graph-canvas { min-width: 680px; }
-.graph-canvas svg { width: 100%; }
+.story-graph { padding: 14px 0; }
+.story-graph__canvas { min-width: 680px; margin-top: 12px; }
+.story-graph__canvas svg { display: block; width: 100%; height: auto; }
 .graph-legend { display: flex; flex-wrap: wrap; gap: 10px; }
 .graph-legend span { display: inline-flex; align-items: center; gap: 5px; }
 .graph-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
-.graph-node { cursor: pointer; }
-.graph-node text { fill: var(--ink); }
+.legend-focus { background: var(--vermilion); }
+.legend-affected { background: var(--gold); }
+.legend-default { background: #8793a3; }
+.graph-column text { fill: var(--muted); font-size: 13px; text-anchor: middle; }
+.graph-edges path { fill: none; opacity: .55; }
+.graph-edges path.is-highlighted { opacity: .95; }
+.graph-nodes g { cursor: default; }
+.graph-nodes rect { stroke-width: 1.2; }
+.graph-nodes text { font-family: inherit; pointer-events: none; }
+.graph-nodes .node-id { font-size: 10px; }
+.graph-nodes .node-label { font-size: 12px; font-weight: 650; }
+.graph-nodes .is-affected rect { fill: #f7edda; stroke: var(--gold); stroke-width: 2; }
+.graph-nodes .is-focus rect { fill: #f6e1d8; stroke: var(--vermilion); stroke-width: 2.4; }
+.graph-relations ul { padding-left: 20px; }
+.graph-relations li { margin: 10px 0; line-height: 1.6; }
+.graph-relations code, .graph-relations strong, .graph-relations span { margin-right: 8px; }
+.graph-relations span { display: block; color: var(--muted); }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
 .script-scenes { margin-top: 28px; border-top: 1px solid var(--line); }
 .script-scenes article { padding: 28px 0; border-bottom: 1px solid #eae6dd; }

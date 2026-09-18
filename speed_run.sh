@@ -9,6 +9,7 @@ STORYBRIDGE_QUICK_TUNNEL=0
 STORYBRIDGE_INSTALL_MODE="auto"
 STORYBRIDGE_BACKEND_PID=""
 STORYBRIDGE_FRONTEND_PID=""
+STORYBRIDGE_PUBLIC_IP=""
 STORYBRIDGE_RUN_DIR=""
 STORYBRIDGE_RUNTIME_DIR="$STORYBRIDGE_ROOT/.storybridge/runtime"
 STORYBRIDGE_BACKEND_PYTHON="$STORYBRIDGE_ROOT/backend/.venv/bin/python"
@@ -203,6 +204,66 @@ wait_for_service() {
   return 1
 }
 
+resolve_public_ipv4() {
+  local hostname=$1 resolver answer
+  for resolver in 1.1.1.1 8.8.8.8; do
+    answer="$(dig +time=4 +tries=1 "@$resolver" "$hostname" A +short 2>/dev/null || true)"
+    answer="$(sed -nE '/^([0-9]{1,3}\.){3}[0-9]{1,3}$/p' <<<"$answer" | head -n 1)"
+    if [[ -n "$answer" ]]; then
+      printf '%s\n' "$answer"
+      return 0
+    fi
+  done
+  return 1
+}
+
+start_resolvable_quick_tunnel() {
+  local address_attempt hostname
+  : >"$STORYBRIDGE_TUNNEL_LOG"
+  STORYBRIDGE_PUBLIC_URL=""
+  STORYBRIDGE_PUBLIC_IP=""
+  echo "Starting Cloudflare temporary HTTPS tunnel..."
+  "$STORYBRIDGE_CLOUDFLARED" tunnel --config "$STORYBRIDGE_RUN_DIR/tunnel.yaml" \
+    --no-autoupdate --protocol http2 --edge-ip-version 4 --retries 100 \
+    --url http://127.0.0.1:8000 \
+    >"$STORYBRIDGE_TUNNEL_LOG" 2>&1 &
+  STORYBRIDGE_TUNNEL_PID=$!
+
+  for address_attempt in {1..120}; do
+    if ! kill -0 "$STORYBRIDGE_TUNNEL_PID" 2>/dev/null; then
+      echo "Cloudflare tunnel exited before returning an address:" >&2
+      tail -n 80 "$STORYBRIDGE_TUNNEL_LOG" >&2 || true
+      return 1
+    fi
+    STORYBRIDGE_PUBLIC_URL="$(sed -nE 's/.*(https:\/\/[a-z0-9-]+\.trycloudflare\.com).*/\1/p' \
+      "$STORYBRIDGE_TUNNEL_LOG" | head -n 1)"
+    [[ -n "$STORYBRIDGE_PUBLIC_URL" ]] && break
+    sleep 0.5
+  done
+  if [[ -z "$STORYBRIDGE_PUBLIC_URL" ]]; then
+    echo "Cloudflare did not return a temporary address. See $STORYBRIDGE_TUNNEL_LOG" >&2
+    return 1
+  fi
+
+  hostname="${STORYBRIDGE_PUBLIC_URL#https://}"
+  echo "Waiting up to 2 minutes for public IPv4 DNS propagation..."
+  for address_attempt in {1..60}; do
+    if ! kill -0 "$STORYBRIDGE_TUNNEL_PID" 2>/dev/null; then
+      echo "Cloudflare tunnel exited while waiting for DNS:" >&2
+      tail -n 80 "$STORYBRIDGE_TUNNEL_LOG" >&2 || true
+      return 1
+    fi
+    if STORYBRIDGE_PUBLIC_IP="$(resolve_public_ipv4 "$hostname")"; then
+      echo "Temporary hostname is ready in public DNS."
+      return 0
+    fi
+    sleep 2
+  done
+
+  echo "Cloudflare DNS is still propagating; keeping this tunnel and address alive." >&2
+  return 0
+}
+
 require_command curl
 activate_project_node
 sync_dependencies
@@ -228,25 +289,11 @@ if ((STORYBRIDGE_SHARE_MODE)); then
       STORYBRIDGE_CLOUDFLARED="$STORYBRIDGE_RUNTIME_DIR/cloudflared"
     fi
     STORYBRIDGE_TUNNEL_LOG="$STORYBRIDGE_RUN_DIR/tunnel.log"
+    require_command dig
     # An explicit empty config avoids altering any existing named-tunnel config.
     echo '{}' > "$STORYBRIDGE_RUN_DIR/tunnel.yaml"
-    "$STORYBRIDGE_CLOUDFLARED" tunnel --config "$STORYBRIDGE_RUN_DIR/tunnel.yaml" \
-      --no-autoupdate --url http://127.0.0.1:8000 >"$STORYBRIDGE_TUNNEL_LOG" 2>&1 &
-    STORYBRIDGE_TUNNEL_PID=$!
     STORYBRIDGE_QUICK_TUNNEL=1
-    for attempt in {1..120}; do
-      if ! kill -0 "$STORYBRIDGE_TUNNEL_PID" 2>/dev/null; then
-        echo "Tunnel exited. See $STORYBRIDGE_TUNNEL_LOG" >&2
-        exit 1
-      fi
-      STORYBRIDGE_PUBLIC_URL="$(sed -nE 's/.*(https:\/\/[a-z0-9-]+\.trycloudflare\.com).*/\1/p' "$STORYBRIDGE_TUNNEL_LOG" | head -n 1)"
-      [[ -n "$STORYBRIDGE_PUBLIC_URL" ]] && break
-      sleep 0.5
-    done
-    if [[ -z "$STORYBRIDGE_PUBLIC_URL" ]]; then
-      echo "No tunnel address received. See $STORYBRIDGE_TUNNEL_LOG" >&2
-      exit 1
-    fi
+    start_resolvable_quick_tunnel
   fi
   export STORYBRIDGE_PUBLIC_URL STORYBRIDGE_SHARE=1 STORYBRIDGE_SERVE_FRONTEND=1
 fi
@@ -290,13 +337,22 @@ wait_for_service \
   "$STORYBRIDGE_FRONTEND_LOG"
 else
   STORYBRIDGE_PUBLIC_CHECK_LOG="$STORYBRIDGE_RUN_DIR/public-health.log"
-  if ! curl --fail --silent --show-error --max-time 8 "$STORYBRIDGE_PUBLIC_URL/readyz" \
-      >/dev/null 2>"$STORYBRIDGE_PUBLIC_CHECK_LOG"; then
-    echo "Waiting for public HTTPS and DNS (up to 30 seconds; checking without the shell proxy)..."
+  STORYBRIDGE_PUBLIC_HOST="${STORYBRIDGE_PUBLIC_URL#https://}"
+  STORYBRIDGE_PUBLIC_HOST="${STORYBRIDGE_PUBLIC_HOST%%/*}"
+  STORYBRIDGE_PUBLIC_HOST="${STORYBRIDGE_PUBLIC_HOST%%:*}"
+  STORYBRIDGE_CURL_DNS=()
+  if [[ -n "$STORYBRIDGE_PUBLIC_IP" ]]; then
+    STORYBRIDGE_CURL_DNS=(--resolve "$STORYBRIDGE_PUBLIC_HOST:443:$STORYBRIDGE_PUBLIC_IP")
+  fi
+  if ! curl --noproxy '*' --fail --silent --show-error --max-time 8 \
+      "${STORYBRIDGE_CURL_DNS[@]}" \
+      "$STORYBRIDGE_PUBLIC_URL/readyz" >/dev/null 2>"$STORYBRIDGE_PUBLIC_CHECK_LOG"; then
+    echo "Waiting for public HTTPS health check (up to 60 seconds)..."
     STORYBRIDGE_PUBLIC_READY=0
-    STORYBRIDGE_PUBLIC_DEADLINE=$((SECONDS + 30))
+    STORYBRIDGE_PUBLIC_DEADLINE=$((SECONDS + 60))
     while ((SECONDS < STORYBRIDGE_PUBLIC_DEADLINE)); do
-      if curl --noproxy '*' --fail --silent --show-error --max-time 5 "$STORYBRIDGE_PUBLIC_URL/readyz" \
+      if curl --noproxy '*' --fail --silent --show-error --max-time 5 \
+          "${STORYBRIDGE_CURL_DNS[@]}" "$STORYBRIDGE_PUBLIC_URL/readyz" \
           >/dev/null 2>"$STORYBRIDGE_PUBLIC_CHECK_LOG"; then
         STORYBRIDGE_PUBLIC_READY=1
         break
@@ -309,12 +365,12 @@ else
     done
     if ((!STORYBRIDGE_PUBLIC_READY)); then
       if ((STORYBRIDGE_QUICK_TUNNEL)) \
-          && grep -q "Registered tunnel connection" "$STORYBRIDGE_TUNNEL_LOG" \
-          && grep -q "Could not resolve host" "$STORYBRIDGE_PUBLIC_CHECK_LOG"; then
-        echo "Warning: this computer cannot resolve the temporary hostname, but the Cloudflare tunnel is connected." >&2
-        echo "The services will stay running; verify the displayed URL from a phone, preferably over mobile data." >&2
+          && [[ -z "$STORYBRIDGE_PUBLIC_IP" ]] \
+          && grep -q "Registered tunnel connection" "$STORYBRIDGE_TUNNEL_LOG"; then
+        echo "Cloudflare tunnel is connected, but its public DNS is still propagating." >&2
+        echo "The address will remain alive; try it again from the phone shortly." >&2
       else
-        echo "Public HTTPS health check failed. Check DNS/network or use STORYBRIDGE_PUBLIC_URL with a fixed HTTPS proxy." >&2
+        echo "Public HTTPS health check failed. The unusable address will not be advertised." >&2
         cat "$STORYBRIDGE_PUBLIC_CHECK_LOG" >&2
         exit 1
       fi
