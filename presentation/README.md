@@ -1,7 +1,7 @@
-# StoryBridge · 重生短剧 5 分钟展示
+# StoryBridge · 通俗易懂版
 
-主文件为 `StoryBridge_智理杯_5分钟展示.pptx`：10 页主讲，后 2 页隐藏备答。第 6 页是真实 dependency graph 及缺口，第 8 页嵌入 18 秒操作视频，第 10 页结束。
+打开 `StoryBridge_智理杯_5分钟展示.pptx` 或 `StoryBridge_通俗易懂版.pptx`，两份内容一致。12 页主讲＋3 页隐藏备答；讲稿建议 5 分钟，包含第 10 页的 18 秒视频。
 
-配套含离线 PDF、独立 MP4、300 秒讲稿、提纲、现场说明与素材包。本轮采用 StoryBridge 实际提出的 APC＋EduSwap 组合；原稿保持十二场，不含“前程卡”，林知夏 669 不变，沈曼 487→330，周雨 330→487。
+按案例贯穿方法：项目与问题 → 案例 → Story State 与方案 → Dependency Graph → 改写检查修复 → Baseline 综合短板 → 对应的产品优势 → 操作与交付。第 7 页汇总“改不全、改错、缺少依赖追踪”；三栏分别来自后续测试反馈、本次冻结输出与流程对照。第 8 页展示本项目实际提供的方案、影响清单与修复记录。数字对照仅作为一条辅助证据。本次没有重跑模型。
 
-维护入口：`python3.12 presentation/remake/build_rebirth_deck.py`。Windows PowerPoint 16.0 已原生检查；Mac PowerPoint / Keynote 尚未实测。
+修改前文件在 `remake/readable_20260917/before/`。重建：`python3.12 presentation/remake/build_readable_deck.py`；重新导出与验证：运行同目录下 `verify_readable.ps1`，再运行 `package_readable.py`。不要用历史生成器覆盖本稿。
