@@ -1,3 +1,17 @@
+- id: literal_office
+  title: 今天，职场黑话都成真了
+  genre: 荒诞职场喜剧
+  summary: 女文案获得“错字成真系统”，用八个字把背锅、画饼和末位淘汰逐一变成现实。
+  file: literal_office.md
+  enabled: true
+  order: 5
+- id: true_heir_lies
+  title: 真千金回家后，全家不敢说谎了
+  genre: 豪门奇幻反转喜剧
+  summary: 真千金绑定“假话成真系统”，豪门里每句虚伪客套都开始按字面兑现。
+  file: true_heir_lies.md
+  enabled: true
+  order: 6
 - id: meet_the_parents
   title: 拜见岳父大人
   genre: 都市喜剧
@@ -19,3 +33,10 @@
   file: corpus_xianxia_satire.md
   enabled: true
   order: 30
+- id: mountain_fire
+  title: 山火未熄
+  genre: 抗战动作短剧
+  summary: 村庄遇袭后，猎户出身的侦察排长带着新兵潜入废墟，在复仇与守护之间作出选择。
+  file: corpus_resistance.md
+  enabled: true
+  order: 40
