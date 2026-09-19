@@ -1,0 +1,672 @@
+{
+  "source": "real saved StoryBridge output",
+  "project": {
+    "name": "《她换走了我的高考》（重生悬疑 · 12 场）",
+    "created_at": "2026-09-17T00:19:23.446246+00:00",
+    "original_state_version": 1,
+    "current_state_version": 16,
+    "updated_at": "2026-09-17T01:44:40.747560+00:00"
+  },
+  "counts": {
+    "characters": 6,
+    "scenes": 12,
+    "events": 24,
+    "settings": 5,
+    "culture_mechanisms": 12,
+    "commitments": 7,
+    "dependencies": 123
+  },
+  "scene_titles": {
+    "S01": "前世·借笔",
+    "S02": "前世·出分之夜",
+    "S03": "前世·天台",
+    "S04": "重生·换牌",
+    "S05": "重生·考场",
+    "S06": "重演·出分",
+    "S07": "周雨的分数",
+    "S08": "结盟·设局",
+    "S09": "天台·直播",
+    "S10": "重演·落空与庭审",
+    "S11": "清算",
+    "S12": "尾声"
+  },
+  "culture_node": {
+    "id": "CM01",
+    "name": "高考",
+    "description": "中国全国统一高等教育入学考试，成绩决定大学录取，被视为改变命运的关键节点。",
+    "surface_text": [
+      "高考",
+      "最后一科",
+      "查分",
+      "准考证",
+      "估分"
+    ],
+    "scene_ids": [
+      "S01",
+      "S02",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "S11",
+      "S12"
+    ],
+    "friction_level": "high",
+    "narrative_importance": "high",
+    "functions": {
+      "plot": [
+        "motivation",
+        "constraint",
+        "conflict",
+        "revelation",
+        "foreshadowing",
+        "payoff"
+      ],
+      "social": [
+        "status",
+        "institutional_access",
+        "economic_security",
+        "reputation"
+      ],
+      "emotional": [
+        "aspiration",
+        "fear",
+        "suspense",
+        "satisfaction"
+      ]
+    },
+    "adapted_to": null,
+    "adapted_strategy": null
+  },
+  "plan": {
+    "culture_mechanism_id": "CM01",
+    "original_name": "高考",
+    "based_on_version": 1,
+    "friction_level": "high",
+    "options": [
+      {
+        "option_label": "A",
+        "strategy": "preserve",
+        "title": "保留中国高考，加注解释",
+        "replacement_definition": "保留“高考”作为中国全国统一大学入学考试，在台词或旁白中自然解释其重要性，例如通过角色对话提及“这是决定我能不能上大学的唯一考试”。",
+        "rationale": "对于熟悉亚洲教育体系的美国观众，高考概念并不完全陌生，保留原设定可以维持故事的中国背景和异域感，同时通过简洁注释降低理解门槛。",
+        "preserved_functions": [
+          "motivation",
+          "constraint",
+          "conflict",
+          "revelation",
+          "foreshadowing",
+          "payoff",
+          "status",
+          "institutional_access",
+          "economic_security",
+          "reputation",
+          "aspiration",
+          "fear",
+          "suspense",
+          "satisfaction"
+        ],
+        "lost_functions": [],
+        "risks": [
+          "美国观众可能难以完全共情高考的极端重要性，导致情感投入不足。",
+          "解释性台词可能显得生硬，影响节奏。"
+        ]
+      },
+      {
+        "option_label": "B",
+        "strategy": "functional_replacement",
+        "title": "替换为SAT/ACT+大学申请系统",
+        "replacement_definition": "将高考替换为美国大学入学考试（SAT/ACT）与整体申请流程的结合。成绩仍是关键，但录取还涉及课外活动、推荐信等。换分系统可设定为篡改SAT成绩和申请材料，笔作为锚点。",
+        "rationale": "SAT/ACT是美国学生进入大学的核心关卡，具有类似的高利害性和命运决定性，能够保留原机制中的竞争、焦虑和改变命运的功能。",
+        "preserved_functions": [
+          "motivation",
+          "constraint",
+          "conflict",
+          "revelation",
+          "foreshadowing",
+          "payoff",
+          "status",
+          "institutional_access",
+          "economic_security",
+          "reputation",
+          "aspiration",
+          "fear",
+          "suspense",
+          "satisfaction"
+        ],
+        "lost_functions": [
+          "全国统一考试带来的绝对公平感与一考定终身的极端性"
+        ],
+        "risks": [
+          "美国大学录取是综合评估，换分可能不如高考那样直接决定录取，需要调整剧情逻辑。",
+          "SAT考试每年多次，可能削弱“最后一科”的紧迫感。"
+        ]
+      },
+      {
+        "option_label": "C",
+        "strategy": "plot_reconstruction",
+        "title": "重构为全国性学术竞赛（如National Merit Scholarship）",
+        "replacement_definition": "将核心机制改为全国性的学术竞赛或奖学金考试（如National Merit Scholarship Program），其成绩直接决定大学录取和全额奖学金。换分系统作用于竞赛最终成绩，笔作为锚点。",
+        "rationale": "全国性学术竞赛在美国文化中同样具有高利害性，且通常只有一次机会，能够保留原机制中的一考定终身、改变命运的功能，同时避免与SAT多次考试的现实冲突。",
+        "preserved_functions": [
+          "motivation",
+          "constraint",
+          "conflict",
+          "revelation",
+          "foreshadowing",
+          "payoff",
+          "status",
+          "institutional_access",
+          "economic_security",
+          "reputation",
+          "aspiration",
+          "fear",
+          "suspense",
+          "satisfaction"
+        ],
+        "lost_functions": [
+          "高考的全民参与度和普遍性"
+        ],
+        "risks": [
+          "美国观众可能对具体竞赛名称不熟悉，需要额外解释。",
+          "竞赛的选拔性质可能不如高考普及，影响共鸣。"
+        ]
+      }
+    ]
+  },
+  "selected_option": {
+    "option_label": "B",
+    "strategy": "functional_replacement",
+    "title": "替换为SAT/ACT+大学申请系统",
+    "replacement_definition": "将高考替换为美国大学入学考试（SAT/ACT）与整体申请流程的结合。成绩仍是关键，但录取还涉及课外活动、推荐信等。换分系统可设定为篡改SAT成绩和申请材料，笔作为锚点。",
+    "rationale": "SAT/ACT是美国学生进入大学的核心关卡，具有类似的高利害性和命运决定性，能够保留原机制中的竞争、焦虑和改变命运的功能。",
+    "preserved_functions": [
+      "motivation",
+      "constraint",
+      "conflict",
+      "revelation",
+      "foreshadowing",
+      "payoff",
+      "status",
+      "institutional_access",
+      "economic_security",
+      "reputation",
+      "aspiration",
+      "fear",
+      "suspense",
+      "satisfaction"
+    ],
+    "lost_functions": [
+      "全国统一考试带来的绝对公平感与一考定终身的极端性"
+    ],
+    "risks": [
+      "美国大学录取是综合评估，换分可能不如高考那样直接决定录取，需要调整剧情逻辑。",
+      "SAT考试每年多次，可能削弱“最后一科”的紧迫感。"
+    ]
+  },
+  "propagation": {
+    "changed_node_id": "CM01",
+    "affected_scenes": [
+      {
+        "scene_id": "S01",
+        "impact_kinds": [
+          "direct_reference",
+          "motivation",
+          "payoff"
+        ],
+        "reason_path": [
+          "CM01",
+          "S01"
+        ],
+        "evidence": "CM01 --references--> S01 (\"最后一科开考前，考场外。\")",
+        "path_confidence": 0.95
+      },
+      {
+        "scene_id": "S02",
+        "impact_kinds": [
+          "causal",
+          "motivation",
+          "payoff"
+        ],
+        "reason_path": [
+          "CM01",
+          "E02",
+          "S02"
+        ],
+        "evidence": "CM01 --motivates--> E02 (\"深夜查分，屏幕跳出\"487\"。\"); E02 --appears_in--> S02 (\"深夜查分，屏幕跳出\"487\"\")",
+        "path_confidence": 0.95
+      },
+      {
+        "scene_id": "S04",
+        "impact_kinds": [
+          "causal",
+          "motivation",
+          "payoff"
+        ],
+        "reason_path": [
+          "CM01",
+          "E06",
+          "S04"
+        ],
+        "evidence": "CM01 --motivates--> E06 (\"再睁眼，是高考第一天清晨。桌上的准考证、门口母亲的粥、手机上的日期——和记忆分毫不差。\"); E06 --appears_in--> S04 (\"再睁眼，是高考第一天清晨\")",
+        "path_confidence": 0.95
+      },
+      {
+        "scene_id": "S05",
+        "impact_kinds": [
+          "causal",
+          "motivation",
+          "payoff"
+        ],
+        "reason_path": [
+          "CM01",
+          "E08",
+          "S05"
+        ],
+        "evidence": "CM01 --motivates--> E08 (\"最后一科开考前，沈曼果然凑过来：\"知夏，笔借我用一下，我那支断墨了。\"\"); E08 --appears_in--> S05 (\"沈曼果然凑过来：\"知夏，笔借我用一下\"\")",
+        "path_confidence": 0.95
+      },
+      {
+        "scene_id": "S06",
+        "impact_kinds": [
+          "causal",
+          "motivation",
+          "payoff"
+        ],
+        "reason_path": [
+          "CM01",
+          "E09",
+          "S06"
+        ],
+        "evidence": "CM01 --motivates--> E09 (\"查分夜。林知夏输入准考证号，屏幕跳出：669——和她估的分一模一样。\"); E09 --appears_in--> S06 (\"屏幕跳出：669\")",
+        "path_confidence": 0.95
+      },
+      {
+        "scene_id": "S07",
+        "impact_kinds": [
+          "causal",
+          "motivation"
+        ],
+        "reason_path": [
+          "CM01",
+          "E10",
+          "E11",
+          "S07"
+        ],
+        "evidence": "CM01 --motivates--> E10 (\"手机响了，周雨的声音发颤：\"知夏，我查到487。可我估分只有330左右啊！\"\"); E10 --causes--> E11 (\"第二天，周雨冲到林知夏家，举着手机：\"复核结果出来了，487，确认无误。\"\"); E11 --appears_in--> S07 (\"复核结果出来了，487，确认无误\")",
+        "path_confidence": 0.855
+      },
+      {
+        "scene_id": "S08",
+        "impact_kinds": [
+          "causal",
+          "motivation"
+        ],
+        "reason_path": [
+          "CM01",
+          "E10",
+          "E11",
+          "E12",
+          "E13",
+          "E14",
+          "S08"
+        ],
+        "evidence": "CM01 --motivates--> E10 (\"手机响了，周雨的声音发颤：\"知夏，我查到487。可我估分只有330左右啊！\"\"); E10 --causes--> E11 (\"第二天，周雨冲到林知夏家，举着手机：\"复核结果出来了，487，确认无误。\"\"); E11 --causes--> E12 (\"沈曼就推门闯了进来。她一把抢过周雨的手机，看见487后脱口而出：\"你明明只有330！\"\"); E12 --causes--> E13 (\"周雨盯住她：\"成绩刚出，你怎么知道我原来的分数？\"……林知夏拿出那支笔：\"高考那天她来借笔。我递给她的，是你的笔。\"\"); E13 --causes--> E14 (\"当晚，沈曼的电话打进来，声音发抖：\"是你。你借给我的根本不是你的笔。\"\"); E14 --appears_in--> S08 (\"沈曼的电话打进来\")",
+        "path_confidence": 0.623295
+      }
+    ],
+    "related_commitment_ids": [
+      "NC01"
+    ],
+    "summary": "Changing 'CM01' (高考) affects 7 scene(s): S01, S02, S04, S05, S06, S07, S08"
+  },
+  "rewritten_scene_ids": [
+    "S01",
+    "S02",
+    "S04",
+    "S05",
+    "S06",
+    "S07",
+    "S08"
+  ],
+  "verification": {
+    "state_version": 16,
+    "review_token": "766709bf594e3468d7cb9ff5e4639c13704c83a9a974db137d4c691f79f9ae11",
+    "kept_issue_indexes": [],
+    "kept_commitment_ids": [],
+    "issues": [
+      {
+        "issue_type": "motivation_break",
+        "severity": "warning",
+        "scene_id": null,
+        "description": "重构策略仍保留 CM02 的旧因果依赖边，需要人工确认因果链是否已同步重建",
+        "evidence": "CM02--motivates-->E02, CM02--motivates-->E11"
+      }
+    ],
+    "commitment_checks": [
+      {
+        "commitment_id": "NC01",
+        "status": "preserved",
+        "explanation": "S01建立借笔换分锚点，S09沈曼承认借笔触发交换，伏笔回收。"
+      },
+      {
+        "commitment_id": "NC02",
+        "status": "preserved",
+        "explanation": "S03沈曼推林知夏坠楼伪装自杀，S10庭审以现实证据审理推人行为。"
+      },
+      {
+        "commitment_id": "NC03",
+        "status": "preserved",
+        "explanation": "S04林知夏计划让沈曼推空并录像，S10沈曼扑空、运动相机拍下画面。"
+      },
+      {
+        "commitment_id": "NC04",
+        "status": "preserved",
+        "explanation": "S04林知夏将周雨的笔放入笔袋最外层，S07向周雨展示该笔并说明换分真相。"
+      },
+      {
+        "commitment_id": "NC05",
+        "status": "preserved",
+        "explanation": "S09沈曼说明借笔触发交换、系统只认笔原主人、交换完成锁死，S11官方成绩维持不变。"
+      },
+      {
+        "commitment_id": "NC06",
+        "status": "preserved",
+        "explanation": "S07周雨与林知夏结盟，S10周雨直播并出庭作证。"
+      },
+      {
+        "commitment_id": "NC07",
+        "status": "preserved",
+        "explanation": "S12结尾笔杆深处蓝光一闪即灭，暗示系统未完全消失。"
+      }
+    ],
+    "checked_scene_ids": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "S08",
+      "S09",
+      "S10",
+      "S11",
+      "S12"
+    ],
+    "static_checks_passed": 2,
+    "static_checks_total": 3,
+    "commitments_verified": 7,
+    "commitments_total": 7,
+    "scenes_checked": 12,
+    "scenes_total": 12,
+    "overall_status": "needs_review",
+    "consistency_score": 0.95
+  },
+  "revisions": [
+    {
+      "revision_id": 1,
+      "state_version": 1,
+      "kind": "initial_parse",
+      "description": "Story Parser + Culture Friction Detection",
+      "changed_scene_ids": [],
+      "repair_suggestion": null,
+      "created_at": "2026-09-17T00:22:03.606660+00:00"
+    },
+    {
+      "revision_id": 2,
+      "state_version": 2,
+      "kind": "adaptation_applied",
+      "description": "applied 6 adaptation(s): CM01/B, SET04/B, CM02/C, CM04/A, CM06/B, CM10/B; repair rounds=0",
+      "changed_scene_ids": [
+        "S01",
+        "S02",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "S03",
+        "S09",
+        "S10",
+        "S11",
+        "S12"
+      ],
+      "repair_suggestion": null,
+      "created_at": "2026-09-17T00:40:54.278416+00:00"
+    },
+    {
+      "revision_id": 3,
+      "state_version": 3,
+      "kind": "repair",
+      "description": "按一致性检查结果修复场景并重新检查",
+      "changed_scene_ids": [
+        "S09",
+        "S10",
+        "S11",
+        "S12",
+        "S08",
+        "S07",
+        "S06",
+        "S02",
+        "S03"
+      ],
+      "repair_suggestion": null,
+      "created_at": "2026-09-17T00:53:57.406926+00:00"
+    },
+    {
+      "revision_id": 4,
+      "state_version": 4,
+      "kind": "repair",
+      "description": "按一致性检查结果修复场景并重新检查",
+      "changed_scene_ids": [
+        "S03",
+        "S10",
+        "S11",
+        "S12"
+      ],
+      "repair_suggestion": null,
+      "created_at": "2026-09-17T00:55:05.005284+00:00"
+    },
+    {
+      "revision_id": 5,
+      "state_version": 5,
+      "kind": "repair",
+      "description": "按一致性检查结果修复场景并重新检查",
+      "changed_scene_ids": [
+        "S03",
+        "S10",
+        "S11"
+      ],
+      "repair_suggestion": null,
+      "created_at": "2026-09-17T00:56:54.924457+00:00"
+    },
+    {
+      "revision_id": 6,
+      "state_version": 6,
+      "kind": "repair",
+      "description": "按一致性检查结果修复场景并重新检查",
+      "changed_scene_ids": [
+        "S11",
+        "S03"
+      ],
+      "repair_suggestion": null,
+      "created_at": "2026-09-17T00:57:53.125865+00:00"
+    },
+    {
+      "revision_id": 7,
+      "state_version": 7,
+      "kind": "repair",
+      "description": "按一致性检查结果修复场景并重新检查",
+      "changed_scene_ids": [
+        "S11"
+      ],
+      "repair_suggestion": null,
+      "created_at": "2026-09-17T00:59:13.086550+00:00"
+    },
+    {
+      "revision_id": 8,
+      "state_version": 8,
+      "kind": "repair",
+      "description": "按一致性检查结果修复场景并重新检查",
+      "changed_scene_ids": [
+        "S02",
+        "S06",
+        "S07",
+        "S08",
+        "S09",
+        "S10",
+        "S11",
+        "S12"
+      ],
+      "repair_suggestion": null,
+      "created_at": "2026-09-17T01:03:46.962760+00:00"
+    },
+    {
+      "revision_id": 9,
+      "state_version": 9,
+      "kind": "repair",
+      "description": "按一致性检查结果修复场景并重新检查",
+      "changed_scene_ids": [
+        "S02",
+        "S06",
+        "S07",
+        "S09",
+        "S10",
+        "S11",
+        "S12",
+        "S03",
+        "S04",
+        "S05",
+        "S08"
+      ],
+      "repair_suggestion": null,
+      "created_at": "2026-09-17T01:04:24.415810+00:00"
+    },
+    {
+      "revision_id": 10,
+      "state_version": 10,
+      "kind": "repair",
+      "description": "按一致性检查结果修复场景并重新检查",
+      "changed_scene_ids": [
+        "S06",
+        "S07",
+        "S09",
+        "S11",
+        "S12"
+      ],
+      "repair_suggestion": null,
+      "created_at": "2026-09-17T01:14:32.119669+00:00"
+    },
+    {
+      "revision_id": 11,
+      "state_version": 11,
+      "kind": "repair",
+      "description": "按一致性检查结果修复场景并重新检查",
+      "changed_scene_ids": [
+        "S06",
+        "S07",
+        "S09",
+        "S10",
+        "S11",
+        "S12"
+      ],
+      "repair_suggestion": null,
+      "created_at": "2026-09-17T01:19:22.540546+00:00"
+    },
+    {
+      "revision_id": 12,
+      "state_version": 12,
+      "kind": "repair",
+      "description": "按一致性检查结果修复场景并重新检查",
+      "changed_scene_ids": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "S09",
+        "S10",
+        "S11",
+        "S12"
+      ],
+      "repair_suggestion": "重生后统一采用：林知夏1580不变；周雨原分890，换分后1210；沈曼原分1210，换分后890。周雨模考从未超过1000。所有查分、台词、截图、庭审及结尾按此对应关系修正，前世单独处理。",
+      "created_at": "2026-09-17T01:21:11.970684+00:00"
+    },
+    {
+      "revision_id": 13,
+      "state_version": 13,
+      "kind": "repair",
+      "description": "按一致性检查结果修复场景并重新检查",
+      "changed_scene_ids": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "S09",
+        "S10",
+        "S11",
+        "S12"
+      ],
+      "repair_suggestion": "> 请按以下事实统一重生后的时间线：林知夏原始成绩和最终成绩均为1580；周雨原始成绩890，交换后为1210；沈曼原始成绩1210，交换后为890。交换完成后成绩锁定，后续查分、审判、录取和结尾\n  > 均保持这一归属。周雨此前模考从未超过1000。\n  >\n  > 区分“原本属于谁”和“交换后属于谁”。沈曼说周雨拿走自己的分数，应指1210；不能把人物对原始归属的陈述误判为当前成绩矛盾。\n  >\n  > 通读全篇，同步修正相关正文和摘要。前世单独处理，不用重生后的成绩覆盖前世。保持既定交换规则，不擅自颠倒人物角色。",
+      "created_at": "2026-09-17T01:28:56.407907+00:00"
+    },
+    {
+      "revision_id": 14,
+      "state_version": 14,
+      "kind": "repair",
+      "description": "按一致性检查结果修复场景并重新检查",
+      "changed_scene_ids": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "S09",
+        "S10",
+        "S11",
+        "S12"
+      ],
+      "repair_suggestion": "> 保留现有故事主线，重点修复以下问题，并同步修改相关场景正文和摘要：\n  >\n  > 1. 统一换分机制：借笔触发交换，交换对象由笔的原主人决定。沈曼借到周雨的笔，因此与周雨交换成绩。删除第9场中“作弊指控导致交换”“换答题卡”等冲突解释。考试机构只看到交换后的记录，\n  >    不负责触发超自然交换。\n  >\n  > 2. 交换完成即由系统锁定，与是否送分、是否接受审查无关。统一第9—11场的表述，消除“无法送分却已送分锁死”的矛盾。\n  > 3. 只有林知夏保留前世记忆。将沈曼“让你再死一次”等暗示她记得前世的台词改掉；其他人物不能无缘无故知道前世事件。\n  > 4. 重生后的成绩保持不变：林知夏1580；周雨原始890、交换后1210；沈曼原始1210、交换后890。沈曼说“本来是我的1210”指原始归属，不是当前成绩。\n  > 5. 前世单独处理，将不符合SAT计分格式的487统一改为480，不改变女主前世被换走高分的情节。\n  > 6. 英文生成时检查动作和表达：推人不能译成挥拳；不要把“四个字”机械翻成“four words”。台词保持自然、简洁，避免反复解释同一规则。\n  >\n  > 不增加新的系统能力，不改变人物承担的角色，不改动已经一致的重生后分数。",
+      "created_at": "2026-09-17T01:31:27.849323+00:00"
+    },
+    {
+      "revision_id": 15,
+      "state_version": 15,
+      "kind": "repair",
+      "description": "按一致性检查结果修复场景并重新检查",
+      "changed_scene_ids": [
+        "S09",
+        "S10",
+        "S11"
+      ],
+      "repair_suggestion": "> 本轮只消除“按送分记录锁死”“送分后交换才锁定”等残留表述。统一为：交换完成即由超自然系统锁定，送分和考试审查既不触发交换，也不决定锁定。前世480已经符合要求，不要修改；重生后的\n  > 1580、1210、890及其归属也保持不变。",
+      "created_at": "2026-09-17T01:32:48.492199+00:00"
+    },
+    {
+      "revision_id": 16,
+      "state_version": 16,
+      "kind": "repair",
+      "description": "按一致性检查结果修复场景并重新检查",
+      "changed_scene_ids": [
+        "S07",
+        "S08",
+        "S09",
+        "S10",
+        "S11"
+      ],
+      "repair_suggestion": "> 本轮只润色台词、人物反应和叙事节奏，不改变既定情节、时间线、分数归属或换分规则。\n  >\n  > 1. 第9场压缩反派对系统的解释。保留“笔认原主人、借笔触发交换、交换完成不可逆”三个关键信息；删除“送分和审查既不触发交换也不决定锁定”等说明书式台词。让沈曼在愤怒和不甘中自然说出\n  >    真相。\n  >\n  > 2. 第11场删除对锁定规则的重复解释，简洁交代成绩维持、沈曼被定罪和录取被撤销，把篇幅留给人物反应。\n  > 3. 第8场将“老地方／the usual place”改为“学校天台”，避免暗示沈曼也记得前世。\n  > 4. 第7场给周雨增加一个简短的质疑和求证过程，再让她决定与林知夏结盟，不要听到解释后立刻接受一切。\n  > 5. 庭审集中呈现死亡威胁、推人行为和现场证据。删减法官解释前世与系统的长篇台词，必要信息用简短旁白交代。\n  > 6. 英文生成时消除翻译腔，使用自然、简洁、可表演的口语。例如“Zhou Yu became 1210”改为“Zhou Yu got 1210”。不要新增动作、事实或人物记忆。\n  >\n  > 严格保持：只有林知夏记得前世；前世林知夏480；重生后林知夏1580、周雨1210、沈曼890。保留借笔伏笔、天台反制和结尾蓝光，不再反复解释已经交代清楚的规则。",
+      "created_at": "2026-09-17T01:44:40.746474+00:00"
+    }
+  ]
+}

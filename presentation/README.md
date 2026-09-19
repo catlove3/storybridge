@@ -7,3 +7,11 @@
 修改前文件在 `remake/readable_20260917/before/`。重建：`python3.12 presentation/remake/build_readable_deck.py`；重新导出与验证：运行同目录下 `verify_readable.ps1`，再运行 `package_readable.py`。不要用历史生成器覆盖本稿。
 
 Story State 内部结构化结果截图位于 `remake/assets/story_state.png`。它从真实运行冻结文件 `remake/rebirth_final_20260917/evidence/base_state.json` 取值，并明确标注为非访客 UI；重新生成时运行 `node presentation/remake/render_story_state.mjs`。
+
+三张方法证据图位于：
+
+- `remake/assets/evidence_culture_plan.png`：文化节点与选定改编方案。
+- `remake/assets/evidence_dependency_paths.png`：依赖路径、受影响场景清单与判定依据。
+- `remake/assets/evidence_verification_repairs.png`：检查报告与最后五轮按场修复记录。
+
+三张图使用 `remake/evidence/method_evidence.json` 中冻结的真实运行结果，并标注为内部证据排版、非访客 UI。若需从本机完成项目重新取证，先运行 `python3 presentation/remake/export_method_evidence.py`，再运行 `node presentation/remake/render_method_evidence.mjs`。
