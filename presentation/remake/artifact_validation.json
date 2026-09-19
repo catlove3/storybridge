@@ -1,22 +1,29 @@
 {
-  "pptx_sha256": "31e087aa600dc79ee938b94a7a1424833e5ea45c0585d8ff2c1cab3a412f3dd6",
-  "slides": 12,
-  "main_slides": 10,
+  "pptx_sha256": "f8b2963887b436a77c9dbb2e6721de4882c0fdaf8deeacad0e56122dd14ff141",
+  "slides": 16,
+  "main_slides": 13,
   "hidden_slides": [
-    11,
-    12
+    14,
+    15,
+    16
   ],
   "speaker_seconds": 300,
-  "source_scenes": 12,
-  "storybridge_scenes": 12,
-  "baseline_scenes": 12,
-  "text_overflow": 0,
-  "windows_powerpoint_version": "16.0",
-  "windows_video_position_after_2s_ms": 2104,
-  "windows_native_passed": true,
-  "mac_native_tested": false,
-  "pdf_pages": 12,
-  "standalone_video_seconds": 18.0,
-  "storybridge_internal_status": "fail",
-  "known_graph_gap": "CM10 initial propagation returned no downstream scenes"
+  "native_powerpoint_version": "16.0",
+  "native_text_overflow": [],
+  "native_video_position_ms": 2110,
+  "pdf_pages": 16,
+  "exact_quotes_verified": true,
+  "adaptation_requirements_verified": true,
+  "graph_reason_paths_verified": 7,
+  "embedded_evidence_images": 4,
+  "case_pages": [
+    3,
+    8,
+    9
+  ],
+  "case_seconds": 86,
+  "project_seconds": 214,
+  "original_outputs_unchanged": true,
+  "model_rerun": false,
+  "mac_tested": false
 }

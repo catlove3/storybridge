@@ -1,9 +1,6 @@
 {
   "zip": "StoryBridge_展示交付包.zip",
-  "zip_sha256": "e8510a5836633f47dfe98edc2fce6ea7305796766eb31d9a87be35eabf1c6f5d",
-  "zip_files": 26,
-  "zip_bytes": 3762965,
-  "pptx_sha256": "31e087aa600dc79ee938b94a7a1424833e5ea45c0585d8ff2c1cab3a412f3dd6",
-  "windows_native_passed": true,
-  "mac_native_tested": false
+  "zip_sha256": "1e571140505b86af8ee7f180c6882c4ad516b510943c011ecfec0e754453d564",
+  "files": 26,
+  "pptx_sha256": "f8b2963887b436a77c9dbb2e6721de4882c0fdaf8deeacad0e56122dd14ff141"
 }

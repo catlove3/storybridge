@@ -4,12 +4,10 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "../../frontend/node_modules/playwright/index.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const sourcePath = path.join(
-  here,
-  "rebirth_final_20260917/evidence/base_state.json",
-);
+const sourcePath = path.join(here, "evidence/method_evidence.json");
 const outputPath = path.join(here, "assets/story_state.png");
-const state = JSON.parse(fs.readFileSync(sourcePath, "utf8"));
+const evidence = JSON.parse(fs.readFileSync(sourcePath, "utf8"));
+const state = evidence.story_state;
 
 const escapeHtml = (value) => String(value)
   .replaceAll("&", "&amp;")
@@ -23,20 +21,20 @@ const byId = (items, id) => {
   return item;
 };
 
-const characters = ["C01", "C02", "C05"].map((id) => byId(state.characters, id));
-const settings = ["SET05", "SET06"].map((id) => byId(state.settings, id));
+const characters = ["C01", "C02", "C03"].map((id) => byId(state.characters, id));
+const settings = ["SET04", "SET05"].map((id) => byId(state.settings, id));
 const scenes = ["S04", "S05", "S06", "S09", "S10"].map((id) => byId(state.scenes, id));
-const mechanisms = ["CM01", "CM07", "CM08", "CM09"].map((id) => byId(state.culture_mechanisms, id));
-const commitments = ["NC02", "NC01", "NC06"].map((id) => byId(state.commitments, id));
+const mechanisms = ["CM01", "CM12", "CM08", "CM10"].map((id) => byId(state.culture_mechanisms, id));
+const commitments = ["NC01", "NC03", "NC06"].map((id) => byId(state.commitments, id));
 
 const stats = [
-  [state.scenes.length, "场景"],
-  [state.characters.length, "角色"],
-  [state.events.length, "事件"],
-  [state.settings.length, "核心设定"],
-  [state.culture_mechanisms.length, "文化机制"],
-  [state.commitments.length, "叙事承诺"],
-  [state.dependencies.length, "依赖关系"],
+  [evidence.counts.scenes, "场景"],
+  [evidence.counts.characters, "角色"],
+  [evidence.counts.events, "事件"],
+  [evidence.counts.settings, "核心设定"],
+  [evidence.counts.culture_mechanisms, "文化机制"],
+  [evidence.counts.commitments, "叙事承诺"],
+  [evidence.counts.dependencies, "依赖关系"],
 ];
 
 const html = `<!doctype html>
@@ -162,7 +160,7 @@ const html = `<!doctype html>
     </article>
   </section>
   <footer>
-    <span><strong>来源：</strong>真实运行冻结文件 rebirth_final_20260917/evidence/base_state.json</span>
+    <span><strong>来源：</strong>真实完成项目 method_evidence.json · initial Story State v1</span>
     <span>画面仅做展示排版；字段、ID 与统计均取自保存的 StoryState</span>
   </footer>
 </main>

@@ -113,6 +113,24 @@ def main() -> None:
                 "dependencies",
             )
         },
+        "story_state": {
+            "version": original_state["version"],
+            "source_language": original_state["source_language"],
+            "target_language": original_state["target_language"],
+            "target_locale": original_state["target_locale"],
+            "characters": original_state["characters"],
+            "scenes": [
+                {
+                    "id": scene["id"],
+                    "title": scene["title"],
+                    "summary": scene["summary"],
+                }
+                for scene in original_state["scenes"]
+            ],
+            "settings": original_state["settings"],
+            "culture_mechanisms": original_state["culture_mechanisms"],
+            "commitments": original_state["commitments"],
+        },
         "scene_titles": {
             scene["id"]: scene["title"] for scene in current_state["scenes"]
         },

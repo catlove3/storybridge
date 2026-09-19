@@ -22,21 +22,21 @@ try {
   $settings=$presentation.SlideShowSettings
   $settings.ShowType=2
   $settings.StartingSlide=1
-  $settings.EndingSlide=12
+  $settings.EndingSlide=13
   $settings.RangeType=2
   $window=$settings.Run()
   try {
     $report.visiblePlaybackOrder=@()
     $window.View.GotoSlide(1)
-    for ($i=1; $i -le 12; $i++) {
+    for ($i=1; $i -le 13; $i++) {
       $report.visiblePlaybackOrder += $window.View.Slide.SlideIndex
-      if ($i -lt 12) { $window.View.Next() }
+      if ($i -lt 13) { $window.View.Next() }
     }
-    $window.View.GotoSlide(10)
+    $window.View.GotoSlide(11)
     Start-Sleep -Milliseconds 800
     $movie=$null
     foreach ($shape in $window.View.Slide.Shapes) { if ($shape.Type -eq 16) { $movie=$shape; break } }
-    if ($null -eq $movie) { throw 'Missing embedded video on slide 10' }
+    if ($null -eq $movie) { throw 'Missing embedded video on slide 11' }
     $player=$window.View.Player([int]$movie.Id)
     $player.Play()
     Start-Sleep -Milliseconds 2000

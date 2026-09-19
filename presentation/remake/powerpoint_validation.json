@@ -1,58 +1,37 @@
-﻿{
-    "applicationVersion":  "16.0",
-    "pptxSha256":  "31e087aa600dc79ee938b94a7a1424833e5ea45c0585d8ff2c1cab3a412f3dd6",
-    "testedAt":  "2026-09-17T03:13:01.3463451+08:00",
-    "slides":  12,
-    "hiddenSlides":  [
-                         11,
-                         12
-                     ],
-    "textOverflow":  [
-
-                     ],
-    "media":  [
-                  {
-                      "mediaType":  3,
-                      "name":  "StoryBridge_18秒操作演示.mp4",
-                      "durationMs":  18000,
-                      "slide":  8
-                  }
-              ],
-    "nativeExports":  [
-                          "\\\\wsl.localhost\\Ubuntu\\home\\zypca\\zhili\\presentation\\remake\\powerpoint_preview\\01.png",
-                          "\\\\wsl.localhost\\Ubuntu\\home\\zypca\\zhili\\presentation\\remake\\powerpoint_preview\\02.png",
-                          "\\\\wsl.localhost\\Ubuntu\\home\\zypca\\zhili\\presentation\\remake\\powerpoint_preview\\03.png",
-                          "\\\\wsl.localhost\\Ubuntu\\home\\zypca\\zhili\\presentation\\remake\\powerpoint_preview\\04.png",
-                          "\\\\wsl.localhost\\Ubuntu\\home\\zypca\\zhili\\presentation\\remake\\powerpoint_preview\\05.png",
-                          "\\\\wsl.localhost\\Ubuntu\\home\\zypca\\zhili\\presentation\\remake\\powerpoint_preview\\06.png",
-                          "\\\\wsl.localhost\\Ubuntu\\home\\zypca\\zhili\\presentation\\remake\\powerpoint_preview\\07.png",
-                          "\\\\wsl.localhost\\Ubuntu\\home\\zypca\\zhili\\presentation\\remake\\powerpoint_preview\\08.png",
-                          "\\\\wsl.localhost\\Ubuntu\\home\\zypca\\zhili\\presentation\\remake\\powerpoint_preview\\09.png",
-                          "\\\\wsl.localhost\\Ubuntu\\home\\zypca\\zhili\\presentation\\remake\\powerpoint_preview\\10.png",
-                          "\\\\wsl.localhost\\Ubuntu\\home\\zypca\\zhili\\presentation\\remake\\powerpoint_preview\\11.png",
-                          "\\\\wsl.localhost\\Ubuntu\\home\\zypca\\zhili\\presentation\\remake\\powerpoint_preview\\12.png"
-                      ],
-    "playback":  {
-                     "positionAfter2s":  2104,
-                     "stateAfter2s":  0,
-                     "durationMs":  18000
-                 },
-    "visiblePlaybackOrder":  [
-                                 1,
-                                 2,
-                                 3,
-                                 4,
-                                 5,
-                                 6,
-                                 7,
-                                 8,
-                                 9,
-                                 10
-                             ],
-    "currentSlide":  8,
-    "playerTarget":  {
-                         "shapeName":  "StoryBridge_18秒操作演示.mp4",
-                         "shapeId":  6,
-                         "slide":  8
-                     }
+{
+  "applicationVersion": "16.0",
+  "pptxSha256": "f8b2963887b436a77c9dbb2e6721de4882c0fdaf8deeacad0e56122dd14ff141",
+  "testedAt": "2026-09-19T10:34:12.4167769+08:00",
+  "slides": 16,
+  "hiddenSlides": [
+    14,
+    15,
+    16
+  ],
+  "textOverflow": [],
+  "media": [
+    {
+      "slide": 11,
+      "durationMs": 18000
+    }
+  ],
+  "visiblePlaybackOrder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+  ],
+  "playback": {
+    "durationMs": 18000,
+    "positionAfter2s": 2110
+  }
 }

@@ -16,6 +16,598 @@
     "commitments": 7,
     "dependencies": 123
   },
+  "story_state": {
+    "version": 1,
+    "source_language": "zh-CN",
+    "target_language": "English",
+    "target_locale": "en-US",
+    "characters": [
+      {
+        "id": "C01",
+        "name": "林知夏",
+        "role": "protagonist",
+        "description": "前世被沈曼借笔换分、推下天台致死；重生后设局反杀，最终以669分被录取。",
+        "goals": [
+          "阻止沈曼借笔换分",
+          "揭露沈曼的换分与谋杀真相",
+          "保护周雨并让沈曼受到法律制裁"
+        ]
+      },
+      {
+        "id": "C02",
+        "name": "沈曼",
+        "role": "antagonist",
+        "description": "豪门千金，利用借笔换分系统窃取他人高考成绩，前世推林知夏坠楼；重生后误换周雨的笔，最终因故意杀人未遂被定罪。",
+        "goals": [
+          "窃取林知夏的669分",
+          "掩盖换分与谋杀真相",
+          "夺回被换错的487分"
+        ]
+      },
+      {
+        "id": "C03",
+        "name": "周雨",
+        "role": "supporting",
+        "description": "林知夏的同学，笔被林知夏放入笔袋外层，成为换分目标；意外获得487分，与林知夏结盟直播揭露沈曼。",
+        "goals": [
+          "查明自己分数异常的原因",
+          "与林知夏一起让沈曼付出代价",
+          "保住487分并顺利录取"
+        ]
+      },
+      {
+        "id": "C04",
+        "name": "母亲",
+        "role": "minor",
+        "description": "林知夏的母亲，前世因女儿487分崩溃，重生后见证女儿669分录取。",
+        "goals": [
+          "支持女儿高考",
+          "保护女儿"
+        ]
+      },
+      {
+        "id": "C05",
+        "name": "老陈",
+        "role": "minor",
+        "description": "林知夏的班主任，教龄二十年，前世对林知夏487分感到不可思议并申请复核。",
+        "goals": [
+          "帮助学生复核成绩",
+          "维护考试公平"
+        ]
+      },
+      {
+        "id": "C06",
+        "name": "法官",
+        "role": "minor",
+        "description": "庭审法官，明确不审理前世与系统，仅依据现实证据认定沈曼故意杀人未遂。",
+        "goals": [
+          "依法审理案件",
+          "依据现实证据定罪"
+        ]
+      }
+    ],
+    "scenes": [
+      {
+        "id": "S01",
+        "title": "前世·借笔",
+        "summary": "高考最后一科前，沈曼向林知夏借笔，还笔时指尖在笔杆上停留半秒。"
+      },
+      {
+        "id": "S02",
+        "title": "前世·出分之夜",
+        "summary": "林知夏查分487，复核驳回；沈曼以669分登顶，掌心蓝痕褪色。"
+      },
+      {
+        "id": "S03",
+        "title": "前世·天台",
+        "summary": "沈曼在天台承认换分并推林知夏坠楼，伪装成自杀。"
+      },
+      {
+        "id": "S04",
+        "title": "重生·换牌",
+        "summary": "林知夏重生回高考第一天，写下三条计划，并把周雨的笔放入笔袋最外层。"
+      },
+      {
+        "id": "S05",
+        "title": "重生·考场",
+        "summary": "沈曼再次借笔，林知夏递出周雨的笔，沈曼还笔时指尖仍停半秒。"
+      },
+      {
+        "id": "S06",
+        "title": "重演·出分",
+        "summary": "林知夏查得669，周雨查得487，沈曼只考了330并在班级群发截图。"
+      },
+      {
+        "id": "S07",
+        "title": "周雨的分数",
+        "summary": "周雨复核确认487，沈曼脱口说出周雨原分330，暴露换分真相，周雨与林知夏结盟。"
+      },
+      {
+        "id": "S08",
+        "title": "结盟·设局",
+        "summary": "沈曼电话威胁，林知夏录音并约她天台见面，周雨准备直播。"
+      },
+      {
+        "id": "S09",
+        "title": "天台·直播",
+        "summary": "沈曼在天台说出换分规则，直播观看人数暴涨，她逼近林知夏。"
+      },
+      {
+        "id": "S10",
+        "title": "重演·落空与庭审",
+        "summary": "沈曼推人落空，直播曝光，警察逮捕；庭审中法官以现实证据审理。"
+      },
+      {
+        "id": "S11",
+        "title": "清算",
+        "summary": "沈曼因故意杀人未遂被定罪，升学资格取消；官方成绩维持不变，周雨确认录取。"
+      },
+      {
+        "id": "S12",
+        "title": "尾声",
+        "summary": "林知夏与周雨分别收到669和487录取通知，笔被压在玻璃板下，笔杆深处蓝光一闪即灭。"
+      }
+    ],
+    "settings": [
+      {
+        "id": "SET01",
+        "name": "中国高考",
+        "description": "全国统一高等教育入学考试，成绩决定大学录取，社会关注度极高。"
+      },
+      {
+        "id": "SET02",
+        "name": "成绩复核制度",
+        "description": "考生对成绩有异议可申请复核，但复核通常只核对分数加总与录入，不重新评卷，结果多为'成绩无误'。"
+      },
+      {
+        "id": "SET03",
+        "name": "豪门背景",
+        "description": "沈曼出身富裕家庭，父亲能拿出三百万运作复核，社会舆论默认'豪门还这么努力'。"
+      },
+      {
+        "id": "SET04",
+        "name": "超自然换分系统",
+        "description": "借笔后，借笔人的最终公布成绩会与笔主人最终公布成绩对调；成绩公布后交换锁死，无法撤销。"
+      },
+      {
+        "id": "SET05",
+        "name": "中国法庭审判",
+        "description": "法庭只依据现实证据审理现实行为，不承认超自然现象为判决依据。"
+      }
+    ],
+    "culture_mechanisms": [
+      {
+        "id": "CM01",
+        "name": "高考",
+        "description": "中国全国统一高等教育入学考试，成绩决定大学录取，被视为改变命运的关键节点。",
+        "surface_text": [
+          "高考",
+          "最后一科",
+          "查分",
+          "准考证",
+          "估分"
+        ],
+        "scene_ids": [
+          "S01",
+          "S02",
+          "S04",
+          "S05",
+          "S06",
+          "S07",
+          "S11",
+          "S12"
+        ],
+        "friction_level": "high",
+        "narrative_importance": "high",
+        "functions": {
+          "plot": [
+            "motivation",
+            "constraint",
+            "conflict",
+            "revelation",
+            "foreshadowing",
+            "payoff"
+          ],
+          "social": [
+            "status",
+            "institutional_access",
+            "economic_security",
+            "reputation"
+          ],
+          "emotional": [
+            "aspiration",
+            "fear",
+            "suspense",
+            "satisfaction"
+          ]
+        },
+        "adapted_to": null,
+        "adapted_strategy": null
+      },
+      {
+        "id": "CM02",
+        "name": "成绩复核",
+        "description": "考生对高考成绩有异议可申请复核，但复核通常只核对分数加总与录入，不重新评卷，结果多为'成绩无误'。",
+        "surface_text": [
+          "复核",
+          "成绩无误",
+          "复核驳回"
+        ],
+        "scene_ids": [
+          "S02",
+          "S07",
+          "S11"
+        ],
+        "friction_level": "high",
+        "narrative_importance": "medium",
+        "functions": {
+          "plot": [
+            "constraint",
+            "conflict",
+            "revelation"
+          ],
+          "social": [
+            "institutional_access",
+            "reputation"
+          ],
+          "emotional": [
+            "fear",
+            "suspense"
+          ]
+        },
+        "adapted_to": null,
+        "adapted_strategy": null
+      },
+      {
+        "id": "CM03",
+        "name": "豪门",
+        "description": "指非常富有的家族，社会舆论常将豪门子弟与资源、特权联系在一起。",
+        "surface_text": [
+          "豪门",
+          "他那三百万"
+        ],
+        "scene_ids": [
+          "S02",
+          "S03"
+        ],
+        "friction_level": "medium",
+        "narrative_importance": "medium",
+        "functions": {
+          "plot": [
+            "motivation",
+            "revelation"
+          ],
+          "social": [
+            "status",
+            "power",
+            "reputation"
+          ],
+          "emotional": [
+            "humiliation",
+            "aspiration"
+          ]
+        },
+        "adapted_to": null,
+        "adapted_strategy": null
+      },
+      {
+        "id": "CM04",
+        "name": "买复核",
+        "description": "通过金钱运作影响成绩复核结果，属于对考试公平的破坏。",
+        "surface_text": [
+          "买复核",
+          "三百万，是买复核的"
+        ],
+        "scene_ids": [
+          "S03"
+        ],
+        "friction_level": "high",
+        "narrative_importance": "medium",
+        "functions": {
+          "plot": [
+            "motivation",
+            "revelation",
+            "conflict"
+          ],
+          "social": [
+            "power",
+            "institutional_access",
+            "economic_security"
+          ],
+          "emotional": [
+            "fear",
+            "suspense"
+          ]
+        },
+        "adapted_to": null,
+        "adapted_strategy": null
+      },
+      {
+        "id": "CM05",
+        "name": "全校榜首",
+        "description": "在全校范围内考试成绩排名第一，常被学校宣传、媒体采访。",
+        "surface_text": [
+          "全校榜首",
+          "登上全校榜首"
+        ],
+        "scene_ids": [
+          "S02"
+        ],
+        "friction_level": "medium",
+        "narrative_importance": "medium",
+        "functions": {
+          "plot": [
+            "motivation",
+            "revelation"
+          ],
+          "social": [
+            "status",
+            "reputation"
+          ],
+          "emotional": [
+            "aspiration",
+            "satisfaction"
+          ]
+        },
+        "adapted_to": null,
+        "adapted_strategy": null
+      },
+      {
+        "id": "CM06",
+        "name": "志愿填报",
+        "description": "高考后考生填报大学与专业志愿，有截止日期，决定录取去向。",
+        "surface_text": [
+          "志愿填报",
+          "志愿填报截止那天"
+        ],
+        "scene_ids": [
+          "S03"
+        ],
+        "friction_level": "high",
+        "narrative_importance": "medium",
+        "functions": {
+          "plot": [
+            "constraint",
+            "motivation"
+          ],
+          "social": [
+            "institutional_access"
+          ],
+          "emotional": [
+            "fear",
+            "suspense"
+          ]
+        },
+        "adapted_to": null,
+        "adapted_strategy": null
+      },
+      {
+        "id": "CM07",
+        "name": "录取通知书",
+        "description": "高校寄给被录取考生的正式文件，象征升学成功。",
+        "surface_text": [
+          "录取通知",
+          "通知书"
+        ],
+        "scene_ids": [
+          "S11",
+          "S12"
+        ],
+        "friction_level": "low",
+        "narrative_importance": "medium",
+        "functions": {
+          "plot": [
+            "payoff"
+          ],
+          "social": [
+            "status",
+            "institutional_access"
+          ],
+          "emotional": [
+            "satisfaction"
+          ]
+        },
+        "adapted_to": null,
+        "adapted_strategy": null
+      },
+      {
+        "id": "CM08",
+        "name": "故意杀人未遂",
+        "description": "中国刑法罪名，指意图杀人但因意志以外原因未得逞，可判处刑罚。",
+        "surface_text": [
+          "故意杀人未遂"
+        ],
+        "scene_ids": [
+          "S11"
+        ],
+        "friction_level": "low",
+        "narrative_importance": "high",
+        "functions": {
+          "plot": [
+            "payoff",
+            "reversal"
+          ],
+          "social": [
+            "institutional_access"
+          ],
+          "emotional": [
+            "satisfaction"
+          ]
+        },
+        "adapted_to": null,
+        "adapted_strategy": null
+      },
+      {
+        "id": "CM09",
+        "name": "校纪处分",
+        "description": "学校依据校规对违纪学生作出的处分，可影响升学资格。",
+        "surface_text": [
+          "校纪处分"
+        ],
+        "scene_ids": [
+          "S11"
+        ],
+        "friction_level": "medium",
+        "narrative_importance": "medium",
+        "functions": {
+          "plot": [
+            "payoff"
+          ],
+          "social": [
+            "institutional_access",
+            "reputation"
+          ],
+          "emotional": [
+            "satisfaction"
+          ]
+        },
+        "adapted_to": null,
+        "adapted_strategy": null
+      },
+      {
+        "id": "CM10",
+        "name": "升学资格",
+        "description": "学生被高校录取的资格，可因刑事案件或校纪处分被取消。",
+        "surface_text": [
+          "升学资格"
+        ],
+        "scene_ids": [
+          "S11"
+        ],
+        "friction_level": "high",
+        "narrative_importance": "medium",
+        "functions": {
+          "plot": [
+            "payoff"
+          ],
+          "social": [
+            "institutional_access",
+            "status"
+          ],
+          "emotional": [
+            "satisfaction"
+          ]
+        },
+        "adapted_to": null,
+        "adapted_strategy": null
+      },
+      {
+        "id": "CM11",
+        "name": "班级群",
+        "description": "中国学校中班级使用的即时通讯群组，用于通知、交流，也常成为成绩公布后舆论发酵的场所。",
+        "surface_text": [
+          "班级群"
+        ],
+        "scene_ids": [
+          "S06",
+          "S07"
+        ],
+        "friction_level": "low",
+        "narrative_importance": "medium",
+        "functions": {
+          "plot": [
+            "revelation",
+            "conflict"
+          ],
+          "social": [
+            "reputation",
+            "kinship"
+          ],
+          "emotional": [
+            "humiliation",
+            "suspense"
+          ]
+        },
+        "adapted_to": null,
+        "adapted_strategy": null
+      },
+      {
+        "id": "CM12",
+        "name": "直播",
+        "description": "通过网络平台实时传播音视频，观众可同步观看并互动，能形成公共舆论压力。",
+        "surface_text": [
+          "直播",
+          "直播观看人数",
+          "同步直播"
+        ],
+        "scene_ids": [
+          "S08",
+          "S09",
+          "S10"
+        ],
+        "friction_level": "low",
+        "narrative_importance": "high",
+        "functions": {
+          "plot": [
+            "revelation",
+            "payoff",
+            "reversal"
+          ],
+          "social": [
+            "reputation",
+            "power"
+          ],
+          "emotional": [
+            "suspense",
+            "satisfaction"
+          ]
+        },
+        "adapted_to": null,
+        "adapted_strategy": null
+      }
+    ],
+    "commitments": [
+      {
+        "id": "NC01",
+        "description": "沈曼借笔是为了换分，笔是换分锚点。",
+        "established_at_scene_id": "S01",
+        "payoff_scene_id": "S09",
+        "must_preserve": true
+      },
+      {
+        "id": "NC02",
+        "description": "沈曼前世将林知夏推下天台，伪装成自杀。",
+        "established_at_scene_id": "S03",
+        "payoff_scene_id": "S10",
+        "must_preserve": true
+      },
+      {
+        "id": "NC03",
+        "description": "林知夏重生后计划让沈曼推空并录下证据。",
+        "established_at_scene_id": "S04",
+        "payoff_scene_id": "S10",
+        "must_preserve": true
+      },
+      {
+        "id": "NC04",
+        "description": "林知夏将周雨的笔放入笔袋最外层，作为反制手段。",
+        "established_at_scene_id": "S04",
+        "payoff_scene_id": "S07",
+        "must_preserve": true
+      },
+      {
+        "id": "NC05",
+        "description": "沈曼换分系统只认笔原来的主人，借笔人成绩与笔主人最终公布成绩对调，公布后锁死。",
+        "established_at_scene_id": "S09",
+        "payoff_scene_id": "S11",
+        "must_preserve": true
+      },
+      {
+        "id": "NC06",
+        "description": "周雨与林知夏结盟，共同让沈曼付出代价。",
+        "established_at_scene_id": "S07",
+        "payoff_scene_id": "S10",
+        "must_preserve": true
+      },
+      {
+        "id": "NC07",
+        "description": "笔杆深处最后闪过蓝光，暗示超自然系统并未完全消失。",
+        "established_at_scene_id": "S12",
+        "payoff_scene_id": null,
+        "must_preserve": true
+      }
+    ]
+  },
   "scene_titles": {
     "S01": "前世·借笔",
     "S02": "前世·出分之夜",
